@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>images/advertise_here.png</file>
+        <file>images/gradient_main.png</file>
+        <file>images/status_green.png</file>
+        <file>images/status_orange.png</file>
+        <file>images/status_red.png</file>
+    </qresource>
+</RCC>
