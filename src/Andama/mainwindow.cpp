@@ -1,7 +1,7 @@
 /* *************    GNU General Public License    **********************
  *
  * Andama
- * (C) 2014 by Yiannis Bourkelis (yiannis@grbytes.com)
+ * (C) 2014 by Yiannis Bourkelis (hello@andama.org)
  *
  * This file is part of Andama.
  *
