@@ -40,7 +40,8 @@ linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 
 #QMAKE_MAC_SDK = macosx10.11
 
-release:QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'true\'\" #na ginetai comment afti i grammi an thelw na to treksw mesa apo ton QT Creator
+#na ginetai comment afti i grammi an thelw na to treksw mesa apo ton QT Creator
+#release:QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'true\'\"
 
 linux:LIBS += -lXtst -lX11
 
