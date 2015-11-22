@@ -72,7 +72,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
    //qDebug("11. screenshotsWorker.prepareAndSendScreenshotDiff called. Sygrisi me proigoumeno screenshot.");
 
     //dimiourgw antigrafo tou pending screenshot wste na klithei kai pali
-    std::cout << "prepareAndSendScreenshotDiff : Enarksi elegxou screenshot kai apostolis" << std::endl;
+    //std::cout << "prepareAndSendScreenshotDiff : Enarksi elegxou screenshot kai apostolis" << std::endl;
 
     QImage outimg;
 
@@ -146,7 +146,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
             outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
             sendScreenshot(outimg,minx,miny);
-            std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
+            //std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
        }
        else
        {
@@ -159,7 +159,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
            //setScreenshot(qimg,protocol->MSG_SCREENSHOT_DIFF_REQUEST);
 
            sendScreenshot(outimg,0,0);
-           std::cout << "prepareAndSendScreenshotDiff : Apostoli adeiou screenshot" << std::endl;
+           //std::cout << "prepareAndSendScreenshotDiff : Apostoli adeiou screenshot" << std::endl;
        }
 }
 

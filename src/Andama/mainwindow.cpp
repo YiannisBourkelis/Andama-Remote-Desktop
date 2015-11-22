@@ -578,7 +578,7 @@ void MainWindow::mymessageRecieved(int msgType, std::vector<char> cdata,std::vec
            QApplication::beep();
        }
        else if (msgType == protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol.MSG_SCREENSHOT_REQUEST){
-           std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
+           //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
 #ifdef Q_OS_MAC
            //xreiazetai gia na anoigei to monitor se periptwsi
            //pou einai kleisto. Sta windows anoigei mono tou.
@@ -605,9 +605,9 @@ void MainWindow::mymessageRecieved(int msgType, std::vector<char> cdata,std::vec
            }
            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
-           std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
+           //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
            screenshotWrk.setScreenshot(qimg,msgType);
-           std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
+           //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
        }
        else if (msgType == protocol.MSG_SCREENSHOT)
        {
