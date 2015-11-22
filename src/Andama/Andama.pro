@@ -34,7 +34,7 @@ mac:LIBS += -framework CoreFoundation
 mac:LIBS += -framework ApplicationServices
 mac:LIBS += -framework IOKit #xreiazetai gia na ksypnaei to monitor
 
-#gia na ginei compile se ubuntu 14 x64 prepei na orisw ta paths gia kapoio logo
+#@--gia na ginei compile se ubuntu 14 x64 prepei na orisw ta paths tis opengl gia kapoio logo
 linux:QMAKE_LIBS_OPENGL     = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 
