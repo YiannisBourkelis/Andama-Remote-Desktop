@@ -28,7 +28,14 @@
 include(mousekeyb/mousekeyb.pri)
 
 QT       += core gui
+
 CONFIG += c++11
+
+linux:CONFIG += static
+# ./configure -static -prefix /home/yiannis/Qt5.3.2-src -qt-xcb
+# make
+# make install
+
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
 mac:LIBS += -framework CoreFoundation
 mac:LIBS += -framework ApplicationServices
