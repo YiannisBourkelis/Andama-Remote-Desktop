@@ -32,10 +32,3 @@ Makefile*
 #QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
-
-#test
-src/Andama/Andama.pro.user
-src/Andama/Andama.pro.user
-
-*.user
-src/Andama/Andama.pro.user
