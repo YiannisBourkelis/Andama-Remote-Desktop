@@ -36,3 +36,5 @@ Makefile*
 #test
 src/Andama/Andama.pro.user
 src/Andama/Andama.pro.user
+
+*.user
