@@ -34,3 +34,5 @@ Makefile*
 *.qmlproject.user.*
 
 #test
+src/Andama/Andama.pro.user
+src/Andama/Andama.pro.user
