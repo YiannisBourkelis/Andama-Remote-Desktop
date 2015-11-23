@@ -35,7 +35,7 @@ linux:CONFIG += static
 # ./configure -static -prefix /home/yiannis/Qt5.3.2-src -qt-xcb
 # make
 # make install
-#mac
+#linux
 
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
 mac:LIBS += -framework CoreFoundation
