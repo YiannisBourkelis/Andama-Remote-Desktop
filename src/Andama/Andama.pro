@@ -49,7 +49,7 @@ linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 
 #na ginetai comment afti i grammi an thelw na to treksw mesa apo ton QT Creator
 #release:QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'true\'\"
-#commment
+#LINK=/SUBSYSTEM:WINDOWS,5.01
 
 linux:LIBS += -lXtst -lX11
 
