@@ -16,8 +16,4 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-HEADERS = ../openssl/include/openssl/opensslconf.h
-
 SOURCES += main.cpp
-
-INCLUDEPATH += /Users/yiannis/Projects/AndamaRemoteDesktop/AndamaGitHub/Andama-Remote-Desktop/src/openssl/include/openssl

@@ -51,8 +51,6 @@
 #include <random>
 #include <chrono>
 
-#include "../openssl/include/openssl/aes.h"
-
 /* Elegxoi prin ginei deploy
  * --------------------------
  * - PORT_NUMBER = 443  (https port)
