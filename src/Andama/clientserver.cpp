@@ -673,9 +673,9 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         cachedID = std::vector<char> (cmdIDdataBuff.begin()+1+1+idLength,cmdIDdataBuff.begin()+1+1+idLength+cached_idLength);
 
         std::cout << "Client ID recieved from server: " << myID.data() << std::endl;
-        std::vector<char> emtpyv;
+        //std::vector<char> emtpyv;
         setConnectionState(connectionState::connectedWithProxy);
-        emit sig_messageRecieved(MSG_ID, myID,emtpyv);
+        emit sig_messageRecieved(MSG_ID, myID);
 
         if (password.size() == 0){ //efoson den exei dimiourgithei password, to dimiourgw
             password = generateRandomPassword();
@@ -736,8 +736,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
                 setConnectionState(connectedWithOtherAsServer);
 
                 _sendmsg(this->getActiveSocket(), CMD_ACCEPT, vremoteID);//>-------------stelnw sto server oti egine accept tou Andama request, stelnontas to remote id
-                std::vector<char> emtpyv;
-                emit sig_messageRecieved(MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff, emtpyv);
+                //std::vector<char> emtpyv;
+                emit sig_messageRecieved(MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff);
             } else {
                 //to password pou stalthike einai lathos
                 //lamvanw apo to vector tin ip tou client
@@ -764,14 +764,14 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> remain_tries_buff(1);
         int bytes_received = _receivePlain(this->getActiveSocket(),remain_tries_buff);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_WARNING_BAN_IP_WRONG_PWD, cdata, remain_tries_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_WARNING_BAN_IP_WRONG_PWD, remain_tries_buff);
     }
 
     // to id pou zitithike syndesi den yparxei
     else if(command == CMD_CONNECT_ID_NOT_FOUND){
         std::vector<char> emtpyv;
-        emit sig_messageRecieved(MSG_CONNECT_ID_NOT_FOUND, emtpyv, emtpyv);
+        emit sig_messageRecieved(MSG_CONNECT_ID_NOT_FOUND, emtpyv);
     } //CMD_CONNECT_ID_NOT_FOUND
 
     //egine apodoxi tis syndesis pros to remote computer
@@ -782,8 +782,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
 
         setConnectionState(connectionState::connectedWithOtherAsClient);
 
-        std::vector<char> emptyv;
-        emit sig_messageRecieved(MSG_CONNECTION_ACCEPTED, remote_client_id_buff,emptyv);
+        //std::vector<char> emptyv;
+        emit sig_messageRecieved(MSG_CONNECTION_ACCEPTED, remote_client_id_buff);
     }
 
     else if(command == CMD_DISCONNECT_FROM_REMOTE_COMPUTER)
@@ -801,8 +801,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         //qDebug("Lipsi aitimatos apostolis screenshot.");
 
         std::vector<char> emptyv;
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_SCREENSHOT_REQUEST, cdata,emptyv);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_SCREENSHOT_REQUEST,emptyv);
     } // CMD_REQUEST_SREENSHOT
 
     else if(command == CMD_REQUEST_SCREENSHOT_DIFF)
@@ -813,8 +813,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
 
         //qDebug ("4. CMD_REQUEST_SCREENSHOT_DIFF ID: %s. Lipsi aitimatos apostolis screenshot diff. Will emit signal from protocol to ui. Bytes recv: %i",rid.c_str(),bytes_recieved);
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_SCREENSHOT_DIFF_REQUEST,cdata,screenshot_diff_id_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_SCREENSHOT_DIFF_REQUEST,screenshot_diff_id_data_buff);
     } // CMD_REQUEST_SCREENSHOT_DIFF
 
     else if(command == CMD_SCREENSHOT)
@@ -823,8 +823,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> screenshot_data_buff;
         int bytes_received = _receive(this->getActiveSocket(),screenshot_data_buff);
         //qDebug("Screenshot recieved! tΒotal bytes: %i",bytes_received);
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_SCREENSHOT, cdata,screenshot_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_SCREENSHOT,screenshot_data_buff);
     }//CMD_SCREENSHOT
 
     else if(command == CMD_SCREENSHOT_DIFF)
@@ -834,8 +834,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         int bytes_received = _receive(this->getActiveSocket(),screenshot_diff_data_buff);
         //qDebug("DS.1 Diff screenshot recieved! Total bytes: %i. Tha ginei emit sto UI.",bytes_received);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_SCREENSHOT_DIFF, cdata,screenshot_diff_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_SCREENSHOT_DIFF,screenshot_diff_data_buff);
     }//CMD_SCREENSHOT_DIFF
 
     else if(command == CMD_MOUSE)
@@ -843,8 +843,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> mouse_data_buff(10);
         int bytes_received = _receivePlain(this->getActiveSocket(),mouse_data_buff);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_MOUSE, cdata,mouse_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_MOUSE,mouse_data_buff);
     }// send mouse
 
     else if(command == CMD_KEYBOARD)
@@ -852,8 +852,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> keyboard_data_buff(6);
         int bytes_received = _receivePlain(this->getActiveSocket(),keyboard_data_buff);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_KEYBOARD, cdata,keyboard_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_KEYBOARD,keyboard_data_buff);
     }// CMD_KEYBOARD
 
     else if(command == CMD_WARNING_BAN_IP_WRONG_ID)
@@ -861,8 +861,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> warn_remaining_tries_data_buff(1);
         int bytes_received = _receivePlain(this->getActiveSocket(), warn_remaining_tries_data_buff);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_WARNING_BAN_IP_WRONG_ID, cdata,warn_remaining_tries_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_WARNING_BAN_IP_WRONG_ID,warn_remaining_tries_data_buff);
     }// CMD_WARNING_BAN_IP_WRONG_ID
 
     else if(command == CMD_BAN_IP_WRONG_ID)
@@ -870,8 +870,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         std::vector<char> ban_remaining_sec_data_buff(4);
         int bytes_received = _receivePlain(this->getActiveSocket(),ban_remaining_sec_data_buff);
 
-        std::vector<char> cdata;
-        emit sig_messageRecieved(MSG_BAN_IP_WRONG_ID, cdata,ban_remaining_sec_data_buff);
+        //std::vector<char> cdata;
+        emit sig_messageRecieved(MSG_BAN_IP_WRONG_ID,ban_remaining_sec_data_buff);
     }// CMD_BAN_IP_WRONG_ID
 
     else if(command == CMD_ERROR_APP_VERSION_NOT_ACCEPTED)

@@ -92,7 +92,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
         int miny=pendingScreenshot_working_copy.height()+1;
         int maxy=-1;
         int compareOffset = 4;
-        auto start = std::chrono::steady_clock::now();
+        //auto start = std::chrono::steady_clock::now();
         for (int ix=0;ix<pendingScreenshot_working_copy.width();ix+=compareOffset)
         {
              for (int iy=0;iy<pendingScreenshot_working_copy.height();iy+=compareOffset)
@@ -139,10 +139,10 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             pt.end();
             */
 
-            auto end = std::chrono::steady_clock::now();
-            auto diff = end - start;
-            std::cout << std::chrono::duration<double,std::milli>(diff).count() << " ms" <<std::endl;
-           //qDebug("12. screenshotsWorker.prepareAndSendScreenshotDiff  Diaforetika screenshot. Antigrafi kai proetoimasia apostolis.");
+            //auto end = std::chrono::steady_clock::now();
+            //auto diff = end - start;
+            //std::cout << std::chrono::duration<double,std::milli>(diff).count() << " ms" <<std::endl;
+            //qDebug("12. screenshotsWorker.prepareAndSendScreenshotDiff  Diaforetika screenshot. Antigrafi kai proetoimasia apostolis.");
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
             outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
             sendScreenshot(outimg,minx,miny);

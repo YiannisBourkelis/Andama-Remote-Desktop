@@ -212,15 +212,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //cst.clsrv.setMessageRecievedCallback(mymessageRecieved);
     //this->connect(&cst,SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),this,SLOT(mymessageRecieved(int, std::vector<char>,std::vector<char>)));
     this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),
+                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(int, std::vector<char>,std::vector<char>)),
+                  SLOT(mymessageRecieved(const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),
+                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(int,std::vector<char>,std::vector<char>)),
+                  SLOT(non_UI_thread_messageRecieved(const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&protocol,
@@ -278,7 +278,7 @@ void MainWindow::protocol_exception(QString ex)
     msgBox.exec();
 }
 
-void MainWindow::non_UI_thread_messageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata)
+void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata)
 {
     try {
         if (msgType == protocol.MSG_MOUSE)
@@ -433,7 +433,7 @@ void MainWindow::setDefaultGUI()
     ui->lblDesktop->setVisible(false);
 }
 
-void MainWindow::mymessageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata)
+void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vdata)
 {
     try{
 
@@ -443,10 +443,10 @@ void MainWindow::mymessageRecieved(int msgType, std::vector<char> cdata,std::vec
            setDisabledRemoteControlWidgets(false);
 
             qDebug("Thread id inside mymessageRecieved %li", (long)QThread::currentThreadId());
-            std::string strID(cdata.begin(),cdata.end());
+            std::string strID(vdata.begin(),vdata.end());
             QString qs = QString::fromStdString(strID);
             ui->lblID->setText(qs);
-            qDebug() << std::string(cdata.begin(),cdata.end()).c_str();
+            qDebug() << std::string(vdata.begin(),vdata.end()).c_str();
 
             ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
             ui->lblStatus->setText("Ready!");
@@ -514,7 +514,7 @@ void MainWindow::mymessageRecieved(int msgType, std::vector<char> cdata,std::vec
            //efoson epelekse na kanei download to update
            //anoigw to update url ston browser
            if (msgBox.exec() == QMessageBox::Yes){
-               std::string surl(cdata.begin(),cdata.end());
+               std::string surl(vdata.begin(),vdata.end());
                QString qsurl(surl.data());
                QUrl url(qsurl);
                QDesktopServices::openUrl(url);

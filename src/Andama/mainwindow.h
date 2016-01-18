@@ -74,8 +74,8 @@ public:
     About about;
 
 private slots:
-    void mymessageRecieved(int msgType, std::vector<char> cdata, std::vector<char> vdata);
-    void non_UI_thread_messageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata);
+    void mymessageRecieved(const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata);
     void protocol_exception(QString ex);
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();

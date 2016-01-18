@@ -134,12 +134,11 @@ public:
 #endif
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
     void sendKeyboard(int portableVKey, int portableModifiers, int keyEvent);
-    //std::recursive_mutex sendmutex;
     std::mutex sendmutex;
 
 
 signals:
-    void sig_messageRecieved(int msgType,const std::vector<char> &cdata = std::vector<char>(),const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageRecieved(const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 protected:
