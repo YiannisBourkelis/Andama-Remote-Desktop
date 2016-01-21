@@ -27,7 +27,7 @@
 
 include(mousekeyb/mousekeyb.pri)
 
-QT       += core gui
+QT       += core gui quick
 
 CONFIG += c++11
 
@@ -73,6 +73,8 @@ SOURCES += main.cpp\
     keepalive.cpp \
     PasswordProtection.cpp \
     About.cpp \
+    engine.cpp \
+    screenshotprovider.cpp
 
 HEADERS  += clientserver.h \
             mainwindow.h \
@@ -81,6 +83,8 @@ HEADERS  += clientserver.h \
     keepalive.h \
     PasswordProtection.h \
     About.h \
+    engine.h \
+    screenshotprovider.h
 
 FORMS    += mainwindow.ui \
     About.ui
@@ -90,7 +94,11 @@ RESOURCES += \
 
 OTHER_FILES +=
 
+
 #on mac you should set DYLD_LIBRARY_PATH for the OSXObjectiveCBridge build folder like: DYLD_LIBRARY_PATH = /Users/your user name/Projects/AndamaRemoteDesktop/Builds/OSXObjectiveCBridge/Debug  (on Projects > Run > Run Environment)
 macx: LIBS += -L$$PWD/../../../../Builds/OSXObjectiveCBridge/Release/ -lOSXObjectiveCBridge
 INCLUDEPATH += $$PWD/../OSXObjectiveCBridge
 DEPENDPATH += $$PWD/../OSXObjectiveCBridge
+
+DISTFILES += \
+    main.qml

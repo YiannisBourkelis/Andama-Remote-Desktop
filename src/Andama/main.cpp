@@ -19,10 +19,16 @@
  * ***********************************************************************/
 
 #include "mainwindow.h"
+#include "engine.h"
 #include "qapplication.h"
+#include "screenshotprovider.h"
+#include <QGuiApplication>
 #include <QtDebug>
 #include <QFile>
 #include <QTextStream>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QtQml>
 
 //http://www.qtcentre.org/threads/19534-redirect-qDebug()-to-file
 
@@ -61,10 +67,36 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    qInstallMessageHandler(myMessageOutput);
+    bool useQML = true;
+    if (!useQML)
+    {
+        qInstallMessageHandler(myMessageOutput);
 
-    MainWindow w;
-    w.show();
+        MainWindow w;
+        w.show();
 
-    return a.exec();
+        return a.exec();
+    }
+    else{
+
+        //Load translation file
+        /*QTranslator translator;
+        translator.load(QLocale::system(), ":/andama","_",QCoreApplication::applicationDirPath(),".qm");
+        a.installTranslator(&translator);*/
+
+        ScreenshotProvider screenProvider;
+        Engine andamaEngine(&screenProvider);
+
+        QQmlApplicationEngine engine;
+
+
+        qmlRegisterType<clientserver>("engine.andama.com",1,0,"Engine"); //register type to get enum
+        engine.rootContext()->setContextProperty("engine", &andamaEngine);
+        engine.addImageProvider(QLatin1String("remotescreen"), &screenProvider);
+        engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+        andamaEngine.start();
+
+        return a.exec();
+    }
 }

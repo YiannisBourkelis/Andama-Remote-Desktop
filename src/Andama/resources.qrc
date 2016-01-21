@@ -6,4 +6,7 @@
         <file>images/status_orange.png</file>
         <file>images/status_red.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>main.qml</file>
+    </qresource>
 </RCC>
