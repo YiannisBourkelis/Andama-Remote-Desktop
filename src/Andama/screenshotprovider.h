@@ -1,6 +1,9 @@
 #ifndef SCREENSHOTPROVIDER_H
 #define SCREENSHOTPROVIDER_H
+
+#ifndef SERVICE //AndamaService service/daemon does not use qml related code
 #include <QQuickImageProvider>
+
 
 class ScreenshotProvider : public QQuickImageProvider
 {
@@ -17,4 +20,5 @@ public:
 
 };
 
+#endif // SERVICE
 #endif // SCREENSHOTPROVIDER_H

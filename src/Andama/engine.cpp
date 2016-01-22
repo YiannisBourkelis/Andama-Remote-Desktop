@@ -10,6 +10,7 @@
 
 typedef std::vector<char> MyArray; // required for SIGNAL(sig_messageRecieved(const int, const std::vector<char>&))
 
+
 Engine::Engine(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<MyArray>("MyArray");
@@ -38,11 +39,12 @@ Engine::Engine(QObject *parent) : QObject(parent)
                   Qt::ConnectionType::AutoConnection);
 }
 
+#ifndef SERVICE //AndamaService service/daemon does not use qml related code
 Engine::Engine(ScreenshotProvider* provider,QObject* parent) : Engine(parent)
 {
     screenshotProvider = provider;
 }
-
+#endif
 
 void Engine::start(){
     screenshotWrk.protocol = &protocol;
@@ -191,6 +193,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
         case clientserver::MSG_LOCAL_PASSWORD_GENERATED:
             password = QString::fromStdString(protocol.password);
             emit passwordChanged();
+            qDebug() << "Password: " << password;
             break;
         case clientserver::MSG_CONNECTION_ACCEPTED:
             statusErrorLevel = NOERROR;
@@ -277,14 +280,14 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
  #endif
 
 
-            //qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
+            qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
             qimg = QImage(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
             //QImage qimg(QGuiApplication::screens()[QGuiApplication::screens().count()-1]->grabWindow(QApplication::desktop()->winId()).toImage());
             if (qimg.isNull())
             {
                 qDebug("---------> qimg is null!!!");
             }
-            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
+            qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
             //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
             screenshotWrk.setScreenshot(qimg,msgType);
@@ -292,7 +295,9 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             break;
         case clientserver::MSG_SCREENSHOT:
             qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
+#ifndef SERVICE //AndamaService service/daemon does not use qml related code
             screenshotProvider->setFrame(vdata);
+#endif
 
             showRemote = true;
             emit showRemoteChanged();
@@ -300,9 +305,10 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
 
             break;
         case clientserver::MSG_SCREENSHOT_DIFF:
+#ifndef SERVICE //AndamaService service/daemon does not use qml related code
             if ( screenshotProvider->updateFrame(vdata))
                 notifyNewFrame();
-
+#endif
             break;
 
         default:

@@ -2,7 +2,6 @@
 #define ENGINE_H
 
 #include <QObject>
-#include <QQuickImageProvider>
 #include "screenshotsworker.h"
 #include "screenshotprovider.h"
 #include "clientserver.h"
@@ -24,7 +23,9 @@ class Engine : public QObject
 
 public:
     explicit Engine(QObject* parent);
+#ifndef SERVICE //a service/daemon does not use qml related code
     explicit Engine(ScreenshotProvider* provider, QObject* parent = 0);
+#endif
 
     enum StatusErrorLevelEnum{
         NOERROR,
@@ -129,7 +130,9 @@ private:
 
     bool showRemote = false; //Whether the remote screenshot is to be shown
 
+#ifndef SERVICE
     ScreenshotProvider* screenshotProvider;
+#endif
 
 };
 
