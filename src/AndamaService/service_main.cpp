@@ -23,7 +23,7 @@
 
 int main(int argc, char *argv[])
 {
-
+#ifdef Q_OS_WIN
     auto winsta = OpenWindowStation(L"WinSta0", true, GENERIC_ALL);
         qDebug("OpenWindowStation lasterror =%u", GetLastError());
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     SetThreadDesktop(desktop);
     //SwitchDesktop(desktop);
     qDebug("SetThreadDesktop lasterror =%u", GetLastError());
-
+#endif //Q_OS_WIN
 
     AndamaService service(argc, argv);
     return service.exec();
