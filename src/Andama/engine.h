@@ -7,6 +7,12 @@
 #include "clientserver.h"
 #include "keepalive.h"
 
+#ifdef Q_OS_WIN
+#include <QtWinExtras/QtWin>
+#include <qt_windows.h>
+#include <windows.h>
+#endif
+
 class Engine : public QObject
 {
     Q_OBJECT
@@ -22,16 +28,19 @@ class Engine : public QObject
 
 
 public:
-    explicit Engine(QObject* parent);
-#ifndef SERVICE //a service/daemon does not use qml related code
-    explicit Engine(ScreenshotProvider* provider, QObject* parent = 0);
-#endif
+    clientserver protocol;
 
     enum StatusErrorLevelEnum{
-        NOERROR,
-        WARNING,
-        ERROR
+        STATUS_NOERROR,
+        STATUS_WARNING,
+        STATUS_ERROR
     };
+
+    explicit Engine(QObject* parent);
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
+    explicit Engine(ScreenshotProvider* provider, QObject* parent = 0);
+#endif //ANDAMA_SERVICE_MODE
+
 
     QString getId(){ return id;}
     QString getPassword(){ return password;}
@@ -122,7 +131,6 @@ private:
     QString remoteErrorIdText;
     QString remoteErrorPasswordText;
 
-    clientserver protocol;
     QImage lastScreenshot;
     screenshotsWorker screenshotWrk;
     keepalive keepAlive;
@@ -130,9 +138,9 @@ private:
 
     bool showRemote = false; //Whether the remote screenshot is to be shown
 
-#ifndef SERVICE
+#ifndef ANDAMA_SERVICE_MODE
     ScreenshotProvider* screenshotProvider;
-#endif
+#endif //ANDAMA_SERVICE_MODE
 
 };
 

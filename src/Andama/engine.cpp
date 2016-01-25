@@ -39,12 +39,12 @@ Engine::Engine(QObject *parent) : QObject(parent)
                   Qt::ConnectionType::AutoConnection);
 }
 
-#ifndef SERVICE //AndamaService service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
 Engine::Engine(ScreenshotProvider* provider,QObject* parent) : Engine(parent)
 {
     screenshotProvider = provider;
 }
-#endif
+#endif //ANDAMA_SERVICE_MODE
 
 void Engine::start(){
     screenshotWrk.protocol = &protocol;
@@ -183,7 +183,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
         QByteArray image_bytes_uncompressed;
         switch(msgType){
         case clientserver::MSG_ID:
-            statusErrorLevel=NOERROR;
+            statusErrorLevel= STATUS_NOERROR;
             strID = std::string(vdata.begin(),vdata.end());
             id = QString::fromStdString(strID);
 
@@ -196,69 +196,69 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             qDebug() << "Password: " << password;
             break;
         case clientserver::MSG_CONNECTION_ACCEPTED:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             statusText="Remote computer accepted the request. Requesting remote desktop image...";
             protocol.RequestScreenshot();
             break;
         case clientserver::MSG_CONNECT_ID_NOT_FOUND:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             remoteErrorIdText="Remote ID not found";
             statusText="Ready!";
             break;
         case clientserver::MSG_CONNECT_PASSWORD_NOT_CORRECT:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             remoteErrorPasswordText="The password is not correct";
             statusText="Ready!";
             break;
         case clientserver::MSG_BAN_IP_WRONG_PWD:
-            statusErrorLevel = ERROR;
+            statusErrorLevel = STATUS_ERROR;
             remoteErrorPasswordText="";
             statusText="Connection rejected because of multiple wrong password attempts";
             break;
         case clientserver::MSG_WARNING_BAN_IP_WRONG_PWD:
-            statusErrorLevel = WARNING;
+            statusErrorLevel = STATUS_WARNING;
             remoteErrorPasswordText="The password is not correct";
             statusText="The password is not correct. Remaining tries: !";
             break;
         case clientserver::MSG_ERROR_APP_VERSION_NOT_ACCEPTED:
-            statusErrorLevel = ERROR;
+            statusErrorLevel = STATUS_ERROR;
             remoteErrorPasswordText="";
             statusText="Upgrade required";
             break;
         case clientserver::MSG_REMOTE_CLIENT_ACCEPTED:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             statusText="Remote client accepted.";
             //deactivate button
             break;
         case clientserver::MSG_NO_INTERNET_CONNECTION:
             //deactivate remote panel
-            statusErrorLevel = ERROR;
+            statusErrorLevel = STATUS_ERROR;
             statusText="Error connecting. Please make sure you have an internet connection and try again.";
             break;
         case clientserver::MSG_NO_PROXY_CONNECTION:
-            statusErrorLevel = ERROR;
+            statusErrorLevel = STATUS_ERROR;
             statusText="Error connecting with proxy server. Please check your internet connection or try again later";
             break;
         case clientserver::MSG_REMOTE_COMPUTER_DISCONNECTED:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             statusText="Remote computer disconnected. Ready!";
             break;
         case clientserver::MSG_WARNING_BAN_IP_WRONG_ID:
-            statusErrorLevel = WARNING;
+            statusErrorLevel = STATUS_WARNING;
             statusText="Warning! Your IP will be banned because of multiple wrong ID attempts. Remaining tries: ";
             break;
         case clientserver::MSG_BAN_IP_WRONG_ID:
-            statusErrorLevel = ERROR;
+            statusErrorLevel = STATUS_ERROR;
             statusText="Connection rejected because of multiple wrong ID attempts. Please try again after ";
             break;
         case clientserver::MSG_ERROR_CANNOT_CONNECT_SAME_ID:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             remoteErrorIdText="Cannot connect to the same ID";
             statusText= "Ready!";
             break;
         case clientserver::MSG_SCREENSHOT_DIFF_REQUEST:
         case clientserver::MSG_SCREENSHOT_REQUEST:
-            statusErrorLevel = NOERROR;
+            statusErrorLevel = STATUS_NOERROR;
             statusText="Ready!";
             //screenshotWrk.setScreenshot(qimg,msgType);
 
@@ -281,7 +281,129 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
 
 
             qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
+#ifdef Q_OS_WIN
+{
+            //HDESK old_desktop = GetThreadDesktop(GetCurrentThreadId());
+
+            /*
+            LPCWSTR desk = L"Winlogon";
+            HDESK desktop = OpenDesktop(desk, 0, FALSE, DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
+                      DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
+                      DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
+                  DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
+                */
+
+            /*
+            HDESK desktop = OpenInputDesktop(0, FALSE,
+                  DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
+                  DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
+                  DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
+                  DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
+
+                  */
+
+            /*
+            // Get a handle to the interactive window station.
+            HWINSTA hwinsta = OpenWindowStation(_T("winsta0"),               // the interactive window station
+                                        FALSE,                       // handle is not inheritable
+                                        READ_CONTROL | WRITE_DAC);
+                                        */
+
+          /*
+            if (!desktop) {
+              qDebug("unable to OpenInputDesktop(2):%u", GetLastError());
+             // return false;
+            } else {
+                qDebug() << "desktop created";
+            }
+
+            if (!SetThreadDesktop(desktop)) {
+              qDebug("switchToDesktop failed:%u", GetLastError());
+            } else {
+                 qDebug() << "switchToDesktop OK!";
+            }
+            */
+
+            /*
+            //auto hwinsta = OpenWindowStation(L"WinSta0", false, WINSTA_ALL_ACCESS); // when call from windows service OpenWindowStation returns 0
+             auto hwinsta = OpenWindowStation(L"WinSta0", true, GENERIC_ALL);
+                 qDebug("OpenWindowStation lasterror =%u", GetLastError());
+                 qDebug("OpenWindowStation hwinsta= %u", GetLastError());
+             auto hwinsta2 = SetProcessWindowStation(hwinsta);
+                 qDebug("SetProcessWindowStation lasterror =%u", GetLastError());
+                 qDebug("SetProcessWindowStation hwinsta2= %u", GetLastError());
+             auto desktop = OpenDesktop(L"default", 0, true, READ_CONTROL | WRITE_DAC | DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS);
+                 qDebug("OpenDesktop lasterror = %u", GetLastError());
+                 qDebug("OpenDesktop hdesk= %u", GetLastError());
+             bool Success = SetThreadDesktop(desktop);
+                 qDebug("SetThreadDesktop lasterror =%u", GetLastError());
+                 qDebug("SetThreadDesktop Success= %u", GetLastError());
+                 */
+
+            /*
+
+            auto winsta = OpenWindowStation(L"WinSta0", true, GENERIC_ALL);
+                qDebug("OpenWindowStation lasterror =%u", GetLastError());
+
+
+                SECURITY_ATTRIBUTES attributes = {sizeof(SECURITY_ATTRIBUTES), 0, true};
+                attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+                attributes.bInheritHandle = true;
+                //hNewDesktop = CreateDesktop("NewDesktopName", NULL, NULL, 0 , GENERIC_ALL,  &stSecurityAttr);
+
+
+            auto hwinsta2 = SetProcessWindowStation(winsta);
+                qDebug("SetProcessWindowStation lasterror =%u", GetLastError());
+
+
+            // Create the destkop.
+            auto desktop = CreateDesktop(L"newdesktopa",
+                                       NULL,
+                                       NULL,
+                                       0,
+                                       GENERIC_ALL,
+                                       &attributes);
+            qDebug("CreateDesktop lasterror =%u", GetLastError());
+
+
+            //SetThreadDesktop(desktop);
+            SwitchDesktop(desktop);
+            qDebug("SetThreadDesktop lasterror =%u", GetLastError());
+            */
+
+
+            //qDebug() << "SetThreadDesktop (bool): " << SetThreadDesktop(desktop);
+
+            // get the device context of the screen
+            HDC hScreenDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
+            // and a device context to put it in
+            HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+
+            int x = GetDeviceCaps(hScreenDC, HORZRES);
+            int y = GetDeviceCaps(hScreenDC, VERTRES);
+
+            // maybe worth checking these are positive values
+            HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC, x, y);
+
+            // get a new bitmap
+            HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitmap);
+
+            BitBlt(hMemoryDC, 0, 0, x, y, hScreenDC, 0, 0, SRCCOPY);
+            hBitmap = (HBITMAP)SelectObject(hMemoryDC, hOldBitmap);
+
+            qimg = QtWin::fromHBITMAP(hBitmap, QtWin::HBitmapNoAlpha).toImage();
+
+            // clean up
+            DeleteDC(hMemoryDC);
+            DeleteDC(hScreenDC);
+
+            //CloseDesktop(desktop);
+}
+
+            //qimg = QImage(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
+#else
             qimg = QImage(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
+#endif
             //QImage qimg(QGuiApplication::screens()[QGuiApplication::screens().count()-1]->grabWindow(QApplication::desktop()->winId()).toImage());
             if (qimg.isNull())
             {
@@ -295,9 +417,9 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             break;
         case clientserver::MSG_SCREENSHOT:
             qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
-#ifndef SERVICE //AndamaService service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
             screenshotProvider->setFrame(vdata);
-#endif
+#endif //ANDAMA_SERVICE_MODE
 
             showRemote = true;
             emit showRemoteChanged();
@@ -305,10 +427,10 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
 
             break;
         case clientserver::MSG_SCREENSHOT_DIFF:
-#ifndef SERVICE //AndamaService service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
             if ( screenshotProvider->updateFrame(vdata))
                 notifyNewFrame();
-#endif
+#endif //ANDAMA_SERVICE_MODE
             break;
 
         default:

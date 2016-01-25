@@ -1,4 +1,4 @@
-#ifndef SERVICE //AndamaService service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
 #include <QPainter>
 #include "screenshotprovider.h"
 #include "helperfuncs.h"
@@ -57,4 +57,4 @@ void ScreenshotProvider::updateFrame(const QPixmap& updateArea, QPoint regionOrg
     QPainter paint(&currentFrame);
     paint.drawPixmap( QRect(regionOrg, updateArea.size()) , updateArea , updateArea.rect());
 }
-#endif //SERVICE
+#endif //ANDAMA_SERVICE_MODE

@@ -1,7 +1,7 @@
-import QtQuick 2.3 //2.5
+import QtQuick 2.5 //2.3
 import QtQuick.Window 2.2
 import Qt.labs.settings 1.0
-import QtQuick.Controls 1.2 //1.4
+import QtQuick.Controls 1.4 //1.2
 
 import engine.andama.com 1.0
 

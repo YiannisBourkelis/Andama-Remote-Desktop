@@ -1,7 +1,7 @@
 #ifndef SCREENSHOTPROVIDER_H
 #define SCREENSHOTPROVIDER_H
 
-#ifndef SERVICE //AndamaService service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
 #include <QQuickImageProvider>
 
 
@@ -20,5 +20,5 @@ public:
 
 };
 
-#endif // SERVICE
+#endif // ANDAMA_SERVICE_MODE
 #endif // SCREENSHOTPROVIDER_H

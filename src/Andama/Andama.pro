@@ -27,7 +27,8 @@
 
 include(mousekeyb/mousekeyb.pri)
 
-QT       += core gui quick
+QT         += core gui quick
+windows:QT += winextras
 
 CONFIG += c++11
 
@@ -53,6 +54,8 @@ linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 #LINK=/SUBSYSTEM:WINDOWS,5.01
 
 linux:LIBS += -lXtst -lX11
+windows:LIBS += -luser32
+windows:LIBS += -lgdi32
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

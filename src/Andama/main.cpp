@@ -26,9 +26,12 @@
 #include <QtDebug>
 #include <QFile>
 #include <QTextStream>
+
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QtQml>
+#endif //ANDAMA_SERVICE_MODE
 
 //http://www.qtcentre.org/threads/19534-redirect-qDebug()-to-file
 
@@ -67,22 +70,25 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    bool useQML = true;
+    bool useQML = false;
     if (!useQML)
     {
         qInstallMessageHandler(myMessageOutput);
 
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
         MainWindow w;
         w.show();
+#endif //ANDAMA_SERVICE_MODE
 
         return a.exec();
     }
     else{
-
         //Load translation file
         /*QTranslator translator;
         translator.load(QLocale::system(), ":/andama","_",QCoreApplication::applicationDirPath(),".qm");
         a.installTranslator(&translator);*/
+
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
 
         ScreenshotProvider screenProvider;
         Engine andamaEngine(&screenProvider);
@@ -96,6 +102,7 @@ int main(int argc, char *argv[])
         engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
         andamaEngine.start();
+#endif //ANDAMA_SERVICE_MODE
 
         return a.exec();
     }
