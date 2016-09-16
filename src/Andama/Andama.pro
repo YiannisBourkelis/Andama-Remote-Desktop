@@ -47,6 +47,12 @@ mac:LIBS += -framework IOKit #xreiazetai gia na ksypnaei to monitor
 linux:QMAKE_LIBS_OPENGL     = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 
+#se windows build me minGW xreiazetai na prosthetw tis vivliothikes
+win32-g++ {
+LIBS += -lgdi32
+LIBS += -lws2_32
+}
+
 #QMAKE_MAC_SDK = macosx10.11
 
 #na ginetai comment afti i grammi an thelw na to treksw mesa apo ton QT Creator
