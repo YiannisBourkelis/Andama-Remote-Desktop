@@ -135,6 +135,8 @@ void Mouse::scroll(int value)
 }
 
 #else
+
+/*
 void Mouse::moveToPoint(const int x, const int y)
 {
 }
@@ -158,5 +160,6 @@ void Mouse::doubleClick(Qt::MouseButton button)
 void Mouse::scroll(int value)
 {
 }
+*/
 #endif
 

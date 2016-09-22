@@ -146,7 +146,7 @@ static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
 
     static int _sendmsg(const SOCKET socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
     static int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    void cleanup(const SOCKET socketfd);
+    static void cleanup(const SOCKET socketfd);
 #else
     int getActiveSocket();
     void setActiveSocket(const int socket);
