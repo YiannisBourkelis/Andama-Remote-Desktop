@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     {
         qInstallMessageHandler(myMessageOutput);
 
-#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use widgets related code
         MainWindow w;
         w.show();
 #endif //ANDAMA_SERVICE_MODE

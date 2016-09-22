@@ -70,6 +70,7 @@ enum connectMessageType {
     direct = 1
 };
 
+
 class clientserver : public QThread
 {
         Q_OBJECT
@@ -77,6 +78,12 @@ class clientserver : public QThread
 public:
     clientserver();
     const int PORT_NUMBER = 8099;
+
+    std::string remoteIpAddress;
+    int remotePort;
+    bool isClientConnected = false; //prepei na orizetai i arxiki timi giati alliws einai random i timi tis
+
+    static void displayErrno(std::string source);
 
     enum msgType{ MSG_ID = 0,
                   MSG_CONNECTION_ACCEPTED = 1, //to remote pc me enimerwse oti to aitima syndesis egine apodekto
@@ -103,11 +110,25 @@ public:
                  };
 
     //password brute force attack protection
-    const int  MAX_WRONG_PWD_TRIES         = 10;  //10; //default: diplasio apo to MAX_WRONG_ID_TRIES_WARNING
-    const int  MAX_WRONG_PWD_TRIES_WARNING = 5;  //5;
+    static const int  MAX_WRONG_PWD_TRIES         = 10;  //10; //default: diplasio apo to MAX_WRONG_ID_TRIES_WARNING
+    static const int  MAX_WRONG_PWD_TRIES_WARNING = 5;  //5;
+
+#ifdef WIN32
+static bool addWrongPasswordIPProtection(in_addr_t clientIP, SOCKET socketfd);
+#else
+static bool addWrongPasswordIPProtection(in_addr_t clientIP, int socketfd);
+#endif
+    static void resetWrongPasswordIPProtection(in_addr_t clientIP);
+
+#ifdef WIN32
+static bool isIPBannedForWrongPasswords(in_addr_t clientIP, SOCKET socketfd);
+#else
+static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
+#endif
 
     void start_protocol();
     void Connect(const std::vector<char> &remoteID, const std::vector<char> &remotePassword);
+    void ConnectP2P(const std::vector<char> remotePassword);
     void RequestScreenshot();
     void RequestScreenshotDiff();
     void setConnectionState(connectionState state);
@@ -123,24 +144,24 @@ public:
     void setActiveSocket(const SOCKET socket);
     SOCKET getActiveSocket();
 
-    int _sendmsg(const SOCKET socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
+    static int _sendmsg(const SOCKET socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
+    static int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
     void cleanup(const SOCKET socketfd);
 #else
     int getActiveSocket();
     void setActiveSocket(const int socket);
 
-    int _sendmsg(const int socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    void cleanup(const int socketfd);
+    static int _sendmsg(const int socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
+    static int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
+    static void cleanup(const int socketfd);
 #endif
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
     void sendKeyboard(int portableVKey, int portableModifiers, int keyEvent);
-    std::mutex sendmutex;
 
+    static void setRemotePassword(std::string password);
 
 signals:
-    void sig_messageRecieved(const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageRecieved(const clientserver *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 protected:
@@ -161,19 +182,14 @@ private:
 
     void error(const char *msg);
     void proccesCommand(const std::array<char, 1> &command);
-    void displayErrno(std::string source);
     void createConnectCommandData(std::vector<char> &all_data, const std::vector<char> &remoteComputerID, const std::vector<char> &remoteComputerPassword);
-    bool addWrongPasswordIPProtection(in_addr_t clientIP);
-    bool isIPBannedForWrongPasswords(in_addr_t clientIP);
-    void resetWrongPasswordIPProtection(in_addr_t clientIP);
+    void createConnectP2PCommandData(std::vector<char> &all_data, const std::vector<char> remoteComputerPassword);
     OS _remoteComputerOS;
 
     std::string generateRandomPassword(int length = PASSWORD_LENGTH);
 
     connectionState m_connection_state = disconnected;
     std::mutex connection_state_mutex;
-    std::mutex protect_password_mutex;
-    std::map<in_addr_t,PasswordProtection> protect_password;//krataei tis ip pou exoun kanei apopeira syndesis me password pou einai lathos
 
     //random password generator
     //random ID generator

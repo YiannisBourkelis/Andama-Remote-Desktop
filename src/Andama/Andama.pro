@@ -67,27 +67,30 @@ VERSION = 0.1.0
 
 DEFINES += APP_NAME=\\\"$$TARGET\\\"
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+#mac:DEFINES += APP_MAC
 
 SOURCES += main.cpp\
     clientserver.cpp \
-        mainwindow.cpp \
+    mainwindow.cpp \
     screenshotsworker.cpp \
     helperfuncs.cpp \
     keepalive.cpp \
     PasswordProtection.cpp \
     About.cpp \
     engine.cpp \
-    screenshotprovider.cpp
+    screenshotprovider.cpp \
+    p2pserver.cpp
 
 HEADERS  += clientserver.h \
-            mainwindow.h \
+    mainwindow.h \
     screenshotsworker.h \
     helperfuncs.h \
     keepalive.h \
     PasswordProtection.h \
     About.h \
     engine.h \
-    screenshotprovider.h
+    screenshotprovider.h \
+    p2pserver.h
 
 FORMS    += mainwindow.ui \
     About.ui

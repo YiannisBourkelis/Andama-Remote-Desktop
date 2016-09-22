@@ -133,5 +133,30 @@ void Mouse::scroll(int value)
 
     CFRelease(event);
 }
+
+#else
+void Mouse::moveToPoint(const int x, const int y)
+{
+}
+
+void Mouse::selectArea(const int x, const int y)
+{
+}
+
+void Mouse::press(Qt::MouseButton button)
+{
+}
+
+void Mouse::release(Qt::MouseButton button)
+{
+}
+
+void Mouse::doubleClick(Qt::MouseButton button)
+{
+}
+
+void Mouse::scroll(int value)
+{
+}
 #endif
 

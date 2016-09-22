@@ -56,19 +56,35 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
         double x = (double)ke->pos().x() / (double)xscale;
         double y = (double)ke->pos().y() / (double)yscale;
 
-        protocol.sendMouse(nearbyint(x),
-                           nearbyint(y),
-                           ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+        if (p2pclient.isClientConnected){
+            p2pclient.sendMouse(nearbyint(x),
+                               nearbyint(y),
+                               ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
 
-                           e->type() == QEvent::MouseMove           ? 1:
-                           e->type() == QEvent::MouseButtonPress    ? 2:
-                           e->type() == QEvent::MouseButtonRelease  ? 3:
-                           e->type() == QEvent::MouseButtonDblClick ? 4: 0,
+                               e->type() == QEvent::MouseMove           ? 1:
+                               e->type() == QEvent::MouseButtonPress    ? 2:
+                               e->type() == QEvent::MouseButtonRelease  ? 3:
+                               e->type() == QEvent::MouseButtonDblClick ? 4: 0,
 
-                           0,
-                           0,
-                           0);
-        //return true;
+                               0,
+                               0,
+                               0);
+            //return true;
+        }else{
+            protocol.sendMouse(nearbyint(x),
+                               nearbyint(y),
+                               ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+
+                               e->type() == QEvent::MouseMove           ? 1:
+                               e->type() == QEvent::MouseButtonPress    ? 2:
+                               e->type() == QEvent::MouseButtonRelease  ? 3:
+                               e->type() == QEvent::MouseButtonDblClick ? 4: 0,
+
+                               0,
+                               0,
+                               0);
+            //return true;
+        }
 
     }
 
@@ -77,13 +93,23 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
 
        qDebug("wheel:%i, direction:%i",qe->delta(),qe->orientation() == Qt::Orientation::Horizontal ? 1:2);
 
-       protocol.sendMouse(0,
-                          0,
-                          0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
-                          5,
-                          nearbyint(abs(qe->delta() / 10)),
-                          qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
-                          qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       if (p2pclient.isClientConnected){
+           p2pclient.sendMouse(0,
+                              0,
+                              0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+                              5,
+                              nearbyint(abs(qe->delta() / 10)),
+                              qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
+                              qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       }else{
+           protocol.sendMouse(0,
+                              0,
+                              0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+                              5,
+                              nearbyint(abs(qe->delta() / 10)),
+                              qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
+                              qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       }
     }
 
     else if (watched == ui->lblDesktop &&
@@ -115,10 +141,16 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
         portableKeyboardModifier modPKey =  Keyboard::getPortableModifier(ke->key());
 
         if (natPKey != -1 || modPKey != portableKeyboardModifier::NoModifier){
-            protocol.sendKeyboard(natPKey, modPKey,
-
-                                  e->type() == QEvent::KeyPress   ? 1 :
-                                  e->type() == QEvent::KeyRelease ? 2 : 0);
+            if (p2pclient.isClientConnected)
+            {
+                p2pclient.sendKeyboard(natPKey, modPKey,
+                                      e->type() == QEvent::KeyPress   ? 1 :
+                                      e->type() == QEvent::KeyRelease ? 2 : 0);
+            }else{
+                protocol.sendKeyboard(natPKey, modPKey,
+                                      e->type() == QEvent::KeyPress   ? 1 :
+                                      e->type() == QEvent::KeyRelease ? 2 : 0);
+            }
         }
 
     }
@@ -142,7 +174,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     qRegisterMetaType<MyArray>("MyArray");
-
+    qRegisterMetaType<clientserver *>("myClientServer");
     //printsomething();
 
     firstRun = true; //flag pou deixnei oti i efarmogi trexei gia prwti fora.
@@ -211,16 +243,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //cst.clsrv.setMessageRecievedCallback(mymessageRecieved);
     //this->connect(&cst,SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),this,SLOT(mymessageRecieved(int, std::vector<char>,std::vector<char>)));
+
+    // ======== proxy protocol ============
     this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const int, const std::vector<char>&)),
+                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&protocol,
@@ -234,9 +268,49 @@ MainWindow::MainWindow(QWidget *parent) :
                   this,
                   SLOT(slot_protocol_finished_or_terminated()),
                   Qt::ConnectionType::AutoConnection);
+   // ======== end proxy protocol ============
+
+    // ======== p2p client protocol ============
+    this->connect(&p2pclient,
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&p2pclient,
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
+
+    this->connect(&p2pclient,
+                  SIGNAL(sig_exception(QString)),
+                  this,
+                  SLOT(protocol_exception(QString)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&p2pclient,
+                  SIGNAL(finished()),
+                  this,
+                  SLOT(slot_protocol_finished_or_terminated()),
+                  Qt::ConnectionType::AutoConnection);
+   // ======== end p2p client protocol ============
+
+    this->connect(&p2pserver,
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&p2pserver,
+                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
 
     //cst.start();
     screenshotWrk.protocol = &protocol;
+    screenshotWrk.p2pServer = &p2pserver;
     screenshotWrk.imageQuality=80;
     screenshotWrk.start();
 
@@ -244,6 +318,9 @@ MainWindow::MainWindow(QWidget *parent) :
     keepAlive.start();
 
     protocol.start();
+    p2pclient.remotePort=8085;
+    p2pserver.start();
+
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 
     ui->lblDesktop->setMouseTracking((true));
@@ -278,7 +355,7 @@ void MainWindow::protocol_exception(QString ex)
     msgBox.exec();
 }
 
-void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata)
+void MainWindow::non_UI_thread_messageRecieved(const clientserver *client, const int msgType, const std::vector<char>& vdata)
 {
     try {
         if (msgType == protocol.MSG_MOUSE)
@@ -388,6 +465,20 @@ void MainWindow::setDisabledRemoteControlWidgets(bool flag)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (p2pclient.isClientConnected){
+        p2pclient.sendDisconnectFromRemoteComputer();
+        p2pclient.isClientConnected=false;
+        p2pclient.quit();
+
+        setDefaultGUI();
+
+        ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+        ui->lblStatus->setText("Remote computer disconnected. Ready!");
+
+        event->ignore();
+        return;
+    }
+
     if (protocol.getConnectionState() == connectionState::connectedWithOtherAsClient){
         protocol.sendDisconnectFromRemoteComputer();
         setDefaultGUI();
@@ -433,7 +524,7 @@ void MainWindow::setDefaultGUI()
     ui->lblDesktop->setVisible(false);
 }
 
-void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vdata)
+void MainWindow::mymessageRecieved(const clientserver *client, const int msgType,const std::vector<char>& vdata)
 {
     try{
 
@@ -453,6 +544,7 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
         }
        else if (msgType == protocol.MSG_LOCAL_PASSWORD_GENERATED){
             ui->txtLocalPassword->setText(QString::fromStdString(protocol.password));
+            p2pserver.password = protocol.password;
        }
        else if (msgType == protocol.MSG_CONNECTION_ACCEPTED){
            qDebug("O apomakrismenos ypologistis apodexthike ti syndesi!");
@@ -461,7 +553,12 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
            //tou stelnw minima na mou steilei to prwto screenshot
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Remote computer accepted the request. Requesting remote desktop image...");
-           protocol.RequestScreenshot();
+
+           if(p2pclient.isClientConnected == true){
+                p2pclient.RequestScreenshot();
+           }else{
+                protocol.RequestScreenshot();
+           }
        }
        else if (msgType == protocol.MSG_CONNECT_ID_NOT_FOUND){
            ui->lblRemoteIDError->setText("Remote ID not found");
@@ -768,7 +865,15 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
 
         std::string strPassword = ui->txtRemotePassword->text().toStdString();
         std::vector<char> vectRemotePassword = std::vector<char>(strPassword.begin(), strPassword.end());
-        protocol.Connect(vectRemoteID, vectRemotePassword);
+
+        if (ui->txtRemotePCID->text().contains(":")){
+            p2pclient.remotePort=ui->txtRemotePCID->text().split(":")[1].toInt();
+            p2pclient.remoteIpAddress = ui->txtRemotePCID->text().split(":")[0].toStdString();
+            p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
+            p2pclient.start();
+        }else{
+            protocol.Connect(vectRemoteID, vectRemotePassword);
+        }
     } else {
         //den exei kataxwrithei remote id h remote password
         //opote kanw beep kai dinw to focus sto pedio pou den exei symplirwthei

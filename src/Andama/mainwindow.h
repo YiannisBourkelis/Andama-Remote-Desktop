@@ -44,6 +44,7 @@
 #include <iostream>
 #include "About.h"
 #include <QDesktopServices>
+#include "p2pserver.h"
 //#include <appnapcontroller.h>
 
 #ifdef Q_OS_MAC
@@ -68,14 +69,16 @@ public:
     ~MainWindow();
     bool eventFilter(QObject *watched, QEvent *e);
     clientserver protocol;
+    clientserver p2pclient;
+    P2PServer p2pserver;
     QImage lastScreenshot;
     screenshotsWorker screenshotWrk;
     keepalive keepAlive;
     About about;
 
 private slots:
-    void mymessageRecieved(const int msgType, const std::vector<char>& vdata);
-    void non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata);
+    void mymessageRecieved(const clientserver *client, const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageRecieved(const clientserver *client,const int msgType, const std::vector<char>& vdata);
     void protocol_exception(QString ex);
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();

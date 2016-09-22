@@ -35,6 +35,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <qpaintengine.h>
+#include "p2pserver.h"
 
 class screenshotsWorker: public QThread
 {
@@ -43,6 +44,7 @@ public:
     screenshotsWorker();
     void setScreenshot(QImage newScreenshot, const int msg);
     clientserver * protocol;
+    P2PServer * p2pServer;
     std::atomic<int> imageQuality;
 
 protected:

@@ -207,7 +207,11 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
-        protocol->_sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
+        if (p2pServer->isP2PCientConnected){
+            p2pServer->_sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
+        }else{
+            protocol->_sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
+        }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
 
         vimgbytes.clear();

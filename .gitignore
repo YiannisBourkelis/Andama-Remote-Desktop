@@ -32,3 +32,12 @@ Makefile*
 #QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
+src/QtService/.DS_Store
+
+src/OSXObjectiveCBridge/.DS_Store
+
+src/AndamaProxy/.DS_Store
+
+src/Andama/.DS_Store
+
+src/.DS_Store

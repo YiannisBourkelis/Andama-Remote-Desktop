@@ -14,6 +14,7 @@ typedef std::vector<char> MyArray; // required for SIGNAL(sig_messageRecieved(co
 Engine::Engine(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<MyArray>("MyArray");
+    qRegisterMetaType<clientserver *>("myClientServer");
     this->connect(&protocol,
                   SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
                   this,
