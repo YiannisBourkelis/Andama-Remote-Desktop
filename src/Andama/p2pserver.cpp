@@ -790,14 +790,13 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
-            {
+            {                
                 std::vector<char> keyboard_data_buff(6);
-                _receivePlain(socketfd, keyboard_data_buff);
-                // >>>>>>>>>>>>>> int remso = getRemoteComputerSocket(myID);
-                // >>>>>>>>>>>>>> if (remso > 0)
-                {
-                   // >>>>>>>>>>>>>>  _sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
-                }
+                int bytes_received = _receivePlain(socketfd,keyboard_data_buff);
+
+                //std::vector<char> cdata;
+                //emit sig_messageRecieved(NULL, MSG_KEYBOARD,keyboard_data_buff);
+                emit sig_messageRecieved(NULL, 8,keyboard_data_buff);
             } // CMD_KEYBOARD
 
             //hearbeat. Ean den lifthei sto xrono tou socket timeout
