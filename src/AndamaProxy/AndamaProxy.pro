@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QMAKE_MAC_SDK = macosx10.11
+QMAKE_MAC_SDK = macosx10.12
+
 QT       += core
 CONFIG   += c++11
 
