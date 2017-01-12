@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>728</width>
-    <height>380</height>
+    <height>290</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>728</width>
-    <height>380</height>
+    <height>290</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>728</width>
-    <height>380</height>
+    <height>290</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
       <x>0</x>
       <y>0</y>
       <width>728</width>
-      <height>380</height>
+      <height>291</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -593,19 +593,6 @@ color: white;</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-    </widget>
-    <widget class="QWidget" name="widget_3" native="true">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>290</y>
-       <width>728</width>
-       <height>90</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-image: url(:/images/images/advertise_here.png)</string>
-     </property>
     </widget>
    </widget>
    <widget class="QLabel" name="lblDesktop">

@@ -517,9 +517,9 @@ void MainWindow::setDefaultGUI()
     ui->btnConnectToRemoteClient->show();
     ui->btnConnectToRemoteClient->setEnabled(true);
 
-    this->setMaximumSize(728,380);
-    this->setMinimumSize(728,380);
-    this->resize(728,380);
+    this->setMaximumSize(728,290);
+    this->setMinimumSize(728,290);
+    this->resize(728,290);
     ui->mainWidget->setVisible(true);
     ui->lblDesktop->setVisible(false);
 }
