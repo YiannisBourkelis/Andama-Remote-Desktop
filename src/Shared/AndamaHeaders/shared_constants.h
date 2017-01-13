@@ -1,6 +1,7 @@
 #ifndef SHARED_CONSTANTS_H
 #define SHARED_CONSTANTS_H
 
+const int PROXY_PORT_NUMBER = 8090; //PROXY listening port
 
 const std::array<char,1> CMD_PROTOCOL = {{'P'}};
 const std::array<char,1> CMD_CONNECT = {{'C'}};
