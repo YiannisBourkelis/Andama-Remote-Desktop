@@ -21,6 +21,7 @@
 #include "helperfuncs.h"
 
 namespace helperfuncs {
+/*
     void intToBytes(unsigned int value, std::vector<char> &buffer)
     {
         if(buffer.size() == 4){
@@ -64,6 +65,7 @@ namespace helperfuncs {
         std::vector<char> ret(buffer.begin() + begin,buffer.begin() + begin + bytes);
         return bytesToInt(ret);
     }
+*/
 
     OS getOS()
     {

@@ -33,9 +33,9 @@ namespace helperfuncs{
         Linux   = 3
     };
 
-    void intToBytes(unsigned int value, std::vector<char> &buffer);
-    unsigned int bytesToInt(const std::vector<char> &buffer);
-    unsigned int bytesToInt(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes);
+    //void intToBytes(unsigned int value, std::vector<char> &buffer);
+    //unsigned int bytesToInt(const std::vector<char> &buffer);
+    //unsigned int bytesToInt(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes);
     OS getOS();
     //std::vector<std::string> split(const std::string &s, char delim, std::vector<std::string> &elems);
 }

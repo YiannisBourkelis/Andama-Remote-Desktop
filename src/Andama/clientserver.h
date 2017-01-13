@@ -63,13 +63,6 @@ enum connectionState {
     connectedWithOtherAsServer = 3
 };
 
-//prosdiorizei ean o client syndeetai ston host mesw tou proxy
-//h apeftheias (peer-to-peer)
-enum connectMessageType {
-    proxy = 0,
-    direct = 1
-};
-
 
 class clientserver : public QThread
 {
@@ -77,13 +70,11 @@ class clientserver : public QThread
 
 public:
     clientserver();
-    const int PORT_NUMBER = 8099;
+    //const int PORT_NUMBER = 8099;
 
     std::string remoteIpAddress;
     int remotePort;
     bool isClientConnected = false; //prepei na orizetai i arxiki timi giati alliws einai random i timi tis
-
-    static void displayErrno(std::string source);
 
     enum msgType{ MSG_ID = 0,
                   MSG_CONNECTION_ACCEPTED = 1, //to remote pc me enimerwse oti to aitima syndesis egine apodekto
@@ -144,15 +135,11 @@ static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
     void setActiveSocket(const SOCKET socket);
     SOCKET getActiveSocket();
 
-    static int _sendmsg(const SOCKET socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    static int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
     static void cleanup(const SOCKET socketfd);
 #else
     int getActiveSocket();
     void setActiveSocket(const int socket);
 
-    static int _sendmsg(const int socketfd,      const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    static int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
     static void cleanup(const int socketfd);
 #endif
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
@@ -170,12 +157,8 @@ protected:
 private:
 #ifdef WIN32
     SOCKET _activeSocket = INVALID_SOCKET;
-    int _receivePlain(const SOCKET socketfd, std::vector<char> &charbuffer);
-    int _receive(const SOCKET socketfd, std::vector<char> &charbuffer);
 #else
     int _activeSocket;
-    int _receivePlain(const int socketfd, std::vector<char> &charbuffer);
-    int _receive(const int socketfd, std::vector<char> &charbuffer);
 #endif
 
     std::atomic<long> diffRequestCounter;

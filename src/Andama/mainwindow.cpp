@@ -23,6 +23,7 @@
 #include "mainwindow.h"
 #include "osxobjectivecbridge.h"
 #include "chrono"
+#include "../Shared/AndamaHeaders/byte_functions.h"
 
 //xcode-select --install
 //https://bugreports.qt-project.org/browse/QTCREATORBUG-13077?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel

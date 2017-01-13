@@ -2,6 +2,7 @@
 #include <QPainter>
 #include "screenshotprovider.h"
 #include "helperfuncs.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
 
 ScreenshotProvider::ScreenshotProvider(): QQuickImageProvider(QQuickImageProvider::Image)
 {
@@ -42,8 +43,8 @@ bool ScreenshotProvider::updateFrame(const std::vector<char>& compressedBuf)
         updatePixmap.loadFromData(image_bytes_uncompressed);
         updateFrame( updatePixmap,
                 QPoint(
-                    helperfuncs::bytesToInt(compressedBuf,0,2), //x offset
-                    helperfuncs::bytesToInt(compressedBuf,2,2)  //y offset
+                    bytesToInt(compressedBuf,0,2), //x offset
+                    bytesToInt(compressedBuf,2,2)  //y offset
                 ));
         return true;
     }

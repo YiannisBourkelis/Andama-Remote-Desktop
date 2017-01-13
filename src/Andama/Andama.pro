@@ -85,7 +85,10 @@ SOURCES += main.cpp\
     About.cpp \
     engine.cpp \
     screenshotprovider.cpp \
-    p2pserver.cpp
+    p2pserver.cpp \
+    ../Shared/AndamaHeaders/byte_functions.cpp \
+    ../Shared/AndamaHeaders/exception_helper.cpp \
+    ../Shared/AndamaHeaders/socket_functions.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -96,7 +99,12 @@ HEADERS  += clientserver.h \
     About.h \
     engine.h \
     screenshotprovider.h \
-    p2pserver.h
+    p2pserver.h \
+    ../Shared/AndamaHeaders/shared_constants.h \
+    ../Shared/AndamaHeaders/byte_functions.h \
+    ../Shared/AndamaHeaders/shared_enums.h \
+    ../Shared/AndamaHeaders/exception_helper.h \
+    ../Shared/AndamaHeaders/socket_functions.h
 
 FORMS    += mainwindow.ui \
     About.ui

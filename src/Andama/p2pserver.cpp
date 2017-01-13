@@ -1,5 +1,8 @@
 #include "p2pserver.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/AndamaHeaders/shared_constants.h"
 
+/*
 //ta commands pou anagnwrizei o proxy
 const std::array<char,1> CMD_PROTOCOL = {{'P'}};
 const std::array<char,1> CMD_CONNECT = {{'C'}};
@@ -25,7 +28,7 @@ const std::array<char,1> CMD_ERROR_APP_VERSION_NOT_ACCEPTED = {{'V'}}; // epistr
 
 const std::array<char,1> CMD_P2P_PROTOCOL_OK = {{'d'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
 const std::array<char,1> CMD_P2P_CONNECT = {{'N'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
-
+*/
 
 P2PServer::P2PServer()
 {

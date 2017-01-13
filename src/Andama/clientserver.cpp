@@ -19,37 +19,17 @@
  * ***********************************************************************/
 
 #include "clientserver.h"
+#include "../Shared/AndamaHeaders/shared_constants.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/AndamaHeaders/shared_enums.h"
+#include "../Shared/AndamaHeaders/exception_helper.h"
+#include "../Shared/AndamaHeaders/socket_functions.h"
 
 std::vector<char> myID;
 static std::mutex protect_password_mutex;
 static std::map<in_addr_t,PasswordProtection> protect_password;//krataei tis ip pou exoun kanei apopeira syndesis me password pou einai lathos
 static std::mutex sendmutex;
 static std::string remotepassword;
-
-const std::array<char,1> CMD_PROTOCOL = {{'P'}};
-const std::array<char,1> CMD_CONNECT = {{'C'}};
-const std::array<char,1> CMD_CONNECT_ID_NOT_FOUND = {{'c'}}; // stelnetai apo ton server otan den vrethei to id pou zitithike apo CMD_CONNECT
-const std::array<char,1> CMD_QUIT = {{'Q'}};
-const std::array<char,1> CMD_ACCEPT = {{'A'}};
-const std::array<char,1> CMD_ID = {{'I'}};
-const std::array<char,1> CMD_SCREENSHOT = {{'S'}};
-const std::array<char,1> CMD_SCREENSHOT_DIFF = {{'s'}};
-const std::array<char,1> CMD_REQUEST_SCREENSHOT = {{'R'}};
-const std::array<char,1> CMD_REQUEST_SCREENSHOT_DIFF = {{'r'}};
-const std::array<char,1> CMD_MOUSE = {{'M'}}; // mouse
-const std::array<char,1> CMD_KEYBOARD = {{'K'}}; // KEYBOARD
-const std::array<char,1> CMD_DISCONNECT_FROM_REMOTE_COMPUTER = {{'D'}}; // disconnect from remote computer
-const std::array<char,1> CMD_HEART_BEAT = {{'H'}};
-const std::array<char,1> CMD_BAN_IP_WRONG_ID = {{'B'}}; // synolika 5 bytes
-const std::array<char,1> CMD_WARNING_BAN_IP_WRONG_ID= {{'W'}}; // synolika 2 bytes
-const std::array<char,1> CMD_CONNECT_PASSWORD_NOT_CORRECT= {{'p'}}; // synolika 1 byte
-const std::array<char,1> CMD_BAN_IP_WRONG_PWD = {{'b'}}; //synolika ena byte (mono to commanfd)
-const std::array<char,1> CMD_WARNING_BAN_IP_WRONG_PWD= {{'w'}}; // synolika 2 bytes
-const std::array<char,1> CMD_ERROR_APP_VERSION_NOT_ACCEPTED = {{'V'}}; // epistrefei to URL pros ti selida pou tha katevasei o xristis tin neoteri ekdosi tis efarmogis
-const std::array<char,1> CMD_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = {{'v'}}; // (mono command)
-
-const std::array<char,1> CMD_P2P_PROTOCOL_OK = {{'d'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
-const std::array<char,1> CMD_P2P_CONNECT = {{'N'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
 
 clientserver::clientserver()
 {
@@ -94,6 +74,8 @@ void clientserver::cleanup(const SOCKET socketfd)
 void clientserver::cleanup(const int socketfd)
 #endif
 {
+    int a;
+    a=1;
     /*
     try
     {
@@ -107,23 +89,9 @@ void clientserver::cleanup(const int socketfd)
     */
 }
 
-//http://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
-void clientserver::displayErrno(std::string source)
-{
-#ifdef WIN32
-    int ilasterror = WSAGetLastError();
-    std::cout << std::this_thread::get_id() << " " <<
-                 "###### [source: " << source <<  "]  displayErrno - WSAGetLastError: " << strerror(ilasterror) << std::endl;
-#else
-    int ilasterror = errno;
-    std::cout << std::this_thread::get_id() << " " <<
-                 "###### [source: " << source <<  "]  displayErrno - errno: " << strerror(ilasterror) << std::endl;
-#endif
-}
-
 void clientserver::sendHeartBeat()
 {
-    clientserver::_sendmsgPlain(this->getActiveSocket(),CMD_HEART_BEAT);
+    _sendmsgPlain(this->getActiveSocket(),CMD_HEART_BEAT);
 }
 
 void clientserver::setRemoteComputerOS(OS os)
@@ -157,7 +125,7 @@ void clientserver::sendKeyboard(int portableVKey, int portableModifiers, int key
     intToBytes(keyEvent,_keyEvent);
     msg[5] = _keyEvent[0];
 
-    clientserver::_sendmsgPlain(this->getActiveSocket(),CMD_KEYBOARD,msg);
+    _sendmsgPlain(this->getActiveSocket(),CMD_KEYBOARD,msg);
 }
 
 void clientserver::setRemotePassword(std::string password)
@@ -207,7 +175,7 @@ void clientserver::sendMouse(int x, int y, int button,int mouseEvent, int wheelD
     intToBytes(wheelOrientation,_wheelOrientation);
     msg[9] = _wheelOrientation[0];
 
-    clientserver::_sendmsgPlain(this->getActiveSocket(),CMD_MOUSE,msg);
+    _sendmsgPlain(this->getActiveSocket(),CMD_MOUSE,msg);
 }
 
 void clientserver::setConnectionState(connectionState state)
@@ -226,235 +194,7 @@ void clientserver::sendDisconnectFromRemoteComputer()
 {
     //1 byte
      setConnectionState(connectionState::connectedWithProxy);
-    clientserver::_sendmsgPlain(this->getActiveSocket(),CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
-}
-
-#ifdef WIN32
-int clientserver::_sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message)
-#else
-int clientserver::_sendmsgPlain(const int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)
-#endif
-{
-    //int timeout = 50;
-    //int ilen = sizeof(int);
-    //getsockopt(socketfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, &ilen);
-
-    std::vector<char> msg(1);
-    msg[0]=command[0];
-
-    if (message.size() > 0){
-        msg.insert(msg.begin()+1, message.begin(),message.end());
-    }
-
-    int total = 0;        // how many bytes we've sent
-    { // lock_guard scope
-        std::lock_guard<std::mutex> lock(sendmutex);
-        //sendmutex.lock();
-
-        //std::cout << std::this_thread::get_id() << " Socketfd: " << socketfd << std::endl;
-
-        //prepei na vevaiwthooume oti stalthike olo to mynhma
-        size_t bytesleft = msg.size(); // how many we have left to send
-        int n;
-        while (total < msg.size()){     
-            n = send(socketfd,msg.data()+total,bytesleft,0);
-            if (n < 0){
-                clientserver::displayErrno("bytes send < 0 ----> int clientserver::_sendmsgPlain(const int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-                break;
-            }
-            else if (n == 0)
-            {
-                std::cout << "-----> send returned 0 bytes. Expected: " << msg.size() <<
-                             "  [ int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message) ]" << std::endl;
-                clientserver::displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-                return 0;
-            }
-            total+=n;
-            bytesleft-=n;
-        }
-
-        //sendmutex.unlock();
-    } // lock_guard scope
-
-    if (total != (int)msg.size()){
-        std::cout << "----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected." << std::endl;
-        cleanup((socketfd));
-        throw std::runtime_error(std::string("----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected."));
-    }
-    return total;
-}
-
-
-#ifdef WIN32
-int clientserver::_sendmsg(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message)
-#else
-int clientserver::_sendmsg(const int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)
-#endif
-{
-    //qDebug("15. clientserver::sendmsg called");
-
-    std::vector<char> msg(5);
-    int len = message.size();
-
-    //qDebug("16. Message len: %i",len);
-
-    std::vector<char> lenb(4);
-    intToBytes(len,lenb);
-
-    msg[0]=command[0];
-    msg[1]=lenb[0];
-    msg[2]=lenb[1];
-    msg[3]=lenb[2];
-    msg[4]=lenb[3];
-
-    msg.insert(msg.begin()+5, message.begin(),message.end());
-
-    int total = 0;        // how many bytes we've sent
-    //qDebug("17. Will lock send socket (sendmutex)");
-    { // lock_guard scope
-        std::lock_guard<std::mutex> lock(sendmutex);
-        //sendmutex.lock();
-        //qDebug("18. Will send Command: %s. Total bytes: %lu",&msg.at(0),msg.size());
-        //std::cout << std::this_thread::get_id() << " Socketfd: " << socketfd << std::endl;
-
-        //prepei na vevaiwthooume oti stalthike olo to mynhma
-        size_t bytesleft = msg.size(); // how many we have left to send
-        int n;
-        while (total < msg.size()){
-            n = send(socketfd,msg.data()+total,bytesleft,0);
-            if (n < 0){
-                break;
-            }
-            else if (n == 0)
-            {
-                std::cout << "-----> send returned 0 bytes. Expected: " << msg.size() <<
-                             "  [ int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message) ]" << std::endl;
-                clientserver::displayErrno("int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)");
-                return 0;
-            }
-            total+=n;
-            bytesleft-=n;
-        }
-
-        //qDebug("19. Command: %s send. Total bytes returned from socket: %i",&msg[0],total);
-        //sendmutex.unlock();
-    } // lock_guard scope
-    //qDebug("############ 19. send socket unlocked (sendmutex). END");
-
-    if (total != (int)msg.size()){
-        std::cout << "----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected." << std::endl;
-        cleanup((socketfd));
-        throw std::runtime_error(std::string("----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected."));
-    }
-    return total;
-}
-
-#ifdef WIN32
-int clientserver::_receivePlain(const SOCKET socketfd, std::vector<char> &charbuffer)
-#else
-int clientserver::_receivePlain(const int socketfd, std::vector<char> &charbuffer)
-#endif
-{
-    size_t bytes_cnt_payload=0;
-
-    while(bytes_cnt_payload < charbuffer.size())
-    {
-        int bytes_rcv_payload = recv(socketfd,charbuffer.data() + bytes_cnt_payload,charbuffer.size() - bytes_cnt_payload, 0);
-
-        if (bytes_rcv_payload == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [int clientserver::_receivePlain(int socketfd, std::vector<char> &charbuffer)]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv_payload == -1){
-            displayErrno("int clientserver::_receivePlain(int socketfd, std::vector<char> &charbuffer)");
-            return -1;
-        }
-
-        bytes_cnt_payload += bytes_rcv_payload;
-    }
-
-    if (bytes_cnt_payload != charbuffer.size()){
-        std::cout << "----> EXCEPTION IN recieve func int clientserver::_receivePlain(int socketfd, std::vector<char> &charbuffer). Bytes recieved not equal to bytes expected. Expected: " << charbuffer.size() << " recieved: " << bytes_cnt_payload << std::endl;
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected.\n"));
-    }
-
-    return bytes_cnt_payload;
-}
-
-#ifdef WIN32
-int clientserver::_receive(const SOCKET socketfd, std::vector<char> &charbuffer)
-#else
-int clientserver::_receive(const int socketfd, std::vector<char> &charbuffer)
-#endif
-{
-    //-----------
-    //prwto meros: lamvano to synolo twn bytes poy anamenontai
-    //sto payload
-    size_t bytes_needed = 4;
-    std::vector<char> len_bytes(4);
-    size_t bytes_cnt=0;
-
-    while(bytes_cnt < bytes_needed)
-    {
-        int bytes_rcv = recv(socketfd, len_bytes.data() + bytes_cnt, bytes_needed - bytes_cnt, 0);
-
-        if (bytes_rcv == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [first while loop]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv == -1){
-            displayErrno("int clientserver::_receive(int socketfd, std::vector<char> &charbuffer) - first while loop");
-            return -1;
-        }
-
-        bytes_cnt += bytes_rcv;
-    }
-
-    if (bytes_needed != bytes_cnt){
-        std::cout << "----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed << " recieved: " << bytes_cnt << std::endl;
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected."));
-    }
-
-    //-----------
-
-    //deftero meros: lamvanw to payload
-    size_t bytes_needed_payload = bytesToInt(len_bytes);
-    //prostasia wste na min mporei i efarmogi na lavei panw apo
-    //20MB me ti mia. Amyntikos programmatismos.
-    if (bytes_needed_payload < 20971520){ //maximum peripou 20 MB gia prostasia
-        charbuffer.resize(bytes_needed_payload);
-    }
-    else {
-        std::cout << "Error on _receive: cannot receive more than 20971520 bytes at once" << std::endl;
-        throw std::runtime_error("_receive > cannot receive more than 20971520 bytes at once");
-    }
-    size_t bytes_cnt_payload = 0;
-
-    while(bytes_cnt_payload < bytes_needed_payload)
-    {
-        int bytes_rcv_payload = recv(socketfd,charbuffer.data() + bytes_cnt_payload,bytes_needed_payload - bytes_cnt_payload, 0);
-
-        if (bytes_rcv_payload == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [second while loop]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv_payload == -1){
-            displayErrno("int clientserver::_receive(int socketfd, std::vector<char> &charbuffer) - second while loop");
-            return -1;
-        }
-
-        bytes_cnt_payload += bytes_rcv_payload;
-    }
-
-    if (bytes_cnt_payload != bytes_needed_payload){
-        std::cout << "----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed_payload << " recieved: " << bytes_cnt_payload << std::endl;
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected."));
-    }
-
-    return bytes_cnt_payload + bytes_cnt;
+    _sendmsgPlain(this->getActiveSocket(),CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
 }
 
 //aitisi connect se allo ypologisti
@@ -484,7 +224,7 @@ void clientserver::RequestScreenshotDiff(){
     diffRequestCounter++;
     std::string cnt = std::to_string(diffRequestCounter);
     std::vector<char> msg(cnt.begin(),cnt.end());
-    clientserver::_sendmsg(this->getActiveSocket(),CMD_REQUEST_SCREENSHOT_DIFF,msg);
+    _sendmsg(this->getActiveSocket(),CMD_REQUEST_SCREENSHOT_DIFF,msg);
     //qDebug ("Egine apostoli aitimatos CMD_REQUEST_SCREENSHOT_DIFF me ID: %s kai perimeno to screenshot diff.",cnt.c_str());
     //_sendmsg(localsocket,CMD_REQUEST_SCREENSHOT_DIFF,1);
 }
@@ -523,7 +263,7 @@ bool clientserver::isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd)
         // *** BAN ***
         // exei ginei ban.
         // enimerwnw kai ton client
-        clientserver::_sendmsgPlain(socketfd,CMD_BAN_IP_WRONG_PWD);
+        _sendmsgPlain(socketfd,CMD_BAN_IP_WRONG_PWD);
         return true;
     }
 
@@ -561,7 +301,7 @@ bool clientserver::addWrongPasswordIPProtection(in_addr_t clientIP, int socketfd
         protect_password[clientIP] = pwprotect;
 
         //enimerwnw kai ton client pou ekane to aitima
-        clientserver::_sendmsgPlain(socketfd,CMD_CONNECT_PASSWORD_NOT_CORRECT);
+        _sendmsgPlain(socketfd,CMD_CONNECT_PASSWORD_NOT_CORRECT);
 
         return true;
     }
@@ -577,7 +317,7 @@ bool clientserver::addWrongPasswordIPProtection(in_addr_t clientIP, int socketfd
             //kseperase to megisto orio lathos prospathiwn
             //opote kanw ban tin ip kai
             //enimerwnw ton client oti exei ginei ban
-            clientserver::_sendmsgPlain(socketfd,CMD_BAN_IP_WRONG_PWD);
+            _sendmsgPlain(socketfd,CMD_BAN_IP_WRONG_PWD);
             return false;
         }
         else {
@@ -588,7 +328,7 @@ bool clientserver::addWrongPasswordIPProtection(in_addr_t clientIP, int socketfd
                 int remain = clientserver::MAX_WRONG_PWD_TRIES - pwprotect.wrongIDCounter;
                 std::vector<char> vremain(1);
                 intToBytes(remain, vremain);
-                clientserver::_sendmsgPlain(socketfd,CMD_WARNING_BAN_IP_WRONG_PWD,vremain);
+                _sendmsgPlain(socketfd,CMD_WARNING_BAN_IP_WRONG_PWD,vremain);
                 return true;
             }
             else {
@@ -597,7 +337,7 @@ bool clientserver::addWrongPasswordIPProtection(in_addr_t clientIP, int socketfd
                 //ola ok
 
                 //enimerwnw kai ton client pou ekane to aitima
-                clientserver::_sendmsgPlain(socketfd,CMD_CONNECT_PASSWORD_NOT_CORRECT);
+                _sendmsgPlain(socketfd,CMD_CONNECT_PASSWORD_NOT_CORRECT);
 
                 return true;
             }
@@ -1044,7 +784,7 @@ void clientserver::start_protocol()
             //serv_addr.sin_port = htons(8085);
         }else{
             //proxy
-            serv_addr.sin_port = htons(PORT_NUMBER);
+            serv_addr.sin_port = htons(PROXY_PORT_NUMBER);
         }
 
         int conres = ::connect(this->getActiveSocket(),(struct sockaddr *) &serv_addr,sizeof(serv_addr));
@@ -1102,7 +842,7 @@ void clientserver::start_protocol()
                     return;
                 }
                 else if (bytes_recv == -1){
-                    clientserver::displayErrno("void clientserver::start_protocol() ## bytes_recv == -1 ## [MAIN command loop]. Returning from function.");
+                    displayErrno("void clientserver::start_protocol() ## bytes_recv == -1 ## [MAIN command loop]. Returning from function.");
 
         #ifdef WIN32
                     closesocket(this->getActiveSocket());

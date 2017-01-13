@@ -19,6 +19,8 @@
  * ***********************************************************************/
 
 #include "screenshotsworker.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/AndamaHeaders/socket_functions.h"
 
 screenshotsWorker::screenshotsWorker()
 {
@@ -208,9 +210,9 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
         if (p2pServer->isP2PCientConnected){
-            p2pServer->_sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
+            _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{
-            protocol->_sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
+            _sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
         }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
 

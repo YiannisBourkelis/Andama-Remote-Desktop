@@ -17,4 +17,16 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    ../Shared/AndamaHeaders/byte_functions.cpp \
+    ../Shared/AndamaHeaders/socket_functions.cpp \
+    ../Shared/AndamaHeaders/exception_helper.cpp
+
+HEADERS += \
+    ../Shared/AndamaHeaders/shared_constants.h \
+    ../Shared/AndamaHeaders/byte_functions.h \
+    ../Shared/AndamaHeaders/shared_enums.h \
+    clientinfo.h \
+    ipprotection.h \
+    ../Shared/AndamaHeaders/socket_functions.h \
+    ../Shared/AndamaHeaders/exception_helper.h

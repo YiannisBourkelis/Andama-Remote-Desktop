@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "mousekeyb/Mouse.h"
 #include "mousekeyb/Keyboard.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
 
 #ifdef Q_OS_MAC
 #include "osxobjectivecbridge.h"
