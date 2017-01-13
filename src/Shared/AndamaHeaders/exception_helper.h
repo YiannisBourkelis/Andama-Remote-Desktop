@@ -6,8 +6,7 @@
 #include <thread>
 
 #ifdef WIN32
-#define NOMINMAX
-#include <stdio.h>
+#include <ws2tcpip.h>
 #else
 #include "sys/time.h"
 #endif
