@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <cstring> //gia to errno kai strerr se linux
 
 #ifdef WIN32
 #include <ws2tcpip.h>
