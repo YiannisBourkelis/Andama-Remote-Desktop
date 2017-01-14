@@ -46,6 +46,7 @@ mac:LIBS += -framework IOKit #xreiazetai gia na ksypnaei to monitor
 #@--gia na ginei compile se ubuntu 14 x64 prepei na orisw ta paths tis opengl gia kapoio logo
 linux:QMAKE_LIBS_OPENGL     = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
 linux:QMAKE_LIBS_OPENGL_QT  = /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1
+#se CENTOS x64 to path einai /usr/lib64/libGL.so.1
 
 #se windows build me minGW xreiazetai na prosthetw tis vivliothikes
 win32-g++ {
