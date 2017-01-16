@@ -4,7 +4,8 @@
 #include <QObject>
 #include "screenshotsworker.h"
 #include "screenshotprovider.h"
-#include "clientserver.h"
+//#include "clientserver.h"
+#include "protocolsupervisor.h"
 #include "keepalive.h"
 
 #ifdef Q_OS_WIN
@@ -28,7 +29,7 @@ class Engine : public QObject
 
 
 public:
-    clientserver protocol;
+    protocolSupervisor protocol_supervisor;
 
     enum StatusErrorLevelEnum{
         STATUS_NOERROR,
@@ -59,19 +60,19 @@ public:
         std::vector<char> vectRemotePass = std::vector<char>(strRemotePasw.begin(),strRemotePasw.end());
         statusText="Connecting to remote computer...";
         emit statusTextChanged();
-        protocol.Connect(vectRemoteID,vectRemotePass);
+        protocol_supervisor.protocol.Connect(vectRemoteID,vectRemotePass);
 
     }
 
     Q_INVOKABLE void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation){
-        protocol.sendMouse(x, y, button, mouseEvent, wheelDelta, wheelDeltaSign, wheelOrientation);
+        protocol_supervisor.protocol.sendMouse(x, y, button, mouseEvent, wheelDelta, wheelDeltaSign, wheelOrientation);
     }
 
     Q_INVOKABLE void sendKeyboard(quint32 portableVKey, int key, bool autoRepeat, int count, int portableModifiers, int keyEvent){
         Q_UNUSED(key);Q_UNUSED(autoRepeat);Q_UNUSED(count);
 
         //FIXME handle portable key like  : //portableVKey natPKey = Keyboard::getPortableVKey(portableVKey,key);
-        protocol.sendKeyboard(portableVKey, portableModifiers, keyEvent);
+        protocol_supervisor.protocol.sendKeyboard(portableVKey, portableModifiers, keyEvent);
     }
 
 

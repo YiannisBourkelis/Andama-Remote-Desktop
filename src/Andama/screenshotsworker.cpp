@@ -40,7 +40,7 @@ void screenshotsWorker::run(void){
             } // lock_guard scope
             //qDebug("10. screenshotsWorker: isDirty set to false. pendingScreenshot_mutex.unlock()");
 
-            if (this->pendingMsg.load() == this->protocol->MSG_SCREENSHOT_DIFF_REQUEST){
+            if (this->pendingMsg.load() == this->protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST){
                 this->prepareAndSendScreenshotDiff();
             }
             else
@@ -186,7 +186,7 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
          std::array<char,1> cmd;
 
          std::vector<char> vimgbytes;
-         if(pendingMsg.load() == protocol->MSG_SCREENSHOT_DIFF_REQUEST)
+         if(pendingMsg.load() == protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST)
          {
              cmd[0] = 's';
 
@@ -212,7 +212,7 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
         if (p2pServer->isP2PCientConnected){
             _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{
-            _sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
+            _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vimgbytes);
         }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
 

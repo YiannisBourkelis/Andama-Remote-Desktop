@@ -23,21 +23,21 @@ void keepalive::run(void){
 
         if (time_span.count() >= HEARTBEAT_RATE)
         {
-            if (protocol->getConnectionState() != connectionState::disconnected){
+            if (protocol_supervisor->protocol.getConnectionState() != connectionState::disconnected){
                 try {
                     setLastHeartBeat(std::chrono::high_resolution_clock::now()); //thetw ton xrono prin kalesw to sendHeartBeat, wste se periptwsi exception na mi kaleitai synexeia to sendHeartBeat
-                    if (protocol->isRunning()){
-                        protocol->sendHeartBeat();
+                    if (protocol_supervisor->isRunning()){
+                        protocol_supervisor->protocol.sendHeartBeat();
                     } else {
-                        protocol->setConnectionState(connectionState::disconnected);
-                        protocol->start();
+                        protocol_supervisor->protocol.setConnectionState(connectionState::disconnected);
+                        protocol_supervisor->start();
                     }
                 } catch (std::exception& ex) {
                 //    //TODO: thelei kaliteri diaxeirisi tis aposyndesis tou socket.
-                    protocol->setConnectionState(connectionState::disconnected);
+                    protocol_supervisor->protocol.setConnectionState(connectionState::disconnected);
                     //protocol->start();
                 } catch ( ... ) {
-                    protocol->setConnectionState(connectionState::disconnected);
+                    protocol_supervisor->protocol.setConnectionState(connectionState::disconnected);
                     //protocol->start();
                 }
             }

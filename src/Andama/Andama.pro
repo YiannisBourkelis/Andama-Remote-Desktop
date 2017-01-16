@@ -89,7 +89,11 @@ SOURCES += main.cpp\
     p2pserver.cpp \
     ../Shared/AndamaHeaders/byte_functions.cpp \
     ../Shared/AndamaHeaders/exception_helper.cpp \
-    ../Shared/AndamaHeaders/socket_functions.cpp
+    ../Shared/AndamaHeaders/socket_functions.cpp \
+    clientsocket.cpp \
+    clientserverprotocol.cpp \
+    serversocket.cpp \
+    protocolsupervisor.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -105,7 +109,11 @@ HEADERS  += clientserver.h \
     ../Shared/AndamaHeaders/byte_functions.h \
     ../Shared/AndamaHeaders/shared_enums.h \
     ../Shared/AndamaHeaders/exception_helper.h \
-    ../Shared/AndamaHeaders/socket_functions.h
+    ../Shared/AndamaHeaders/socket_functions.h \
+    clientsocket.h \
+    clientserverprotocol.h \
+    serversocket.h \
+    protocolsupervisor.h
 
 FORMS    += mainwindow.ui \
     About.ui

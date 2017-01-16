@@ -478,7 +478,7 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
         emit sig_messageRecieved(this,MSG_ID, myID);
 
         if (password.size() == 0){ //efoson den exei dimiourgithei password, to dimiourgw
-            password = generateRandomPassword();
+            password = generateRandomPassword(PASSWORD_LENGTH);
             emit sig_messageRecieved(this,MSG_LOCAL_PASSWORD_GENERATED);
         }
     } // CMD_ID
@@ -775,6 +775,7 @@ void clientserver::start_protocol()
             qDebug() << ">>>>>>>>>>>>>>  remoteport:" << remotePort;
             qDebug() << ">>>>>>>>>>>>>>  RemotePassword:" << QString(remotepassword.c_str());
 
+            //to xrisimopoio gia domiki p2pclient
         if (remotePort != 0) {
             //p2p
             qDebug() << ">>>>>>>>>>>>> remoteIpAddress" << remoteIpAddress.c_str();
@@ -783,7 +784,7 @@ void clientserver::start_protocol()
             serv_addr.sin_port = htons(remotePort);
             //serv_addr.sin_port = htons(8085);
         }else{
-            //proxy
+            //sybdesi mesw proxy
             serv_addr.sin_port = htons(PROXY_PORT_NUMBER);
         }
 

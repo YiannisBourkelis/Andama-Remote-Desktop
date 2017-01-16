@@ -33,6 +33,15 @@ namespace helperfuncs{
         Linux   = 3
     };
 
+
+    enum connectionState {
+        disconnected = 0,
+        connectedWithProxy = 1,
+        connectedWithOtherAsClient = 2,
+        connectedWithOtherAsServer = 3
+    };
+
+
     //void intToBytes(unsigned int value, std::vector<char> &buffer);
     //unsigned int bytesToInt(const std::vector<char> &buffer);
     //unsigned int bytesToInt(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes);

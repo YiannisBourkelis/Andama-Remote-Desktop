@@ -72,7 +72,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
                                0);
             //return true;
         }else{
-            protocol.sendMouse(nearbyint(x),
+            protocol_supervisor.protocol.sendMouse(nearbyint(x),
                                nearbyint(y),
                                ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
 
@@ -103,7 +103,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
                               qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
                               qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
        }else{
-           protocol.sendMouse(0,
+           protocol_supervisor.protocol.sendMouse(0,
                               0,
                               0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
                               5,
@@ -148,7 +148,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
                                       e->type() == QEvent::KeyPress   ? 1 :
                                       e->type() == QEvent::KeyRelease ? 2 : 0);
             }else{
-                protocol.sendKeyboard(natPKey, modPKey,
+               protocol_supervisor.protocol.sendKeyboard(natPKey, modPKey,
                                       e->type() == QEvent::KeyPress   ? 1 :
                                       e->type() == QEvent::KeyRelease ? 2 : 0);
             }
@@ -246,25 +246,25 @@ MainWindow::MainWindow(QWidget *parent) :
     //this->connect(&cst,SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),this,SLOT(mymessageRecieved(int, std::vector<char>,std::vector<char>)));
 
     // ======== proxy protocol ============
-    this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+    this->connect(&protocol_supervisor.protocol,
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+    this->connect(&protocol_supervisor.protocol,
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(sig_exception(QString)),
                   this,
                   SLOT(protocol_exception(QString)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor,
                   SIGNAL(finished()),
                   this,
                   SLOT(slot_protocol_finished_or_terminated()),
@@ -297,6 +297,26 @@ MainWindow::MainWindow(QWidget *parent) :
                   Qt::ConnectionType::AutoConnection);
    // ======== end p2p client protocol ============
 
+    // ======== client socket  ============
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
+
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_exception(QString)),
+                  this,
+                  SLOT(protocol_exception(QString)),
+                  Qt::ConnectionType::AutoConnection);
+    // ======== client socket  ============
+
     this->connect(&p2pserver,
                   SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   this,
@@ -310,15 +330,16 @@ MainWindow::MainWindow(QWidget *parent) :
                   Qt::ConnectionType::DirectConnection);
 
     //cst.start();
-    screenshotWrk.protocol = &protocol;
+    screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.p2pServer = &p2pserver;
     screenshotWrk.imageQuality=80;
     screenshotWrk.start();
 
-    keepAlive.protocol = &protocol;
+    keepAlive.protocol_supervisor = &protocol_supervisor;
     keepAlive.start();
 
-    protocol.start();
+    protocol_supervisor.start();
+    //protocol.start();
     p2pclient.remotePort=8085;
     p2pserver.start();
 
@@ -335,8 +356,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //kaleitai sto protocol thread
 void MainWindow::slot_protocol_finished_or_terminated()
 {
-    protocol.setConnectionState(connectionState::disconnected);
-    while (protocol.isRunning()) {
+    protocol_supervisor.protocol.setConnectionState(connectionState::disconnected);
+    while (protocol_supervisor.isRunning()) {
         std::chrono::milliseconds sleep_dura(10);
         std::this_thread::sleep_for(sleep_dura);
     }
@@ -346,7 +367,7 @@ void MainWindow::slot_protocol_finished_or_terminated()
         setDefaultGUI();
     }
 
-    protocol.start();
+    protocol_supervisor.start();
 }
 
 void MainWindow::protocol_exception(QString ex)
@@ -356,10 +377,10 @@ void MainWindow::protocol_exception(QString ex)
     msgBox.exec();
 }
 
-void MainWindow::non_UI_thread_messageRecieved(const clientserver *client, const int msgType, const std::vector<char>& vdata)
+void MainWindow::non_UI_thread_messageRecieved(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata)
 {
     try {
-        if (msgType == protocol.MSG_MOUSE)
+        if (msgType == protocol_supervisor.protocol.MSG_MOUSE)
         {
             int _xpos       = bytesToInt(vdata,0,2);
             int _ypos       = bytesToInt(vdata,2,2);
@@ -387,7 +408,7 @@ void MainWindow::non_UI_thread_messageRecieved(const clientserver *client, const
 
         } // MSG_MOUSE
 
-        else if (msgType == protocol.MSG_KEYBOARD)
+        else if (msgType == protocol_supervisor.protocol.MSG_KEYBOARD)
         {
             int _portableVKey       = bytesToInt(vdata,0,4);
             int _portableModifiers = bytesToInt(vdata,4,1);
@@ -401,7 +422,7 @@ void MainWindow::non_UI_thread_messageRecieved(const clientserver *client, const
 
              if (_portableVKey == portableVKey::PVK_CAPSLOCK){
 #ifdef Q_OS_MAC
-                if (protocol.getRemoteComputerOS() == OS::Windows){
+                if (protocol_supervisor.protocol.getRemoteComputerOS() == OS::Windows){
                     //ta windows gia to plikro caps stlenoun press kai release kathe fora
                     //opote edw tha prepei na steilw tin mia fora mono press
                     //kai tin epomeni fora mono release.
@@ -480,8 +501,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 
-    if (protocol.getConnectionState() == connectionState::connectedWithOtherAsClient){
-        protocol.sendDisconnectFromRemoteComputer();
+    if (protocol_supervisor.protocol.getConnectionState() == connectionState::connectedWithOtherAsClient){
+        protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
         setDefaultGUI();
 
         ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
@@ -489,7 +510,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         event->ignore();
     }
-    else if (protocol.getConnectionState() == connectionState::connectedWithOtherAsServer){
+    else if (protocol_supervisor.protocol.getConnectionState() == connectionState::connectedWithOtherAsServer){
         //preidopoiw ton xristi oti yparxei syndedemenos ypologistis kai  oti tha diakopei i syndesi
         QMessageBox msgBox;
         msgBox.setText("Andama");
@@ -501,7 +522,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         if (msgBox.exec() == QMessageBox::Yes){
             event->accept();
-            protocol.sendDisconnectFromRemoteComputer();
+            protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
         }else {
             event->ignore();
         }
@@ -525,11 +546,11 @@ void MainWindow::setDefaultGUI()
     ui->lblDesktop->setVisible(false);
 }
 
-void MainWindow::mymessageRecieved(const clientserver *client, const int msgType,const std::vector<char>& vdata)
+void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int msgType,const std::vector<char>& vdata)
 {
     try{
 
-       if (msgType == protocol.MSG_ID){
+       if (msgType == protocol_supervisor.protocol.MSG_ID){
            //AppNapController::EnableAppNap();
 
            setDisabledRemoteControlWidgets(false);
@@ -543,11 +564,11 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
             ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
             ui->lblStatus->setText("Ready!");
         }
-       else if (msgType == protocol.MSG_LOCAL_PASSWORD_GENERATED){
-            ui->txtLocalPassword->setText(QString::fromStdString(protocol.password));
-            p2pserver.password = protocol.password;
+       else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
+            ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.password));
+            p2pserver.password = protocol_supervisor.protocol.password;
        }
-       else if (msgType == protocol.MSG_CONNECTION_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECTION_ACCEPTED){
            qDebug("O apomakrismenos ypologistis apodexthike ti syndesi!");
 
            //otan lavw minima apodoxis tis syndesis apo ton allo ypologisti
@@ -558,10 +579,10 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            if(p2pclient.isClientConnected == true){
                 p2pclient.RequestScreenshot();
            }else{
-                protocol.RequestScreenshot();
+                protocol_supervisor.protocol.RequestScreenshot();
            }
        }
-       else if (msgType == protocol.MSG_CONNECT_ID_NOT_FOUND){
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECT_ID_NOT_FOUND){
            ui->lblRemoteIDError->setText("Remote ID not found");
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
@@ -569,7 +590,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblStatus->setText("Ready!");
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_CONNECT_PASSWORD_NOT_CORRECT){
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECT_PASSWORD_NOT_CORRECT){
            ui->lblRemotePasswordError->setText("The password is not correct");
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
@@ -577,14 +598,14 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblStatus->setText("Ready!");
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_BAN_IP_WRONG_PWD){
+       else if (msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_PWD){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Connection rejected because of multiple wrong password attempts");
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_WARNING_BAN_IP_WRONG_PWD){
+       else if (msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_PWD){
            ui->lblRemotePasswordError->setText("The password is not correct");
            ui->txtRemotePassword->setFocus();
            ui->btnConnectToRemoteClient->setVisible(true);
@@ -597,7 +618,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblStatus->setText(QString::fromStdString(str2));
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_ERROR_APP_VERSION_NOT_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_ERROR_APP_VERSION_NOT_ACCEPTED){
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Upgrade required");
 
@@ -619,7 +640,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            }else {
            }
        }
-       else if (msgType == protocol.MSG_REMOTE_CLIENT_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_REMOTE_CLIENT_ACCEPTED){
            qDebug("Apodexthika ti syndesi tou remote pc.");
            //AppNapController::DisableAppNap();
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
@@ -628,23 +649,23 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            lastMainWindowPosition = this->pos();
            this->showMinimized();
        }
-       else if(msgType == protocol.MSG_NO_INTERNET_CONNECTION){
+       else if(msgType == protocol_supervisor.protocol.MSG_NO_INTERNET_CONNECTION){
            setDisabledRemoteControlWidgets(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Error connecting. Please make sure you have an internet connection and try again.");
        }
-       else if(msgType == protocol.MSG_NO_PROXY_CONNECTION){
+       else if(msgType == protocol_supervisor.protocol.MSG_NO_PROXY_CONNECTION){
            setDisabledRemoteControlWidgets(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Error connecting with proxy server. Please check your internet connection or try again later");
        }
-       else if(msgType == protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
+       else if(msgType == protocol_supervisor.protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
            //AppNapController::EnableAppNap();
            setDefaultGUI();
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Remote computer disconnected. Ready!");
        }
-       else if(msgType == protocol.MSG_WARNING_BAN_IP_WRONG_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
 
@@ -655,7 +676,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblStatus->setText(QString::fromStdString(str3));
            QApplication::beep();
        }
-       else if(msgType == protocol.MSG_BAN_IP_WRONG_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
 
@@ -667,7 +688,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblStatus->setText(QString::fromStdString(str4));
            QApplication::beep();
        }
-       else if(msgType == protocol.MSG_ERROR_CANNOT_CONNECT_SAME_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_ERROR_CANNOT_CONNECT_SAME_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
            ui->lblStatus->setText("Ready!");
@@ -675,7 +696,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            ui->lblRemoteIDError->setText("Cannot connect to the same ID");
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol.MSG_SCREENSHOT_REQUEST){
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
            //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
 #ifdef Q_OS_MAC
            //xreiazetai gia na anoigei to monitor se periptwsi
@@ -683,7 +704,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            //Sto linux den exw dokimasei (todo)
            //Kanonika xreiazetai hook wste na vlepei kai sti synexeia
            //ean to monitor koimatai wste na to anoigei (todo)
-           if (msgType == protocol.MSG_SCREENSHOT_REQUEST){
+           if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
                 IOPMAssertionID assertionID;
                 IOPMAssertionDeclareUserActivity(CFSTR(""),
                                                  kIOPMUserActiveLocal,
@@ -707,7 +728,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
            screenshotWrk.setScreenshot(qimg,msgType);
            //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
        }
-       else if (msgType == protocol.MSG_SCREENSHOT)
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
        {
            lastMainWindowPosition = this->pos();
 
@@ -772,7 +793,7 @@ void MainWindow::mymessageRecieved(const clientserver *client, const int msgType
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
        }
-       else if (msgType == protocol.MSG_SCREENSHOT_DIFF)
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
@@ -873,7 +894,7 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
             p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
             p2pclient.start();
         }else{
-            protocol.Connect(vectRemoteID, vectRemotePassword);
+            protocol_supervisor.protocol.Connect(vectRemoteID, vectRemotePassword);
         }
     } else {
         //den exei kataxwrithei remote id h remote password

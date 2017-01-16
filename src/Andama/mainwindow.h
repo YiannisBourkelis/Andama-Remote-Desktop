@@ -23,7 +23,9 @@
 
 #include "ui_mainwindow.h"
 #include "screenshotsworker.h"
-#include "clientserver.h"
+//#include "clientserver.h"
+//#include "clientserverprotocol.h"
+#include "protocolsupervisor.h"
 #include <QMainWindow>
 #include <QString>
 #include "qdebug.h"
@@ -68,7 +70,8 @@ public:
     void connectToServer();
     ~MainWindow();
     bool eventFilter(QObject *watched, QEvent *e);
-    clientserver protocol;
+    //clientServerProtocol protocol;
+    protocolSupervisor protocol_supervisor;
     clientserver p2pclient;
     P2PServer p2pserver;
     QImage lastScreenshot;
@@ -77,8 +80,8 @@ public:
     About about;
 
 private slots:
-    void mymessageRecieved(const clientserver *client, const int msgType, const std::vector<char>& vdata);
-    void non_UI_thread_messageRecieved(const clientserver *client,const int msgType, const std::vector<char>& vdata);
+    void mymessageRecieved(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageRecieved(const clientServerProtocol *client,const int msgType, const std::vector<char>& vdata);
     void protocol_exception(QString ex);
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();

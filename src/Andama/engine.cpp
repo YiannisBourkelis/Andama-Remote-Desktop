@@ -16,25 +16,25 @@ Engine::Engine(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<MyArray>("MyArray");
     qRegisterMetaType<clientserver *>("myClientServer");
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
                   this,
                   SLOT(mymessageReceived(const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
                   this,
                   SLOT(non_UI_thread_messageRecieved(const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(sig_exception(QString)),
                   this,
                   SLOT(protocol_exception(QString)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(finished()),
                   this,
                   SLOT(slot_protocol_finished_or_terminated()),
@@ -49,26 +49,26 @@ Engine::Engine(ScreenshotProvider* provider,QObject* parent) : Engine(parent)
 #endif //ANDAMA_SERVICE_MODE
 
 void Engine::start(){
-    screenshotWrk.protocol = &protocol;
+    screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.imageQuality=80;
     screenshotWrk.start();
 
-    keepAlive.protocol = &protocol;
+    keepAlive.protocol_supervisor = &protocol_supervisor;
     keepAlive.start();
 
-    protocol.start();
+    protocol_supervisor.start();
 
 }
 
 
 void Engine::slot_protocol_finished_or_terminated()
 {
-    protocol.setConnectionState(connectionState::disconnected);
-    while (protocol.isRunning()) {
+    protocol_supervisor.protocol.setConnectionState(connectionState::disconnected);
+    while (protocol_supervisor.isRunning()) {
         std::chrono::milliseconds sleep_dura(10);
         std::this_thread::sleep_for(sleep_dura);
     }
-    protocol.start();
+    protocol_supervisor.start();
 }
 
 void Engine::protocol_exception(QString ex)
@@ -80,7 +80,7 @@ void Engine::protocol_exception(QString ex)
 void Engine::non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata)
 {
     try {
-        if (msgType == protocol.MSG_MOUSE)
+        if (msgType == protocol_supervisor.protocol.MSG_MOUSE)
         {
             int _xpos       = bytesToInt(vdata,0,2);
             int _ypos       = bytesToInt(vdata,2,2);
@@ -109,7 +109,7 @@ void Engine::non_UI_thread_messageRecieved(const int msgType, const std::vector<
 
         } // MSG_MOUSE
 
-        else if (msgType == protocol.MSG_KEYBOARD)
+        else if (msgType == protocol_supervisor.protocol.MSG_KEYBOARD)
         {
             int _portableVKey       = bytesToInt(vdata,0,4);
             int _portableModifiers = bytesToInt(vdata,4,1);
@@ -123,7 +123,7 @@ void Engine::non_UI_thread_messageRecieved(const int msgType, const std::vector<
 
              if (_portableVKey == portableVKey::PVK_CAPSLOCK){
 #ifdef Q_OS_MAC
-                if (protocol.getRemoteComputerOS() == OS::Windows){
+                if (protocol_supervisor.protocol.getRemoteComputerOS() == OS::Windows){
                     //ta windows gia to plikro caps stlenoun press kai release kathe fora
                     //opote edw tha prepei na steilw tin mia fora mono press
                     //kai tin epomeni fora mono release.
@@ -193,14 +193,14 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             emit idChanged();
             break;
         case clientserver::MSG_LOCAL_PASSWORD_GENERATED:
-            password = QString::fromStdString(protocol.password);
+            password = QString::fromStdString(protocol_supervisor.protocol.password);
             emit passwordChanged();
             qDebug() << "Password: " << password;
             break;
         case clientserver::MSG_CONNECTION_ACCEPTED:
             statusErrorLevel = STATUS_NOERROR;
             statusText="Remote computer accepted the request. Requesting remote desktop image...";
-            protocol.RequestScreenshot();
+            protocol_supervisor.protocol.RequestScreenshot();
             break;
         case clientserver::MSG_CONNECT_ID_NOT_FOUND:
             statusErrorLevel = STATUS_NOERROR;
@@ -271,7 +271,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             //Sto linux den exw dokimasei (todo)
             //Kanonika xreiazetai hook wste na vlepei kai sti synexeia
             //ean to monitor koimatai wste na to anoigei (todo)
-            if (msgType == protocol.MSG_SCREENSHOT_REQUEST){
+            if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
                  IOPMAssertionID assertionID;
                  IOPMAssertionDeclareUserActivity(CFSTR(""),
                                                   kIOPMUserActiveLocal,

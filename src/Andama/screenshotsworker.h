@@ -23,7 +23,8 @@
 
 #include "helperfuncs.h"
 #include <QThread>
-#include "clientserver.h"
+//#include "clientserver.h"
+#include "protocolsupervisor.h"
 #include <QImage>
 #include <atomic>
 #include <QMutexLocker>
@@ -43,7 +44,7 @@ class screenshotsWorker: public QThread
 public:
     screenshotsWorker();
     void setScreenshot(QImage newScreenshot, const int msg);
-    clientserver * protocol;
+    protocolSupervisor * protocol_supervisor;
     P2PServer * p2pServer;
     std::atomic<int> imageQuality;
 

@@ -50,19 +50,12 @@
 #include <thread>
 #include <array>
 #include <random>
+
 #include "PasswordProtection.h"
 
 using namespace helperfuncs;
 
 const unsigned int PASSWORD_LENGTH = 4; // default 6
-
-enum connectionState {
-    disconnected = 0,
-    connectedWithProxy = 1,
-    connectedWithOtherAsClient = 2,
-    connectedWithOtherAsServer = 3
-};
-
 
 class clientserver : public QThread
 {
@@ -169,7 +162,7 @@ private:
     void createConnectP2PCommandData(std::vector<char> &all_data, const std::vector<char> remoteComputerPassword);
     OS _remoteComputerOS;
 
-    std::string generateRandomPassword(int length = PASSWORD_LENGTH);
+    std::string generateRandomPassword(int length);
 
     connectionState m_connection_state = disconnected;
     std::mutex connection_state_mutex;
