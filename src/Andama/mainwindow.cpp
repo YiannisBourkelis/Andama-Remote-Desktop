@@ -441,7 +441,7 @@ void MainWindow::non_UI_thread_messageRecieved(const clientServerProtocol *clien
                     _keyEvent = -1;//to an tha ginei press h release to xeirizomai me tis pio panw metavlites press/release
                 }
 #elif defined Q_OS_WIN || defined Q_OS_LINUX
-                if (protocol.getRemoteComputerOS() == OS::MacOS){
+                if (protocol_supervisor.protocol.getRemoteComputerOS() == OS::MacOS){
                     //otan to trexon leitourgiko einai windows h LINUX kai to remote computer
                     //einai mac, simainei oti mas stelnei mia fora caps press
                     //kai argotera mia fora caps release.
