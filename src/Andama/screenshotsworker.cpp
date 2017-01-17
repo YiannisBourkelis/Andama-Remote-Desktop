@@ -18,6 +18,10 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
+#ifdef WIN32
+#define NOMINMAX
+#endif
+
 #include "screenshotsworker.h"
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"

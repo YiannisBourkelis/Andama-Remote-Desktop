@@ -162,7 +162,7 @@ int UPnPCommands::getSocket(std::string deviceIP, unsigned short int devicePort)
             iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
             if (iResult != 0) {
                 std::cout << "WSAStartup failed: " << iResult << std::endl;
-                return;
+                return -1;
             }
         #endif
 

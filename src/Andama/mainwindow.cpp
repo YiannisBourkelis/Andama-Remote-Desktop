@@ -20,6 +20,10 @@
  *
  * ***********************************************************************/
 
+#ifdef WIN32
+#define NOMINMAX
+#endif
+
 #include "mainwindow.h"
 #include "osxobjectivecbridge.h"
 #include "chrono"
