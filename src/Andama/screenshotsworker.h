@@ -47,6 +47,7 @@ public:
     protocolSupervisor * protocol_supervisor;
     P2PServer * p2pServer;
     std::atomic<int> imageQuality;
+    std::atomic<bool> stopThread {false};
 
 protected:
     void run(void);

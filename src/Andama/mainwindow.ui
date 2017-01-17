@@ -533,6 +533,34 @@ color: white;</string>
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
      </widget>
+     <widget class="QLabel" name="lblP2PPort">
+      <property name="geometry">
+       <rect>
+        <x>3</x>
+        <y>250</y>
+        <width>140</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+        <kerning>true</kerning>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgb(79, 255, 91);</string>
+      </property>
+      <property name="text">
+       <string>P2P Port: 8050</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
      <zorder>lblLocalHead</zorder>
      <zorder>lblRemoteHead</zorder>
      <zorder>lblLocalID</zorder>
@@ -549,6 +577,7 @@ color: white;</string>
      <zorder>remoteConnectProgressBar</zorder>
      <zorder>btnConnectToRemoteClient</zorder>
      <zorder>lblRemotePasswordError</zorder>
+     <zorder>lblP2PPort</zorder>
     </widget>
     <widget class="QWidget" name="widgetStatus" native="true">
      <property name="geometry">

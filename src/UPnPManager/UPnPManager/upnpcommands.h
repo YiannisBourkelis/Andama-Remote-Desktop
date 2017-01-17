@@ -1,6 +1,6 @@
 /* ***********************************************************************
  * Andama
- * (C) 2014 by Yiannis Bourkelis (hello@andama.org)
+ * (C) 2017 by Yiannis Bourkelis (hello@andama.org)
  *
  * This file is part of Andama.
  *
@@ -18,30 +18,30 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#ifndef KEEPALIVE_H
-#define KEEPALIVE_H
+#ifndef UPNPCOMMANDS_H
+#define UPNPCOMMANDS_H
 
-#include <QThread>
-#include <thread>
-#include <atomic>
-#include <chrono>
-//#include "clientserver.h"
-#include "protocolsupervisor.h"
+#include <string>
+#include <QUrl>
 
-class keepalive : public QThread
+class UPnPCommands
 {
-        Q_OBJECT
-public:
-    protocolSupervisor * protocol_supervisor;
-     std::atomic<bool> stopThread {false};
-
-protected:
-    void run(void);
+public: 
+    UPnPCommands();
+    bool AddPortMapping(std::string NewRemoteHost,
+                        int NewExternalPort,
+                        std::string NewProtocol,
+                        int NewInternalPort,
+                        std::string NewInternalClient,
+                        int NewEnabled,
+                        std::string NewPortMappingDescription,
+                        int NewLeaseDuration,
+                        std::string deviceIP,
+                        unsigned short devicePort,
+                        QUrl deviceCapabilitiesXMLURL);
 
 private:
-    std::chrono::high_resolution_clock::time_point _lastHeartBeat;
-    void setLastHeartBeat(std::chrono::high_resolution_clock::time_point timepoint);
-    std::chrono::high_resolution_clock::time_point getLastHeartBeat();
+    int getSocket(std::string deviceIP, unsigned short int devicePort);
 };
 
-#endif // KEEPALIVE_H
+#endif // UPNPCOMMANDS_H

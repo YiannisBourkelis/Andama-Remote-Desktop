@@ -189,6 +189,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lblLocalDesc->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalID->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalPassword->setAttribute(Qt::WA_TranslucentBackground);
+    ui->lblP2PPort->setAttribute(Qt::WA_TranslucentBackground);
 
     QFont txtLocalPasswordFont = ui->txtLocalPassword->font();
     txtLocalPasswordFont.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing,3);
@@ -226,6 +227,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lblLocalPassword->setFont((lblFont));
     ui->lblID->setFont(txtFont);
     ui->txtLocalPassword->setFont(txtFont);
+    ui->lblP2PPort->setFont(lblSmallFont);
 
     ui->lblRemoteHead->setFont(lblBigFont);
     ui->lblRemoteDesc->setFont(lblSmallFont);
@@ -527,6 +529,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
             event->ignore();
         }
     }
+
+    // threads cleanup
+    keepAlive.stopThread = true;
+    keepAlive.wait();
+
+    screenshotWrk.stopThread = true;
+    screenshotWrk.wait();
 }
 
 void MainWindow::setDefaultGUI()

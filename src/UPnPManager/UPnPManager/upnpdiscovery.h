@@ -1,6 +1,6 @@
 /* ***********************************************************************
  * Andama
- * (C) 2014 by Yiannis Bourkelis (hello@andama.org)
+ * (C) 2017 by Yiannis Bourkelis (hello@andama.org)
  *
  * This file is part of Andama.
  *
@@ -18,30 +18,16 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#ifndef KEEPALIVE_H
-#define KEEPALIVE_H
+#ifndef UPNPDISCOVERY_H
+#define UPNPDISCOVERY_H
 
-#include <QThread>
-#include <thread>
-#include <atomic>
-#include <chrono>
-//#include "clientserver.h"
-#include "protocolsupervisor.h"
+#include <QUrl>
 
-class keepalive : public QThread
+class UPnPDiscovery
 {
-        Q_OBJECT
 public:
-    protocolSupervisor * protocol_supervisor;
-     std::atomic<bool> stopThread {false};
-
-protected:
-    void run(void);
-
-private:
-    std::chrono::high_resolution_clock::time_point _lastHeartBeat;
-    void setLastHeartBeat(std::chrono::high_resolution_clock::time_point timepoint);
-    std::chrono::high_resolution_clock::time_point getLastHeartBeat();
+    UPnPDiscovery();
+    QUrl getDeviceLocationXmlUrl();
 };
 
-#endif // KEEPALIVE_H
+#endif // UPNPDISCOVERY_H

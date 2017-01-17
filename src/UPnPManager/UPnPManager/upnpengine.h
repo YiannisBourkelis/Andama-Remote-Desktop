@@ -1,6 +1,6 @@
 /* ***********************************************************************
  * Andama
- * (C) 2014 by Yiannis Bourkelis (hello@andama.org)
+ * (C) 2017 by Yiannis Bourkelis (hello@andama.org)
  *
  * This file is part of Andama.
  *
@@ -18,30 +18,34 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#ifndef KEEPALIVE_H
-#define KEEPALIVE_H
+#ifndef UPNPENGINE_H
+#define UPNPENGINE_H
 
-#include <QThread>
+#include <QObject>
+#include "upnpdiscovery.h"
 #include <thread>
+#include <QNetworkInterface>
 #include <atomic>
-#include <chrono>
-//#include "clientserver.h"
-#include "protocolsupervisor.h"
 
-class keepalive : public QThread
-{
-        Q_OBJECT
+class UPnPEngine : public QObject
+{  
+    Q_OBJECT
 public:
-    protocolSupervisor * protocol_supervisor;
-     std::atomic<bool> stopThread {false};
-
-protected:
-    void run(void);
+    explicit UPnPEngine(QObject *parent = 0);
+    void AddPortMappingAsync();
+    void wait();
 
 private:
-    std::chrono::high_resolution_clock::time_point _lastHeartBeat;
-    void setLastHeartBeat(std::chrono::high_resolution_clock::time_point timepoint);
-    std::chrono::high_resolution_clock::time_point getLastHeartBeat();
+    UPnPDiscovery upnpDiscovery;
+
+    QHostAddress getNetworkInterface();
+
+    std::thread networkInterfacesThread;
+    void AddPortMapping();
+
+    std::atomic<int> pendingRequests {0};
+
+signals:
 };
 
-#endif // KEEPALIVE_H
+#endif // UPNPENGINE_H

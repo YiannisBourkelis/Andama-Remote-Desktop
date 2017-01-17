@@ -28,7 +28,7 @@ screenshotsWorker::screenshotsWorker()
 }
 
 void screenshotsWorker::run(void){
-    while (true)
+    while (true && !stopThread)
     {
         if (isDirty.load() == true)
         {

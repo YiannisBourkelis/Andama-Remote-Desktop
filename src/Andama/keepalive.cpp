@@ -14,10 +14,11 @@ const int HEARTBEAT_RATE = 30; //seconds (default 30)
 
 
 void keepalive::run(void){
-    std::chrono::milliseconds sleep_dura(1000);
+
+    std::chrono::milliseconds sleep_dura(10);
     setLastHeartBeat(std::chrono::high_resolution_clock::now());
 
-    while (true){
+    while (true && !stopThread){
         std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - getLastHeartBeat());
 
