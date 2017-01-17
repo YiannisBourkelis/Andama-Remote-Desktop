@@ -23,7 +23,6 @@
 #include <future>
 #include <QUrl>
 #include "upnpcommands.h"
-#include "QThread"
 
 UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 {
@@ -36,52 +35,47 @@ void UPnPEngine::AddPortMappingAsync()
     t.detach();
 }
 
-std::string testthread(std::string input_s){
-    for(int i=0;i<4;i++){
-        std::cout << "thread id:" << std::this_thread::get_id()  << " i=" << i << std::endl;
-        QThread::sleep(1);
-    }
-
-    return input_s;
-}
-
 void UPnPEngine::AddPortMapping()
 {
-    auto future1 = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
+    try
+    {
+        auto future1 = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
 
-    UPnPDiscovery upnpdiscovery;
-    auto future2 = std::async(std::launch::async ,&UPnPDiscovery::getDeviceLocationXmlUrl,&upnpdiscovery);
+        UPnPDiscovery upnpdiscovery;
+        auto future2 = std::async(std::launch::async ,&UPnPDiscovery::getDeviceLocationXmlUrl,&upnpdiscovery);
+
+        QHostAddress simple1 = future1.get();
+        QUrl simple2 = future2.get();
+
+        std::cout << "simple1: " << simple1.toString().toStdString() << std::endl;
+        std::cout << "simple2: " << simple2.host().toStdString() << std::endl;
+        std::cout << "simple2: " << simple2.toString().toStdString() << std::endl;
 
 
-    QHostAddress simple1 = future1.get();
-    QUrl simple2 = future2.get();
+        UPnPCommands upnpcommands;
+        auto future3 = std::async(std::launch::async ,&UPnPCommands::AddPortMapping,&upnpcommands,
+                                  "",
+                                  5980,
+                                  "TCP",
+                                  8092,
+                                  simple1.toString().toStdString(),
+                                  1,
+                                  "AndamaRemoteDesktop",
+                                  10,
+                                  simple2.host().toStdString(),
+                                  (unsigned short)simple2.port(),
+                                  simple2);
 
-    std::cout << "simple1: " << simple1.toString().toStdString() << std::endl;
-    std::cout << "simple2: " << simple2.host().toStdString() << std::endl;
-    std::cout << "simple2: " << simple2.toString().toStdString() << std::endl;
+        bool simple3 = future3.get();
+        std::cout << "simple3: " << simple3 << std::endl;
+    }
+    catch (...)
+    {
+        //TODO: pros to paron den kanw kati me to exception
+    }
 
-
-    UPnPCommands upnpcommands;
-    auto future3 = std::async(std::launch::async ,&UPnPCommands::AddPortMapping,&upnpcommands,
-                              "",
-                              5980,
-                              "TCP",
-                              8092,
-                              simple1.toString().toStdString(),
-                              1,
-                              "AndamaRemoteDesktop",
-                              10,
-                              simple2.host().toStdString(),
-                              (unsigned short)simple2.port(),
-                              simple2);
-
-    bool simple3 = future3.get();
-    std::cout << "simple3: " << simple3 << std::endl;
-
-    pendingRequests--;
+    pendingRequests--; //TODO: gia asfaleia kala tha einai na ftiaksw mia class ws RAII pou na kanei dicrement otan vgainei ektos scope
 }
-
-
 
 
 void UPnPEngine::wait()

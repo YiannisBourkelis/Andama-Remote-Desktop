@@ -23,7 +23,6 @@
 
 #include <QObject>
 #include "upnpdiscovery.h"
-#include <thread>
 #include <QNetworkInterface>
 #include <atomic>
 
@@ -36,14 +35,11 @@ public:
     void wait();
 
 private:
-    UPnPDiscovery upnpDiscovery;
-
-    QHostAddress getNetworkInterface();
-
-    std::thread networkInterfacesThread;
-    void AddPortMapping();
-
     std::atomic<int> pendingRequests {0};
+
+    void AddPortMapping();
+    UPnPDiscovery upnpDiscovery;
+    QHostAddress getNetworkInterface();
 
 signals:
 };

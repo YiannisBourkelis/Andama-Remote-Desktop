@@ -113,7 +113,8 @@ HEADERS  += clientserver.h \
     clientsocket.h \
     clientserverprotocol.h \
     serversocket.h \
-    protocolsupervisor.h
+    protocolsupervisor.h \
+    ../Shared/AndamaHeaders/finally.h
 
 FORMS    += mainwindow.ui \
     About.ui
