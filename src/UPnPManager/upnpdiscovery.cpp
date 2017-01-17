@@ -19,6 +19,8 @@
  * ***********************************************************************/
 
 #include "upnpdiscovery.h"
+#include <stdexcept>
+
 
 #ifdef WIN32
 #define NOMINMAX
