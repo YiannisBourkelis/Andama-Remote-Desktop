@@ -18,20 +18,30 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#include <QCoreApplication>
-#include <iostream>
-#include <QDebug>
-#include "upnpengine.h"
+#ifndef UPNPCOMMANDS_H
+#define UPNPCOMMANDS_H
 
-int main(int argc, char *argv[])
+#include <string>
+#include <QUrl>
+
+class UPnPCommands
 {
-    QCoreApplication a(argc, argv);
+public: 
+    UPnPCommands();
+    bool AddPortMapping(std::string NewRemoteHost,
+                        int NewExternalPort,
+                        std::string NewProtocol,
+                        int NewInternalPort,
+                        std::string NewInternalClient,
+                        int NewEnabled,
+                        std::string NewPortMappingDescription,
+                        int NewLeaseDuration,
+                        std::string deviceIP,
+                        unsigned short devicePort,
+                        QUrl deviceCapabilitiesXMLURL);
 
-    UPnPEngine upnpEngine;
+private:
+    int getSocket(std::string deviceIP, unsigned short int devicePort);
+};
 
-    //upnpEngine.AddPortMappingAsync();
-    upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,10);
-
-    //upnpEngine.wait();
-    return a.exec();
-}
+#endif // UPNPCOMMANDS_H

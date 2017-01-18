@@ -18,20 +18,19 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#include <QCoreApplication>
-#include <iostream>
-#include <QDebug>
-#include "upnpengine.h"
+#ifndef UPNPDISCOVERY_H
+#define UPNPDISCOVERY_H
 
-int main(int argc, char *argv[])
+#include <QUrl>
+
+class UPnPDiscovery
 {
-    QCoreApplication a(argc, argv);
+public:
+    UPnPDiscovery();
+    QUrl getDeviceLocationXmlUrl();
 
-    UPnPEngine upnpEngine;
+private:
+    const unsigned short MULTICAST_DISCOVERY_BIND_PORT = 26389;
+};
 
-    //upnpEngine.AddPortMappingAsync();
-    upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,10);
-
-    //upnpEngine.wait();
-    return a.exec();
-}
+#endif // UPNPDISCOVERY_H

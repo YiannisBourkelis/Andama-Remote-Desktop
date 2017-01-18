@@ -95,9 +95,9 @@ SOURCES += main.cpp\
     clientserverprotocol.cpp \
     serversocket.cpp \
     protocolsupervisor.cpp \
-    ../UPnPManager/upnpcommands.cpp \
-    ../UPnPManager/upnpdiscovery.cpp \
-    ../UPnPManager/upnpengine.cpp
+    ../Shared/UPnP/upnpcommands.cpp \
+    ../Shared/UPnP/upnpdiscovery.cpp \
+    ../Shared/UPnP/upnpengine.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -119,9 +119,9 @@ HEADERS  += clientserver.h \
     serversocket.h \
     protocolsupervisor.h \
     ../Shared/AndamaHeaders/finally.h \
-    ../UPnPManager/upnpcommands.h \
-    ../UPnPManager/upnpdiscovery.h \
-    ../UPnPManager/upnpengine.h
+    ../Shared/UPnP/upnpcommands.h \
+    ../Shared/UPnP/upnpdiscovery.h \
+    ../Shared/UPnP/upnpengine.h
 
 FORMS    += mainwindow.ui \
     About.ui

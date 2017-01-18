@@ -11,11 +11,11 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    upnpdiscovery.cpp \
-    upnpengine.cpp \
-    upnpcommands.cpp
+    ../Shared/UPnP/upnpcommands.cpp \
+    ../Shared/UPnP/upnpdiscovery.cpp \
+    ../Shared/UPnP/upnpengine.cpp
 
 HEADERS += \
-    upnpdiscovery.h \
-    upnpengine.h \
-    upnpcommands.h
+    ../Shared/UPnP/upnpcommands.h \
+    ../Shared/UPnP/upnpdiscovery.h \
+    ../Shared/UPnP/upnpengine.h
