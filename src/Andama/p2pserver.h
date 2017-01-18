@@ -63,7 +63,7 @@ class P2PServer : public QThread
 public:
 
     //server listening port
-    const int PORT_NUMBER = 8095;
+    const int PORT_NUMBER = 17332;
 
     P2PServer();
     void setRemoteComputerOS(OS os);
