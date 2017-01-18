@@ -119,14 +119,12 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
                                        "\r\n");
     if (sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
            sizeof(destadd)) < 0) {
-        std::cout << WSAGetLastError() << std::endl;
         perror("sendto");
         throw std::runtime_error("sendto");
     }
 
     char discovery_response_buffer[1024];
     if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) {
-        std::cout << WSAGetLastError() << std::endl;
         perror("recvfrom");
         throw std::runtime_error("recvfrom");
     }
