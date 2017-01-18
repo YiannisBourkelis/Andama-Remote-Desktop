@@ -188,7 +188,7 @@ int UPnPCommands::getSocket(std::string deviceIP, unsigned short int devicePort)
             std::cout << "ERROR connecting. result: " << conres << "\n";
 
 #ifdef WIN32
-            closesocket(this->getActiveSocket());
+            closesocket(sock);
 #else
             close(sock);
 #endif

@@ -74,7 +74,7 @@ void UPnPEngine::AddPortMapping()
         //TODO: pros to paron den kanw kati me to exception
     }
 
-    pendingRequests--; //TODO: gia asfaleia kala tha einai na ftiaksw mia class ws RAII pou na kanei dicrement otan vgainei ektos scope
+    pendingRequests--;
 }
 
 

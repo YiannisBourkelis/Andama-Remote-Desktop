@@ -47,14 +47,26 @@ UPnPDiscovery::UPnPDiscovery()
 
 QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
 {
-    unsigned char loop;
-    loop = 1; // Needs to be on to get replies from clients on the same host
-    unsigned char ttl;
-    ttl = 4;
-    int bcast;
-    bcast = 1;
+    int loop = 1; // Needs to be on to get replies from clients on the same host
+    int ttl = 4;
 
+#ifdef WIN32
+    SOCKET sock;
+#else
     int sock;
+#endif
+
+#ifdef WIN32
+    // Initialize Winsock
+    int iResult;
+    WSADATA wsaData;
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        std::cout << "WSAStartup failed: " << iResult << std::endl;
+        throw std::runtime_error("WSAStartup failed");
+    }
+#endif
+
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("socket");
@@ -65,31 +77,33 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     struct sockaddr_in destadd;
     memset(&destadd, 0, sizeof(destadd));
     destadd.sin_family = AF_INET;
-    destadd.sin_port = htons((uint16_t)1900);
+    destadd.sin_port = htons(1900);
     if (inet_pton(AF_INET, "239.255.255.250", &destadd.sin_addr) < 1) {
         perror("inet_pton dest");
         throw std::runtime_error("inet_pton dest");
     }
 
-    // Listen on all interfaces on port 8213. Random port TODO: make it constant
+    // Listen on all interfaces on port 26389. Random port TODO: make it constant
+    //PROSOXI!!! paratirisa oti sta windows 7 gia kapoio logo den almvanw apantisi
+    //sto discovery request, an i porta einai mikroteri apo 12000
     struct sockaddr_in interface_addr;
     memset(&interface_addr, 0, sizeof(interface_addr));
     interface_addr.sin_family = AF_INET;
-    interface_addr.sin_port = htons(8213);
+    interface_addr.sin_port = htons(26389);
     interface_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Got to have this to get replies from clients on same machine
-    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0){
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, (char*) &loop, sizeof(loop)) < 0){
         perror("setsockopt loop");
         throw std::runtime_error("setsockopt loop");
     }
 
-    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0){
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL,(char*) &ttl, sizeof(ttl)) < 0){
         perror("setsockopt ttl");
         throw std::runtime_error("setsockopt ttl");
     }
 
-    // Bind to port 8213 on all interfaces
+    // Bind to port 26389 on all interfaces
     if (bind(sock, (struct sockaddr *)&interface_addr,
         sizeof(struct sockaddr_in)) < 0) {
         perror("bind");
@@ -105,12 +119,14 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
                                        "\r\n");
     if (sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
            sizeof(destadd)) < 0) {
+        std::cout << WSAGetLastError() << std::endl;
         perror("sendto");
         throw std::runtime_error("sendto");
     }
 
     char discovery_response_buffer[1024];
-    if (recvfrom(sock, &discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) {
+    if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) {
+        std::cout << WSAGetLastError() << std::endl;
         perror("recvfrom");
         throw std::runtime_error("recvfrom");
     }
@@ -128,7 +144,11 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     std::cout << "\r\n" << "Host: " << locationUrl.host().toStdString()<<"\r\nPort: "<< locationUrl.port() << std::endl;
 
 
+#ifdef WIN32
+    if (closesocket(sock) < 0) {
+#else
     if (close(sock) < 0) {
+#endif
         perror("close");
         throw std::runtime_error("close");
     }
