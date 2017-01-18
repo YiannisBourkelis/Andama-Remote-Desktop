@@ -20,6 +20,7 @@
 
 #include "upnpdiscovery.h"
 #include <stdexcept>
+#include <algorithm>
 
 
 #ifdef WIN32
@@ -115,8 +116,6 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
         perror("bind");
         bindPortBindIncrementer++;
         interface_addr.sin_port = htons(MULTICAST_DISCOVERY_BIND_PORT + bindPortBindIncrementer);
-        //return QUrl();
-        //throw std::runtime_error("bind");
     }
 
     char discovery_request_buffer[1024];
@@ -134,24 +133,11 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     }
 
     char discovery_response_buffer[1024];
-    if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) {
+    if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) { //TODO: edw na valw recv timeout
         perror("recvfrom");
         return QUrl();
         //throw std::runtime_error("recvfrom");
     }
-
-
-    printf("%s\n", discovery_response_buffer);
-
-    std::string ret(discovery_response_buffer);
-    std::string loc(ret.substr(ret.find("LOCATION:")));
-    auto f = loc.find("\r\n");
-    std::string loc2(loc.substr(9,f-9));
-    std::cout << loc2 << std::endl;
-
-    QUrl locationUrl(QString::fromStdString(loc2));
-    std::cout << "\r\n" << "Host: " << locationUrl.host().toStdString()<<"\r\nPort: "<< locationUrl.port() << std::endl;
-
 
 #ifdef WIN32
     if (closesocket(sock) < 0) {
@@ -161,6 +147,29 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
         perror("close");
         return QUrl();
         //throw std::runtime_error("close");
+    }
+
+    printf("%s\n", discovery_response_buffer);
+
+    //eksagw to discovery url
+    //prwta metatrepw to response se lower case
+    //giati to location mporei na einai Location, LOCATION klp
+    std::string ret(discovery_response_buffer);
+    std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
+    size_t locfinf = ret.find("location:");
+    QUrl locationUrl;
+
+    if (locfinf < ret.length()){
+        //efoson to location vrethike, anazitw to url
+        //sto original response (xwris lowercase diladi), gia na min epireastei to url
+        std::string original_ret(discovery_response_buffer);
+        //dimiourgw neo string meta to location:
+        std::string loc(original_ret.substr(locfinf));
+        auto f = loc.find("\r\n");
+        std::string loc2(loc.substr(9,f-9));
+        std::cout << loc2 << std::endl;
+        locationUrl = QString::fromStdString(loc2);
+        std::cout << "\r\n" << "Host: " << locationUrl.host().toStdString()<<"\r\nPort: "<< locationUrl.port() << std::endl;
     }
 
     return locationUrl;

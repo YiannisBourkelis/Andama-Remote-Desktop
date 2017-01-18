@@ -181,6 +181,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     qRegisterMetaType<MyArray>("MyArray");
     qRegisterMetaType<clientserver *>("myClientServer");
+    qRegisterMetaType<AddPortMappingResponse>("AddPortMappingResponse");
     //printsomething();
 
     firstRun = true; //flag pou deixnei oti i efarmogi trexei gia prwti fora.
@@ -325,6 +326,15 @@ MainWindow::MainWindow(QWidget *parent) :
                   Qt::ConnectionType::AutoConnection);
     // ======== client socket  ============
 
+    // ======== upnp ======================
+    this->connect(&upnpengine,
+                  SIGNAL(sig_addPortMappingResponse(AddPortMappingResponse)),
+                  this,
+                  SLOT(slot_addPortMappingResponse(AddPortMappingResponse)),
+                  Qt::ConnectionType::AutoConnection);
+
+    // ======== upnp ======================
+
     this->connect(&p2pserver,
                   SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
                   this,
@@ -348,11 +358,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     protocol_supervisor.start();
     //protocol.start();
-    p2pclient.remotePort=8085;
+    p2pclient.remotePort=17332;
     p2pserver.start();
 
     //upnp
-    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",10,3);
+    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",120,10);
 
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 
@@ -379,6 +389,16 @@ void MainWindow::slot_protocol_finished_or_terminated()
     }
 
     protocol_supervisor.start();
+}
+
+void MainWindow::slot_addPortMappingResponse(AddPortMappingResponse addPortMappingRes)
+{
+    ui->lblP2PPort->setVisible(addPortMappingRes.statusCode == 200);
+    if(addPortMappingRes.internalPort == addPortMappingRes.remotePort){
+        ui->lblP2PPort->setText("P2P port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)));
+    }else{
+        ui->lblP2PPort->setText("P2P internal port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)) + ", external port: " + QString::fromStdString(std::to_string(addPortMappingRes.remotePort)));
+    }
 }
 
 void MainWindow::protocol_exception(QString ex)
@@ -545,6 +565,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     screenshotWrk.stopThread = true;
     screenshotWrk.wait();
+
+    upnpengine.stopAddPortMappingAsyncThread = true;
+    upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
 }
 
 void MainWindow::setDefaultGUI()

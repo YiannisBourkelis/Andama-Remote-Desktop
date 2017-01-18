@@ -23,12 +23,13 @@
 
 #include <string>
 #include <QUrl>
+#include "addportmappingresponse.h"
 
 class UPnPCommands
 {
 public: 
     UPnPCommands();
-    bool AddPortMapping(std::string NewRemoteHost,
+    AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
                         int NewExternalPort,
                         std::string NewProtocol,
                         int NewInternalPort,

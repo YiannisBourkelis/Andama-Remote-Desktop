@@ -42,7 +42,7 @@ UPnPCommands::UPnPCommands()
 
 }
 
-bool UPnPCommands::AddPortMapping(std::string newRemoteHost,
+AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   int newExternalPort,
                                   std::string newProtocol,
                                   int newInternalPort,
@@ -55,6 +55,8 @@ bool UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   QUrl deviceCapabilitiesXMLURL)
 {
     int sock1 = getSocket(deviceIP, devicePort);
+
+    AddPortMappingResponse addPortMappingResponse;
 
     //Lamvanw to xml me ta capabilities tis syskevis
     //wste na eksagw to control command url gia to addportmapping commnad
@@ -69,7 +71,7 @@ bool UPnPCommands::AddPortMapping(std::string newRemoteHost,
 
     char device_caps_reply_buffer[1024];
     std::string device_caps_reply;
-    while (recv(sock1,device_caps_reply_buffer,sizeof(device_caps_reply_buffer),0)>0){
+    while (recv(sock1,device_caps_reply_buffer,sizeof(device_caps_reply_buffer),0)>0){ //TODO: edw na valw recv timeout
         device_caps_reply += device_caps_reply_buffer;
         //std::cout << "\r\n server reply \r\n" << device_caps_buffer;
     }
@@ -131,15 +133,19 @@ close(sock1);
     send(sock,headerAndSoapBody.c_str(),headerAndSoapBody.length(),0);
 
     char addPortMappingReply[1024];
+    std::string addportreply;
+    while (recv(sock,addPortMappingReply,sizeof(addPortMappingReply),0)>0){ //TODO: edw na valw recv timeout
+        addportreply += addPortMappingReply;
+    }
+    std::cout << "\r\n server reply \r\n" << addportreply;
 
-    while (recv(sock,addPortMappingReply,sizeof(addPortMappingReply),0)>0){
-
-        std::cout << "\r\n server reply \r\n" << addPortMappingReply;
-        std::string addportreply(addPortMappingReply);
-        if (addportreply.find("200 OK") < addportreply.length()){
-            std::cout << "found index: " << addportreply.find("200 OK") << " of length: " << addportreply.length();
-            return true;
-        }
+    if (addportreply.find("200 OK") < addportreply.length()){
+        std::cout << "found index: " << addportreply.find("200 OK") << " of length: " << addportreply.length();
+        addPortMappingResponse.statusCode=200;
+        addPortMappingResponse.internalPort = newInternalPort;
+        addPortMappingResponse.portMappingDescription = newPortMappingDescription;
+        addPortMappingResponse.remotePort = newExternalPort;
+        addPortMappingResponse.rawResponse = std::string(addportreply);
     }
 
 
@@ -148,6 +154,8 @@ close(sock1);
     #else
     close(sock);
     #endif
+
+    return addPortMappingResponse;
 }
 
 int UPnPCommands::getSocket(std::string deviceIP, unsigned short int devicePort)

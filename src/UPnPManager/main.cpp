@@ -21,7 +21,7 @@
 #include <QCoreApplication>
 #include <iostream>
 #include <QDebug>
-#include "upnpengine.h"
+#include "../Shared/UPnP/upnpengine.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,8 +30,7 @@ int main(int argc, char *argv[])
     UPnPEngine upnpEngine;
 
     //upnpEngine.AddPortMappingAsync();
-    upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,10);
-
-    //upnpEngine.wait();
+    upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,3);
+    //upnpEngine.stopAddPortMappingAsyncThread = true;
     return a.exec();
 }

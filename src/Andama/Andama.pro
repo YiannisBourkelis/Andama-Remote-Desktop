@@ -97,7 +97,8 @@ SOURCES += main.cpp\
     protocolsupervisor.cpp \
     ../Shared/UPnP/upnpcommands.cpp \
     ../Shared/UPnP/upnpdiscovery.cpp \
-    ../Shared/UPnP/upnpengine.cpp
+    ../Shared/UPnP/upnpengine.cpp \
+    ../Shared/UPnP/addportmappingresponse.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -121,7 +122,9 @@ HEADERS  += clientserver.h \
     ../Shared/AndamaHeaders/finally.h \
     ../Shared/UPnP/upnpcommands.h \
     ../Shared/UPnP/upnpdiscovery.h \
-    ../Shared/UPnP/upnpengine.h
+    ../Shared/UPnP/upnpengine.h \
+    ../Shared/General/finally.h \
+    ../Shared/UPnP/addportmappingresponse.h
 
 FORMS    += mainwindow.ui \
     About.ui

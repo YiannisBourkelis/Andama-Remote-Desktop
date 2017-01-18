@@ -45,6 +45,7 @@ void keepalive::run(void){
         }
         std::this_thread::sleep_for(sleep_dura);
     }
+    std::cout << "keepalive::run exiting...\r\n" << std::endl;
 }
 
 void keepalive::setLastHeartBeat(std::chrono::high_resolution_clock::time_point timepoint)

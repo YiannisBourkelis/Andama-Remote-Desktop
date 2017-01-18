@@ -26,14 +26,18 @@
 #include <QNetworkInterface>
 #include <atomic>
 #include <chrono>
+#include "addportmappingresponse.h"
 
 class UPnPEngine : public QObject
 {  
     Q_OBJECT
 public:
     explicit UPnPEngine(QObject *parent = 0);
+
+    std::atomic<bool> stopAddPortMappingAsyncThread {false};
+
+    //public methods
     void AddPortMappingAsync();
-    void wait();
     void AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
                                          int NewExternalPort,
                                          std::string NewProtocol,
@@ -54,10 +58,12 @@ public:
                                     int NewLeaseDuration,
                                     int seconds_period);
 
-private:
-    std::atomic<int> pendingRequests {0};
+    void waitForAllAddPortMappingPendingRequests();
 
-    bool AddPortMapping(std::string NewRemoteHost,
+private:
+    std::atomic<int> addPortMappingPendingRequests {0};
+
+    AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
                         int NewExternalPort,
                         std::string NewProtocol,
                         int NewInternalPort,
@@ -70,6 +76,7 @@ private:
     QHostAddress getNetworkInterface();
 
 signals:
+    void sig_addPortMappingResponse(AddPortMappingResponse addPortMappingRes);
 };
 
 #endif // UPNPENGINE_H

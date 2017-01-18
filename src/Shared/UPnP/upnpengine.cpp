@@ -23,6 +23,7 @@
 #include <future>
 #include <QUrl>
 #include "upnpcommands.h"
+#include "../General/finally.h"
 
 UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 {
@@ -38,7 +39,6 @@ void UPnPEngine::AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
                                                  int NewLeaseDuration,
                                                  int seconds_period)
 {
-    pendingRequests++;
     std::thread t(&UPnPEngine::AddPortMappingPeriodically,this,NewRemoteHost,
                                                                   NewExternalPort,
                                                                   NewProtocol,
@@ -65,7 +65,7 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
     std::chrono::milliseconds sleep_dura(10);
     std::chrono::high_resolution_clock::time_point _lastAddNewPortMappingTimePoint;
 
-    while (true){
+    while (true && !stopAddPortMappingAsyncThread){
         std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - _lastAddNewPortMappingTimePoint);
 
@@ -76,16 +76,23 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
         }
         std::this_thread::sleep_for(sleep_dura);
     }
+
+    std::cout << "AddPortMappingAsyncThread exiting...\r\n" << std::endl;
 }
+
+void UPnPEngine::waitForAllAddPortMappingPendingRequests()
+{
+    while(addPortMappingPendingRequests > 0){std::this_thread::sleep_for(std::chrono::milliseconds(1));};
+}
+
 
 void UPnPEngine::AddPortMappingAsync()
 {
-    pendingRequests++;
     std::thread t(&UPnPEngine::AddPortMapping,this,"",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10);
     t.detach();
 }
 
-bool UPnPEngine::AddPortMapping(std::string NewRemoteHost,
+AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
                     int NewExternalPort,
                     std::string NewProtocol,
                     int NewInternalPort,
@@ -94,8 +101,14 @@ bool UPnPEngine::AddPortMapping(std::string NewRemoteHost,
                     std::string NewPortMappingDescription,
                     int NewLeaseDuration)
 {
+    AddPortMappingResponse addPortMappingResp;
+
     try
     {
+        addPortMappingPendingRequests++;
+
+        Finally finally([&]{addPortMappingPendingRequests--;});
+
         auto future_getNetworkInterface = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
 
         UPnPDiscovery upnpdiscovery;
@@ -129,24 +142,18 @@ bool UPnPEngine::AddPortMapping(std::string NewRemoteHost,
                                   (unsigned short)deviceLocationXmlUrl.port(),
                                   deviceLocationXmlUrl);
 
-        bool addPortMapping = future_AddPortMapping.get();
-        std::cout << "\r\naddPortMapping result: " << addPortMapping << std::endl;
+        addPortMappingResp = future_AddPortMapping.get();
+        std::cout << "\r\naddPortMapping result: " << (addPortMappingResp.statusCode == 200) << std::endl;
     }
     catch (...)
     {
         //TODO: pros to paron den kanw kati me to exception
     }
 
-    pendingRequests--;
-
-    return true;
+    emit sig_addPortMappingResponse(addPortMappingResp);
+    return addPortMappingResp;
 }
 
-
-void UPnPEngine::wait()
-{
-    while(pendingRequests >0){};
-}
 
 QHostAddress UPnPEngine::getNetworkInterface()
 {

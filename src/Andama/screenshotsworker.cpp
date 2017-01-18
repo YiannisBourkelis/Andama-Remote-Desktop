@@ -57,6 +57,8 @@ void screenshotsWorker::run(void){
 
         QThread::currentThread()->msleep(1);
     }
+
+    std::cout << "screenshotsWorker::run exiting...\r\n" << std::endl;
 }
 
 void screenshotsWorker::setScreenshot(QImage newScreenshot, const int msg)
