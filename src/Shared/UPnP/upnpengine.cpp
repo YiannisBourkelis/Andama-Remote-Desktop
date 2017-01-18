@@ -121,7 +121,12 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
             locan_lan_ip = QHostAddress(QString::fromStdString(NewInternalClient));
         }
 
-        QUrl deviceLocationXmlUrl = future_getDeviceLocationXmlUrl.get();
+        QUrl deviceLocationXmlUrl;
+        if (future_getDeviceLocationXmlUrl.wait_for(std::chrono::seconds(5)) == std::future_status::ready){
+            deviceLocationXmlUrl=future_getDeviceLocationXmlUrl.get();
+        } else {
+            std::cout << "future_getDeviceLocationXmlUrl timeout" << std::endl;
+        }
 
         std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
         std::cout << "deviceLocationXmlUrl.host: " << deviceLocationXmlUrl.host().toStdString() << std::endl;
