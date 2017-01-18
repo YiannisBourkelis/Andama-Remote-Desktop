@@ -48,6 +48,7 @@
 #include <QDesktopServices>
 #include "p2pserver.h"
 //#include <appnapcontroller.h>
+#include "../UPnPManager/upnpengine.h"
 
 #ifdef Q_OS_MAC
 #include <IOKit/pwr_mgt/IOPMLib.h> //gia na ksypnaei to monitor
@@ -95,6 +96,8 @@ private:
     QPoint lastMainWindowPosition;
     void setDefaultGUI();
     bool firstRun;
+    UPnPEngine upnpengine;
+
 
 protected:
     void closeEvent(QCloseEvent *event);

@@ -534,6 +534,9 @@ color: white;</string>
       </property>
      </widget>
      <widget class="QLabel" name="lblP2PPort">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>3</x>

@@ -29,7 +29,8 @@ int main(int argc, char *argv[])
 
     UPnPEngine upnpEngine;
 
-    upnpEngine.AddPortMappingAsync();
+    //upnpEngine.AddPortMappingAsync();
+    upnpEngine.AddPortMappingPeriodically("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,3);
 
     upnpEngine.wait();
     //return a.exec();

@@ -23,7 +23,7 @@
 # * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
 # * ***********************************************************************/
 
-#QMAKE_MAC_SDK = macosx10.11
+#QMAKE_MAC_SDK = macosx10.12
 
 include(mousekeyb/mousekeyb.pri)
 
@@ -38,6 +38,7 @@ linux:CONFIG += static
 # make install
 #linux
 
+mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
 mac:LIBS += -framework CoreFoundation
 mac:LIBS += -framework ApplicationServices
@@ -93,7 +94,10 @@ SOURCES += main.cpp\
     clientsocket.cpp \
     clientserverprotocol.cpp \
     serversocket.cpp \
-    protocolsupervisor.cpp
+    protocolsupervisor.cpp \
+    ../UPnPManager/upnpcommands.cpp \
+    ../UPnPManager/upnpdiscovery.cpp \
+    ../UPnPManager/upnpengine.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -114,7 +118,10 @@ HEADERS  += clientserver.h \
     clientserverprotocol.h \
     serversocket.h \
     protocolsupervisor.h \
-    ../Shared/AndamaHeaders/finally.h
+    ../Shared/AndamaHeaders/finally.h \
+    ../UPnPManager/upnpcommands.h \
+    ../UPnPManager/upnpdiscovery.h \
+    ../UPnPManager/upnpengine.h
 
 FORMS    += mainwindow.ui \
     About.ui

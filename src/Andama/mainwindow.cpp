@@ -29,6 +29,7 @@
 #include "chrono"
 #include "../Shared/AndamaHeaders/byte_functions.h"
 
+
 //xcode-select --install
 //https://bugreports.qt-project.org/browse/QTCREATORBUG-13077?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel
 
@@ -188,6 +189,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->remoteConnectProgressBar->setHidden(true);
     ui->lblDesktop->setHidden(true);
+    ui->lblP2PPort->setHidden(true);
 
     ui->lblLocalHead->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalDesc->setAttribute(Qt::WA_TranslucentBackground);
@@ -348,6 +350,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //protocol.start();
     p2pclient.remotePort=8085;
     p2pserver.start();
+
+    //upnp
+    upnpengine.AddPortMappingPeriodicallyAsync("",17334,"TCP",17334,"",1,"AndamaRemoteDesktop",10,3);
 
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 

@@ -25,6 +25,7 @@
 #include "upnpdiscovery.h"
 #include <QNetworkInterface>
 #include <atomic>
+#include <chrono>
 
 class UPnPEngine : public QObject
 {  
@@ -33,11 +34,38 @@ public:
     explicit UPnPEngine(QObject *parent = 0);
     void AddPortMappingAsync();
     void wait();
+    void AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
+                                         int NewExternalPort,
+                                         std::string NewProtocol,
+                                         int NewInternalPort,
+                                         std::string NewInternalClient,
+                                         int NewEnabled,
+                                         std::string NewPortMappingDescription,
+                                         int NewLeaseDuration,
+                                         int seconds_period);
+
+    void AddPortMappingPeriodically(std::string NewRemoteHost,
+                                    int NewExternalPort,
+                                    std::string NewProtocol,
+                                    int NewInternalPort,
+                                    std::string NewInternalClient,
+                                    int NewEnabled,
+                                    std::string NewPortMappingDescription,
+                                    int NewLeaseDuration,
+                                    int seconds_period);
 
 private:
     std::atomic<int> pendingRequests {0};
 
-    void AddPortMapping();
+    bool AddPortMapping(std::string NewRemoteHost,
+                        int NewExternalPort,
+                        std::string NewProtocol,
+                        int NewInternalPort,
+                        std::string NewInternalClient,
+                        int NewEnabled,
+                        std::string NewPortMappingDescription,
+                        int NewLeaseDuration);
+
     UPnPDiscovery upnpDiscovery;
     QHostAddress getNetworkInterface();
 

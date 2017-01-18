@@ -28,46 +28,109 @@ UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 {
 }
 
-void UPnPEngine::AddPortMappingAsync()
+void UPnPEngine::AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
+                                                 int NewExternalPort,
+                                                 std::string NewProtocol,
+                                                 int NewInternalPort,
+                                                 std::string NewInternalClient,
+                                                 int NewEnabled,
+                                                 std::string NewPortMappingDescription,
+                                                 int NewLeaseDuration,
+                                                 int seconds_period)
 {
     pendingRequests++;
-    std::thread t(&UPnPEngine::AddPortMapping,this);
+    std::thread t(&UPnPEngine::AddPortMappingPeriodically,this,NewRemoteHost,
+                                                                  NewExternalPort,
+                                                                  NewProtocol,
+                                                                  NewInternalPort,
+                                                                  NewInternalClient,
+                                                                  NewEnabled,
+                                                                  NewPortMappingDescription,
+                                                                  NewLeaseDuration,
+                                                                  seconds_period);
     t.detach();
 }
 
-void UPnPEngine::AddPortMapping()
+void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
+                                            int NewExternalPort,
+                                            std::string NewProtocol,
+                                            int NewInternalPort,
+                                            std::string NewInternalClient,
+                                            int NewEnabled,
+                                            std::string NewPortMappingDescription,
+                                            int NewLeaseDuration,
+                                            int seconds_period)
+{
+
+    std::chrono::milliseconds sleep_dura(10);
+    std::chrono::high_resolution_clock::time_point _lastAddNewPortMappingTimePoint;
+
+    while (true){
+        std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - _lastAddNewPortMappingTimePoint);
+
+        if (time_span.count() >= seconds_period)
+        {
+            _lastAddNewPortMappingTimePoint = std::chrono::high_resolution_clock::now();
+            AddPortMapping(NewRemoteHost,NewExternalPort,NewProtocol,NewInternalPort,NewInternalClient,NewEnabled,NewPortMappingDescription,seconds_period);
+        }
+        std::this_thread::sleep_for(sleep_dura);
+    }
+}
+
+void UPnPEngine::AddPortMappingAsync()
+{
+    pendingRequests++;
+    std::thread t(&UPnPEngine::AddPortMapping,this,"",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10);
+    t.detach();
+}
+
+bool UPnPEngine::AddPortMapping(std::string NewRemoteHost,
+                    int NewExternalPort,
+                    std::string NewProtocol,
+                    int NewInternalPort,
+                    std::string NewInternalClient,
+                    int NewEnabled,
+                    std::string NewPortMappingDescription,
+                    int NewLeaseDuration)
 {
     try
     {
-        auto future1 = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
+        auto future_getNetworkInterface = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
 
         UPnPDiscovery upnpdiscovery;
-        auto future2 = std::async(std::launch::async ,&UPnPDiscovery::getDeviceLocationXmlUrl,&upnpdiscovery);
+        auto future_getDeviceLocationXmlUrl = std::async(std::launch::async ,&UPnPDiscovery::getDeviceLocationXmlUrl,&upnpdiscovery);
 
-        QHostAddress simple1 = future1.get();
-        QUrl simple2 = future2.get();
+        QHostAddress locan_lan_ip;
+        if (NewInternalClient.empty()){
+            locan_lan_ip = future_getNetworkInterface.get();
+        }else{
+            locan_lan_ip = QHostAddress(QString::fromStdString(NewInternalClient));
+        }
 
-        std::cout << "simple1: " << simple1.toString().toStdString() << std::endl;
-        std::cout << "simple2: " << simple2.host().toStdString() << std::endl;
-        std::cout << "simple2: " << simple2.toString().toStdString() << std::endl;
+        QUrl deviceLocationXmlUrl = future_getDeviceLocationXmlUrl.get();
+
+        std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
+        std::cout << "deviceLocationXmlUrl.host: " << deviceLocationXmlUrl.host().toStdString() << std::endl;
+        std::cout << "deviceLocationXmlUrl: " << deviceLocationXmlUrl.toString().toStdString() << std::endl;
 
 
         UPnPCommands upnpcommands;
-        auto future3 = std::async(std::launch::async ,&UPnPCommands::AddPortMapping,&upnpcommands,
-                                  "",
-                                  5980,
-                                  "TCP",
-                                  8092,
-                                  simple1.toString().toStdString(),
-                                  1,
-                                  "AndamaRemoteDesktop",
-                                  10,
-                                  simple2.host().toStdString(),
-                                  (unsigned short)simple2.port(),
-                                  simple2);
+        auto future_AddPortMapping = std::async(std::launch::async ,&UPnPCommands::AddPortMapping,&upnpcommands,
+                                  NewRemoteHost, // ""
+                                  NewExternalPort, //5980
+                                  NewProtocol, // "TCP"
+                                  NewInternalPort, //8092
+                                  locan_lan_ip.toString().toStdString(),
+                                  NewEnabled, // 1
+                                  NewPortMappingDescription, // "AndamaRemoteDesktop",
+                                  NewLeaseDuration, // 10 (se seconds)
+                                  deviceLocationXmlUrl.host().toStdString(),
+                                  (unsigned short)deviceLocationXmlUrl.port(),
+                                  deviceLocationXmlUrl);
 
-        bool simple3 = future3.get();
-        std::cout << "simple3: " << simple3 << std::endl;
+        bool addPortMapping = future_AddPortMapping.get();
+        std::cout << "\r\naddPortMapping result: " << addPortMapping << std::endl;
     }
     catch (...)
     {
