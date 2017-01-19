@@ -329,8 +329,7 @@ void P2PServer::start_p2pserver()
                 // >>>>>>>>>>> error("ERROR on accept");
             }
 
-            //std::cout << getTime() << " " << std::this_thread::get_id() <<
-            //             " New client accepted. Kalw dostuff while loop se neo thread." << std::endl;
+            std::cout << " New client accepted. Kalw accept_client_messages while loop se neo thread." << std::endl;
 
             //thetw to recv timeout
 #ifdef WIN32
