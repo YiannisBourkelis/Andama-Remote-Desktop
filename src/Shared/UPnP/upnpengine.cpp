@@ -74,10 +74,11 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
         {
             std::cout << "will call AddPortMapping from AddPortMappingPeriodically\r\n" << std::endl;
             int addport_retries = 0;
-             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort + addport_retries, NewProtocol,
+             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort, NewProtocol,
                                    NewInternalPort,NewInternalClient,NewEnabled,
                                    NewPortMappingDescription,NewLeaseDuration).statusCode != 200){
                  addport_retries++;
+                 NewExternalPort += addport_retries;
                 std::cout << "returned from AddPortMapping called from AddPortMappingPeriodically\r\n" << std::endl;
              }
 
