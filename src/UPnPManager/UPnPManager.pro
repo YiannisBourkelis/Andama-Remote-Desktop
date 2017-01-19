@@ -21,5 +21,4 @@ HEADERS += \
     ../Shared/UPnP/upnpdiscovery.h \
     ../Shared/UPnP/upnpengine.h \
     ../Shared/General/finally.h \
-    ../Shared/UPnP/upnpcommandresponse_copy.h \
     ../Shared/UPnP/addportmappingresponse.h
