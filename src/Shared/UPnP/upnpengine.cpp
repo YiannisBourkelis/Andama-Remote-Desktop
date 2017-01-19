@@ -127,6 +127,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
             deviceLocationXmlUrl=future_getDeviceLocationXmlUrl.get();
         } else {
             std::cout << "future_getDeviceLocationXmlUrl timeout" << std::endl;
+            return AddPortMappingResponse();//TODO:tha prepei kanonika na ginetai timeout sta sockets giati etsi menoun threads pou trexoun
         }
 
         std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;

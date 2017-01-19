@@ -567,7 +567,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     screenshotWrk.wait();
 
     upnpengine.stopAddPortMappingAsyncThread = true;
-    upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
+    //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
 }
 
 void MainWindow::setDefaultGUI()
