@@ -72,8 +72,10 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
 
         if (time_span.count() >= seconds_period)
         {
-            _lastAddNewPortMappingTimePoint = std::chrono::high_resolution_clock::now();
+            std::cout << "will call AddPortMapping from AddPortMappingPeriodically\r\n" << std::endl;
             AddPortMapping(NewRemoteHost,NewExternalPort,NewProtocol,NewInternalPort,NewInternalClient,NewEnabled,NewPortMappingDescription,NewLeaseDuration);
+            std::cout << "returned from AddPortMapping called from AddPortMappingPeriodically\r\n" << std::endl;
+            _lastAddNewPortMappingTimePoint = std::chrono::high_resolution_clock::now();
         }
         std::this_thread::sleep_for(sleep_dura);
     }
