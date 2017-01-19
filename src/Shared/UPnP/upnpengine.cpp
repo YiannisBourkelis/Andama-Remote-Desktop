@@ -24,6 +24,7 @@
 #include <QUrl>
 #include "upnpcommands.h"
 #include "../General/finally.h"
+#include <QtNetwork>
 
 UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 {
@@ -122,7 +123,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
         }
 
         QUrl deviceLocationXmlUrl;
-        if (future_getDeviceLocationXmlUrl.wait_for(std::chrono::seconds(5)) == std::future_status::ready){
+        if (future_getDeviceLocationXmlUrl.wait_for(std::chrono::seconds(10)) == std::future_status::ready){
             deviceLocationXmlUrl=future_getDeviceLocationXmlUrl.get();
         } else {
             std::cout << "future_getDeviceLocationXmlUrl timeout" << std::endl;
@@ -159,15 +160,22 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
     return addPortMappingResp;
 }
 
-
 QHostAddress UPnPEngine::getNetworkInterface()
 {
-    QHostAddress last;
+    //std::cout << "UPnPEngine::getNetworkInterface() === enter func\r\n"  << std::endl;
     for (auto& address : QNetworkInterface::allAddresses()) {
-        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost))
-             last = address;
-            // break; //TODO: endexomenos edw na yparxoun perisoteres IP sto mixanima alla egw lamvanw mono tin prwti
+        if (address.protocol() == QAbstractSocket::IPv4Protocol
+                && address != QHostAddress(QHostAddress::LocalHost)
+                && !address.isLoopback())
+        {
+            std::string addip(address.toString().toStdString());
+            if (addip.length() > 0 &&
+               (addip.find(":") > addip.length())){
+                return address;
+            }
+        }
     }
-
-    return last;
+   // std::cout << "UPnPEngine::getNetworkInterface() === will exit func\r\n"  << std::endl;
+    return QHostAddress();
 }
+
