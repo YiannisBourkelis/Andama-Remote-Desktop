@@ -73,8 +73,14 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
         if (time_span.count() >= seconds_period)
         {
             std::cout << "will call AddPortMapping from AddPortMappingPeriodically\r\n" << std::endl;
-            AddPortMapping(NewRemoteHost,NewExternalPort,NewProtocol,NewInternalPort,NewInternalClient,NewEnabled,NewPortMappingDescription,NewLeaseDuration);
-            std::cout << "returned from AddPortMapping called from AddPortMappingPeriodically\r\n" << std::endl;
+            int addport_retries = 0;
+             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort + addport_retries, NewProtocol,
+                                   NewInternalPort,NewInternalClient,NewEnabled,
+                                   NewPortMappingDescription,NewLeaseDuration).statusCode != 200){
+                 addport_retries++;
+                std::cout << "returned from AddPortMapping called from AddPortMappingPeriodically\r\n" << std::endl;
+             }
+
             _lastAddNewPortMappingTimePoint = std::chrono::high_resolution_clock::now();
         }
         std::this_thread::sleep_for(sleep_dura);
@@ -109,7 +115,6 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
     try
     {
         addPortMappingPendingRequests++;
-
         Finally finally([&]{addPortMappingPendingRequests--;});
 
         auto future_getNetworkInterface = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
