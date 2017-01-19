@@ -362,7 +362,7 @@ MainWindow::MainWindow(QWidget *parent) :
     p2pserver.start();
 
     //upnp
-    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",120,3);
+    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",240,60);
 
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 
