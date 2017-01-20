@@ -153,6 +153,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
         //kai afto: (AddPortMapping with WANPPPConnection and/or WANIPConnection) http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=538
         std::vector<DeviceResponse> portmapping_devices = getPortMappingCapableDevices(unique_devices);
 
+        std::cout << "7. kataxwrw to portmapping AddPortMapping" << std::endl;
         for (const DeviceResponse &portmapping_device : portmapping_devices){
             UPnPCommands upnpcommands;
             addPortMappingResp = upnpcommands.AddPortMapping(
