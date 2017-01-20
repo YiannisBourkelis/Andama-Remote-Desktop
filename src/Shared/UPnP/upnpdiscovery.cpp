@@ -141,22 +141,26 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
                                        "Host: 239.255.255.250:1900\r\n"
                                        "Man: \"ssdp:discover\"\r\n"
                                        "ST: upnp:rootdevice\r\n"
-                                       "MX: 1\r\n"
+                                       "MX: 3\r\n"
                                        "\r\n");
-    int disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
-               sizeof(destadd));
-    if (disc_send_res < 0) {
-        perror("sendto");
-        return devices;
-        //throw std::runtime_error("sendto");
-    } else if (disc_send_res != strlen(discovery_request_buffer)){
-        perror("sendto - send bytes not equal to buffer");
-        return devices;
+
+    for (int i = 0;i < 2; i++){
+        int disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
+                   sizeof(destadd));
+        if (disc_send_res < 0) {
+            perror("sendto");
+            return devices;
+            //throw std::runtime_error("sendto");
+        } else if (disc_send_res != strlen(discovery_request_buffer)){
+            perror("sendto - send bytes not equal to buffer");
+            return devices;
+        }
     }
+
 
     //thetw to recv timeout
 #ifdef WIN32
-    int iTimeout = 1000;
+    int iTimeout = 3000;
     setsockopt(sock,
                        SOL_SOCKET,
                        SO_RCVTIMEO,
@@ -164,13 +168,21 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
                        sizeof(iTimeout) );
 #else
     struct timeval tv;
-    tv.tv_sec = 1;  /* 90 Secs Timeout */
+    tv.tv_sec = 3;  /* 90 Secs Timeout */
     tv.tv_usec = 0;  // Not init'ing this can cause strange errors
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
     char discovery_response_buffer[1024];
+    bzero(discovery_response_buffer,1024);
     while(true){
     if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) { //TODO: edw na valw recv timeout
+        #ifdef WIN32
+            std::cout <<
+                         "###### [source: displayErrno: " << strerror(WSAGetLastError()) << std::endl;
+        #else
+            std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
+                         "###### [source: " << source <<  "]  displayErrno: " << strerror(errno) << std::endl;
+        #endif
             perror("recvfrom - device discovery");
             break;
         }
@@ -180,6 +192,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
         if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
             devices.push_back(discovery_response_buffer);
         }
+        bzero(discovery_response_buffer,1024);
     }
 
 #ifdef WIN32
