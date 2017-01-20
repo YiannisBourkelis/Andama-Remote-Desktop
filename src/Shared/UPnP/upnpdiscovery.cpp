@@ -68,7 +68,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != 0) {
         std::cout << "WSAStartup failed: " << iResult << std::endl;
-        return QUrl();
+        return devices;
         //throw std::runtime_error("WSAStartup failed");
     }
 #endif
