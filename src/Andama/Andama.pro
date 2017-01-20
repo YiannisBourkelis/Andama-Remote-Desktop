@@ -29,9 +29,10 @@ include(mousekeyb/mousekeyb.pri)
 
 QT         += core gui quick
 windows:QT += winextras
+linux:QMAKE_CXXFLAGS += -g -O0
 
 CONFIG += c++11
-CONFIG += qt debug
+CONFIG += qt debug #debug symbols. na to vgazw opote den to xreiazomai
 
 linux:CONFIG += static
 # ./configure -static -prefix /home/yiannis/Qt5.3.2-src -qt-xcb
