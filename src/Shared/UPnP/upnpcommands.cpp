@@ -55,7 +55,7 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   int newEnabled,
                                   std::string newPortMappingDescription,
                                   int newLeaseDuration,
-                                  const DeviceResponse &portmappingDevice)
+                                  const DeviceResponse portmappingDevice)
 {
     int sock = getSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
 
