@@ -39,7 +39,7 @@ public:
                         int NewEnabled,
                         std::string NewPortMappingDescription,
                         int NewLeaseDuration,
-                        DeviceResponse portmappingDevice);
+                        const DeviceResponse &portmappingDevice);
 
 private:
     int getSocket(std::string deviceIP, unsigned short int devicePort);

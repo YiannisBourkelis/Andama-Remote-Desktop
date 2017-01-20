@@ -55,11 +55,12 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   int newEnabled,
                                   std::string newPortMappingDescription,
                                   int newLeaseDuration,
-                                  DeviceResponse portmappingDevice)
+                                  const DeviceResponse &portmappingDevice)
 {
     int sock = getSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
 
     AddPortMappingResponse addPortMappingResponse;
+    addPortMappingResponse.statusCode = 0;
 
     char buffer[1024];
 
@@ -96,7 +97,8 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                         soapbody);
 
 
-    std::cout << "\r\n will send soap message \r\n" << headerAndSoapBody << "\r\n";
+    std::cout << "====== controlURL " << portmappingDevice.controlURL << std::endl;
+    std::cout << "\r\n========== will send soap message \r\n" << headerAndSoapBody << "\r\n";
 
     //send(sock,headerAndSoapBody.c_str(),headerAndSoapBody.length(),0);
     std::vector<char> vector_char_headerAndSoapBody(headerAndSoapBody.begin(),headerAndSoapBody.end());

@@ -153,7 +153,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
         //kai afto: (AddPortMapping with WANPPPConnection and/or WANIPConnection) http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=538
         std::vector<DeviceResponse> portmapping_devices = getPortMappingCapableDevices(unique_devices);
 
-        for (DeviceResponse portmapping_device : portmapping_devices){
+        for (const DeviceResponse &portmapping_device : portmapping_devices){
             UPnPCommands upnpcommands;
             addPortMappingResp = upnpcommands.AddPortMapping(
                                       NewRemoteHost, // ""
@@ -199,11 +199,11 @@ QHostAddress UPnPEngine::getNetworkInterface()
     return QHostAddress();
 }
 
-std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(std::vector<DeviceResponse> devices)
+std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::vector<DeviceResponse> &devices)
 {
     std::vector<DeviceResponse> portmapping_devices;
 
-    for(DeviceResponse devres : devices){
+    for(const DeviceResponse &devres : devices){
         std::string devcaps = GETRequest(devres.descriptionUrl);
 
         std::string devcaps_lowercase = devcaps;
@@ -216,9 +216,10 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(std::vector
             std::string addnewportmapping_control_url = devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12);
             std::cout << "\r\nAddNewPort control url = " << addnewportmapping_control_url <<  std::endl;
 
-            devres.controlURL = addnewportmapping_control_url;
-            devres.serviceName = "WANPPPConnection:1";
-            portmapping_devices.push_back(devres);
+            DeviceResponse newDevRes = devres;
+            newDevRes.controlURL = addnewportmapping_control_url;
+            newDevRes.serviceName = "WANPPPConnection:1";
+            portmapping_devices.push_back(newDevRes);
         }
         else {
             size_t find_serviceId_WANIPConn1 = devcaps_lowercase.find("serviceid:wanipconn1");
@@ -228,9 +229,10 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(std::vector
                 std::string addnewportmapping_control_url = devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12);
                 std::cout << "\r\nAddNewPort control url = " << addnewportmapping_control_url <<  std::endl;
 
-                devres.controlURL = addnewportmapping_control_url;
-                devres.serviceName = "WANIPConnection:1";
-                portmapping_devices.push_back(devres);
+                DeviceResponse newDevRes = devres;
+                newDevRes.controlURL = addnewportmapping_control_url;
+                newDevRes.serviceName = "WANIPConnection:1";
+                portmapping_devices.push_back(newDevRes);
             }
         }
     }//for
@@ -253,26 +255,26 @@ std::string UPnPEngine::GETRequest(QUrl url)
                                          "\r\nConnection: close\r\n\r\n");
 
     qtcp.write(device_caps_GET_request.c_str(),device_caps_GET_request.length());
-    qtcp.waitForBytesWritten(1000);
-    char buf[1024];
+    //qtcp.waitForBytesWritten(1000);
+    char buf[4096];
     qtcp.waitForReadyRead(1000);
     std::string total;
-    while (qtcp.read(buf,1024)>0){
+    while (qtcp.read(buf,4096)>0){
         total+=buf;
         qtcp.waitForReadyRead(1000);
     }
-    std::cout << total << std::endl;
+    //std::cout << total << std::endl;
 
     qtcp.close();
     return total;
 }
 
-std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(std::vector<std::string> devices)
+std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std::string>& devices)
 {
     std::vector<DeviceResponse> deviceResponses;
     //std::vector<QUrl> portmapping_devicesurl;
 
-    for(const std::string device : devices){
+    for(const std::string &device : devices){
         //eksagw to discovery url
         //prwta metatrepw to response se lower case
         //giati to location mporei na einai Location, LOCATION klp

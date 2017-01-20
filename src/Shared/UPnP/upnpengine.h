@@ -78,8 +78,8 @@ private:
 
     UPnPDiscovery upnpDiscovery;
     QHostAddress getNetworkInterface();
-    std::vector<DeviceResponse> getDeviceResponses(std::vector<std::string> devices);
-    std::vector<DeviceResponse> getPortMappingCapableDevices(std::vector<DeviceResponse> devices);
+    std::vector<DeviceResponse> getDeviceResponses(const std::vector<std::string>& devices);
+    std::vector<DeviceResponse> getPortMappingCapableDevices(const std::vector<DeviceResponse> &devices);
 
 signals:
     void sig_addPortMappingResponse(AddPortMappingResponse addPortMappingRes);

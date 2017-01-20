@@ -186,7 +186,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
             perror("recvfrom - device discovery");
             break;
         }
-        std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
+        //std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
         //logo UDP, mporei to idio device na stalei parapanw apo mia fora,
         //opote an yparxei idi den to ksanakataxwrw
         if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
