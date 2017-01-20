@@ -217,7 +217,21 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(std::vector
             std::cout << "\r\nAddNewPort control url = " << addnewportmapping_control_url <<  std::endl;
 
             devres.controlURL = addnewportmapping_control_url;
+            devres.serviceName = "WANPPPConnection:1";
             portmapping_devices.push_back(devres);
+        }
+        else {
+            size_t find_serviceId_WANIPConn1 = devcaps_lowercase.find("serviceid:wanipconn1");
+            if(find_serviceId_WANIPConn1 < devcaps_lowercase.length()){
+                size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANIPConn1);
+                size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
+                std::string addnewportmapping_control_url = devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12);
+                std::cout << "\r\nAddNewPort control url = " << addnewportmapping_control_url <<  std::endl;
+
+                devres.controlURL = addnewportmapping_control_url;
+                devres.serviceName = "WANIPConnection:1";
+                portmapping_devices.push_back(devres);
+            }
         }
     }//for
 
@@ -249,6 +263,7 @@ std::string UPnPEngine::GETRequest(QUrl url)
     }
     std::cout << total << std::endl;
 
+    qtcp.close();
     return total;
 }
 
