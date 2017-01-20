@@ -58,11 +58,6 @@ public:
                                     int NewLeaseDuration,
                                     int seconds_period);
 
-    void waitForAllAddPortMappingPendingRequests();
-
-private:
-    std::atomic<int> addPortMappingPendingRequests {0};
-
     AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
                         int NewExternalPort,
                         std::string NewProtocol,
@@ -71,6 +66,11 @@ private:
                         int NewEnabled,
                         std::string NewPortMappingDescription,
                         int NewLeaseDuration);
+
+    void waitForAllAddPortMappingPendingRequests();
+
+private:
+    std::atomic<int> addPortMappingPendingRequests {0};
 
     UPnPDiscovery upnpDiscovery;
     QHostAddress getNetworkInterface();

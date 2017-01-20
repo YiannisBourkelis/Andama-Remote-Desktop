@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
     UPnPEngine upnpEngine;
 
     //upnpEngine.AddPortMappingAsync();
-    upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"AndamaRemoteDesktop",10,3);
+    upnpEngine.AddPortMapping("",5980,"TCP",5980,"",1,"upnp_test_AndamaRemoteDesktop",60);
+    //upnpEngine.AddPortMappingPeriodicallyAsync("",5980,"TCP",8092,"",1,"ss1AndamaRemoteDesktop",10,3);
     //upnpEngine.stopAddPortMappingAsyncThread = true;
     return a.exec();
 }

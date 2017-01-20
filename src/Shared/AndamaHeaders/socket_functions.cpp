@@ -13,6 +13,45 @@ std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste
 
 //apostelei to command(1byte) kai to mynima efoson yparxei
 #ifdef WIN32
+int _sendmsgPlain(const SOCKET socketfd, const std::vector<char> &message)
+#else
+int _sendmsgPlain(const int socketfd, const std::vector<char> &message)
+#endif
+{
+    std::size_t total = 0;        // how many bytes we've sent
+    { // lock_guard scope
+        std::lock_guard<std::mutex> lock(send_mutex);
+
+        //prepei na vevaiwthooume oti stalthike olo to mynhma
+        size_t bytesleft = message.size(); // how many we have left to send
+        int n;
+        while (total < message.size()){
+            n = send(socketfd,message.data()+total,bytesleft,0);
+            if (n < 0){
+                break;
+            }
+            else if (n == 0)
+            {
+                std::cout << "-----> send returned 0 bytes. Expected: " << message.size() <<
+                             "  [ int clientserver::_sendmsgPlain(int socketfd ,const std::vector<char> &message) ]" << std::endl;
+                displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::vector<char> &message)");
+                return 0;
+            }
+            total+=n;
+            bytesleft-=n;
+        }
+    } // lock_guard scope
+
+    if (total != message.size()){
+        std::cout << "----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::vector<char> &message). Bytes send not equal to bytes expected." << std::endl;
+        displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::vector<char> &message)");
+        throw std::runtime_error(std::string("----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::vector<char> &message). Bytes send not equal to bytes expected."));
+    }
+    return total;
+}
+
+//apostelei to command(1byte) kai to mynima efoson yparxei
+#ifdef WIN32
 int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message)
 #else
 int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message)
@@ -25,36 +64,7 @@ int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const 
         msg.insert(msg.begin()+1, message.begin(),message.end());
     }
 
-    std::size_t total = 0;        // how many bytes we've sent
-    { // lock_guard scope
-        std::lock_guard<std::mutex> lock(send_mutex);
-
-        //prepei na vevaiwthooume oti stalthike olo to mynhma
-        size_t bytesleft = msg.size(); // how many we have left to send
-        int n;
-        while (total < msg.size()){
-            n = send(socketfd,msg.data()+total,bytesleft,0);
-            if (n < 0){
-                break;
-            }
-            else if (n == 0)
-            {
-                std::cout << "-----> send returned 0 bytes. Expected: " << msg.size() <<
-                             "  [ int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message) ]" << std::endl;
-                displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-                return 0;
-            }
-            total+=n;
-            bytesleft-=n;
-        }
-    } // lock_guard scope
-
-    if (total != msg.size()){
-        std::cout << "----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected. Command: %s" << command[0] << std::endl;
-        displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-        throw std::runtime_error(std::string("----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected."));
-    }
-    return total;
+    return _sendmsgPlain(socketfd,msg);
 }
 
 

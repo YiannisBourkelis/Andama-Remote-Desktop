@@ -10,6 +10,13 @@
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/exception_helper.h"
 
+//apostelei to message
+#ifdef WIN32
+int _sendmsgPlain(const SOCKET socketfd, const std::vector<char> &message);
+#else
+int _sendmsgPlain(const int socketfd, const std::vector<char> &message);
+#endif
+
 //apostelei to command(1byte) kai to mynima efoson yparxei
 #ifdef WIN32
 int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());

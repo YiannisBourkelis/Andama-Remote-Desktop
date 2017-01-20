@@ -35,6 +35,8 @@
 #include <arpa/inet.h>
 #endif
 
+#include "../Shared/AndamaHeaders/socket_functions.h"
+
 #include <iostream>
 
 UPnPCommands::UPnPCommands()
@@ -67,7 +69,10 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                          ":" +
                                          std::to_string(devicePort) +
                                          "\r\nConnection: close\r\n\r\n");
-    send(sock1,device_caps_GET_request.c_str(),device_caps_GET_request.length(),0);
+
+    //end(sock1,device_caps_GET_request.c_str(),device_caps_GET_request.length(),0);
+    std::vector<char> vect_char_device_caps_GET_request(device_caps_GET_request.begin(),device_caps_GET_request.end());
+    _sendmsgPlain(sock1, vect_char_device_caps_GET_request);
 
     char device_caps_reply_buffer[1024];
     std::string device_caps_reply;
@@ -86,6 +91,7 @@ close(sock1);
 
     //std::cout << "\r\nAll Data\r\n" << device_caps_reply <<  std::endl;
 
+    //TODO: to WANPPPConn1 einai gia adsl. gia apla router prepei na psaxw se kati allo, nomizw WANIPConn1
     size_t find_serviceId_WANPPPConn1 = device_caps_reply.find("serviceId:WANPPPConn1");
     size_t find_controlURL = device_caps_reply.find("<controlURL>",find_serviceId_WANPPPConn1);
     size_t find__controlURL = device_caps_reply.find("</controlURL>", find_controlURL);
@@ -130,7 +136,9 @@ close(sock1);
 
     std::cout << "\r\n will send soap message \r\n" << headerAndSoapBody << "\r\n";
 
-    send(sock,headerAndSoapBody.c_str(),headerAndSoapBody.length(),0);
+    //send(sock,headerAndSoapBody.c_str(),headerAndSoapBody.length(),0);
+    std::vector<char> vector_char_headerAndSoapBody(headerAndSoapBody.begin(),headerAndSoapBody.end());
+    _sendmsgPlain(sock, vector_char_headerAndSoapBody);
 
     char addPortMappingReply[1024];
     std::string addportreply;

@@ -39,6 +39,8 @@
 #endif
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 
 UPnPDiscovery::UPnPDiscovery()
@@ -109,6 +111,19 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
         //throw std::runtime_error("setsockopt ttl");
     }
 
+
+    //Xreiazetai wste se periptwsi crash na ginetai reuse to socket pou einai se state CLOSE_WAIT
+    //mporw na to vrw se macos me: netstat -anp tcp | grep port_number
+    int reuse = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
+#ifdef SO_REUSEPORT
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEPORT) failed");
+#endif
+
+
     // Bind to port MULTICAST_DISCOVERY_BIND_PORT on all interfaces
     unsigned short bindPortBindIncrementer = 0;
     while (bind(sock, (struct sockaddr *)&interface_addr,
@@ -116,6 +131,7 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
         perror("bind");
         bindPortBindIncrementer++;
         interface_addr.sin_port = htons(MULTICAST_DISCOVERY_BIND_PORT + bindPortBindIncrementer);
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10));//TODO: isws den xreiazetai
     }
 
     char discovery_request_buffer[1024];
@@ -125,11 +141,15 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
                                        "ST: upnp:rootdevice\r\n"
                                        "MX: 3\r\n"
                                        "\r\n");
-    if (sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
-           sizeof(destadd)) < 0) {
+    ssize_t disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
+               sizeof(destadd));
+    if (disc_send_res < 0) {
         perror("sendto");
         return QUrl();
         //throw std::runtime_error("sendto");
+    } else if (disc_send_res != (ssize_t)strlen(discovery_request_buffer)){
+        perror("sendto - send bytes not equal to buffer");
+        return QUrl();
     }
 
     char discovery_response_buffer[1024];

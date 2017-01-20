@@ -299,11 +299,13 @@ MainWindow::MainWindow(QWidget *parent) :
                   SLOT(protocol_exception(QString)),
                   Qt::ConnectionType::AutoConnection);
 
+    /*
     this->connect(&p2pclient,
                   SIGNAL(finished()),
                   this,
                   SLOT(slot_protocol_finished_or_terminated()),
                   Qt::ConnectionType::AutoConnection);
+                  */
    // ======== end p2p client protocol ============
 
     // ======== client socket  ============
@@ -350,7 +352,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //cst.start();
     screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.p2pServer = &p2pserver;
-    screenshotWrk.imageQuality=80;
+    screenshotWrk.imageQuality=80; //default 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
     screenshotWrk.start();
 
     keepAlive.protocol_supervisor = &protocol_supervisor;
