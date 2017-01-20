@@ -48,10 +48,12 @@ UPnPDiscovery::UPnPDiscovery()
 
 }
 
-QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
+std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget)
 {
     int loop = 1; // Needs to be on to get replies from clients on the same host
     int ttl = 4;
+
+    std::vector<std::string> devices; // oi syskeves pou vrethikan
 
 #ifdef WIN32
     SOCKET sock;
@@ -74,7 +76,7 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("socket");
-        return QUrl();
+        return devices;
         //throw std::runtime_error("socket");
     }
 
@@ -85,7 +87,7 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     destadd.sin_port = htons(1900);
     if (inet_pton(AF_INET, "239.255.255.250", &destadd.sin_addr) < 1) {
         perror("inet_pton dest");
-        return QUrl();
+        return devices;
         //throw std::runtime_error("inet_pton dest");
     }
 
@@ -101,13 +103,13 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     // Got to have this to get replies from clients on same machine
     if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, (char*) &loop, sizeof(loop)) < 0){
         perror("setsockopt loop");
-        return QUrl();
+        return devices;
         //throw std::runtime_error("setsockopt loop");
     }
 
     if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL,(char*) &ttl, sizeof(ttl)) < 0){
         perror("setsockopt ttl");
-        return QUrl();
+        return devices;
         //throw std::runtime_error("setsockopt ttl");
     }
 
@@ -139,24 +141,45 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
                                        "Host: 239.255.255.250:1900\r\n"
                                        "Man: \"ssdp:discover\"\r\n"
                                        "ST: upnp:rootdevice\r\n"
-                                       "MX: 3\r\n"
+                                       "MX: 1\r\n"
                                        "\r\n");
     int disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
                sizeof(destadd));
     if (disc_send_res < 0) {
         perror("sendto");
-        return QUrl();
+        return devices;
         //throw std::runtime_error("sendto");
     } else if (disc_send_res != strlen(discovery_request_buffer)){
         perror("sendto - send bytes not equal to buffer");
-        return QUrl();
+        return devices;
     }
 
+    //thetw to recv timeout
+#ifdef WIN32
+    int iTimeout = 1000;
+    setsockopt(sock,
+                       SOL_SOCKET,
+                       SO_RCVTIMEO,
+                       (const char *)&iTimeout,
+                       sizeof(iTimeout) );
+#else
+    struct timeval tv;
+    tv.tv_sec = 1;  /* 90 Secs Timeout */
+    tv.tv_usec = 0;  // Not init'ing this can cause strange errors
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+#endif
     char discovery_response_buffer[1024];
+    while(true){
     if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) { //TODO: edw na valw recv timeout
-        perror("recvfrom");
-        return QUrl();
-        //throw std::runtime_error("recvfrom");
+            perror("recvfrom - device discovery");
+            break;
+        }
+        std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
+        //logo UDP, mporei to idio device na stalei parapanw apo mia fora,
+        //opote an yparxei idi den to ksanakataxwrw
+        if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
+            devices.push_back(discovery_response_buffer);
+        }
     }
 
 #ifdef WIN32
@@ -165,32 +188,8 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
     if (close(sock) < 0) {
 #endif
         perror("close");
-        return QUrl();
-        //throw std::runtime_error("close");
     }
 
-    printf("%s\n", discovery_response_buffer);
 
-    //eksagw to discovery url
-    //prwta metatrepw to response se lower case
-    //giati to location mporei na einai Location, LOCATION klp
-    std::string ret(discovery_response_buffer);
-    std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
-    size_t locfinf = ret.find("location:");
-    QUrl locationUrl;
-
-    if (locfinf < ret.length()){
-        //efoson to location vrethike, anazitw to url
-        //sto original response (xwris lowercase diladi), gia na min epireastei to url
-        std::string original_ret(discovery_response_buffer);
-        //dimiourgw neo string meta to location:
-        std::string loc(original_ret.substr(locfinf));
-        auto f = loc.find("\r\n");
-        std::string loc2(loc.substr(9,f-9));
-        std::cout << loc2 << std::endl;
-        locationUrl = QString::fromStdString(loc2);
-        std::cout << "\r\n" << "Host: " << locationUrl.host().toStdString()<<"\r\nPort: "<< locationUrl.port() << std::endl;
-    }
-
-    return locationUrl;
+    return devices;
 }

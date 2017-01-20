@@ -98,7 +98,8 @@ SOURCES += main.cpp\
     ../Shared/UPnP/upnpcommands.cpp \
     ../Shared/UPnP/upnpdiscovery.cpp \
     ../Shared/UPnP/upnpengine.cpp \
-    ../Shared/UPnP/addportmappingresponse.cpp
+    ../Shared/UPnP/addportmappingresponse.cpp \
+    ../Shared/UPnP/deviceresponse.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -124,7 +125,8 @@ HEADERS  += clientserver.h \
     ../Shared/UPnP/upnpdiscovery.h \
     ../Shared/UPnP/upnpengine.h \
     ../Shared/General/finally.h \
-    ../Shared/UPnP/addportmappingresponse.h
+    ../Shared/UPnP/addportmappingresponse.h \
+    ../Shared/UPnP/deviceresponse.h
 
 FORMS    += mainwindow.ui \
     About.ui

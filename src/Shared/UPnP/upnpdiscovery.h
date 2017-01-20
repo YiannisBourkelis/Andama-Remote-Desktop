@@ -22,12 +22,17 @@
 #define UPNPDISCOVERY_H
 
 #include <QUrl>
+#include <vector>
+#include <string>
 
 class UPnPDiscovery
 {
 public:
     UPnPDiscovery();
-    QUrl getDeviceLocationXmlUrl();
+
+
+
+    std::vector<std::string> discoverDevices(std::string searchTarget);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
 
 private:
     const unsigned short MULTICAST_DISCOVERY_BIND_PORT = 26389;

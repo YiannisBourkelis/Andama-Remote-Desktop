@@ -24,6 +24,8 @@
 #include <string>
 #include <QUrl>
 #include "addportmappingresponse.h"
+#include <QUrl>
+#include "deviceresponse.h"
 
 class UPnPCommands
 {
@@ -37,9 +39,7 @@ public:
                         int NewEnabled,
                         std::string NewPortMappingDescription,
                         int NewLeaseDuration,
-                        std::string deviceIP,
-                        unsigned short devicePort,
-                        QUrl deviceCapabilitiesXMLURL);
+                        DeviceResponse portmappingDevice);
 
 private:
     int getSocket(std::string deviceIP, unsigned short int devicePort);

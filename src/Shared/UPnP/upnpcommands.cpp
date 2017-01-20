@@ -38,6 +38,9 @@
 #include "../Shared/AndamaHeaders/socket_functions.h"
 
 #include <iostream>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 UPnPCommands::UPnPCommands()
 {
@@ -52,52 +55,11 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   int newEnabled,
                                   std::string newPortMappingDescription,
                                   int newLeaseDuration,
-                                  std::string deviceIP,
-                                  unsigned short int devicePort,
-                                  QUrl deviceCapabilitiesXMLURL)
+                                  DeviceResponse portmappingDevice)
 {
-    int sock1 = getSocket(deviceIP, devicePort);
+    int sock = getSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
 
     AddPortMappingResponse addPortMappingResponse;
-
-    //Lamvanw to xml me ta capabilities tis syskevis
-    //wste na eksagw to control command url gia to addportmapping commnad
-    std::string device_caps_GET_request ("GET "
-                                         + deviceCapabilitiesXMLURL.path().toStdString() +
-                                         " HTTP/1.1\r\nHost: " +
-                                         deviceIP +
-                                         ":" +
-                                         std::to_string(devicePort) +
-                                         "\r\nConnection: close\r\n\r\n");
-
-    //end(sock1,device_caps_GET_request.c_str(),device_caps_GET_request.length(),0);
-    std::vector<char> vect_char_device_caps_GET_request(device_caps_GET_request.begin(),device_caps_GET_request.end());
-    _sendmsgPlain(sock1, vect_char_device_caps_GET_request);
-
-    char device_caps_reply_buffer[1024];
-    std::string device_caps_reply;
-    while (recv(sock1,device_caps_reply_buffer,sizeof(device_caps_reply_buffer),0)>0){ //TODO: edw na valw recv timeout
-        device_caps_reply += device_caps_reply_buffer;
-        //std::cout << "\r\n server reply \r\n" << device_caps_buffer;
-    }
-
-#ifdef WIN32
-closesocket(sock1);
-#else
-close(sock1);
-#endif
-
-    int sock = getSocket(deviceIP, devicePort);
-
-    //std::cout << "\r\nAll Data\r\n" << device_caps_reply <<  std::endl;
-
-    //TODO: to WANPPPConn1 einai gia adsl. gia apla router prepei na psaxw se kati allo, nomizw WANIPConn1
-    size_t find_serviceId_WANPPPConn1 = device_caps_reply.find("serviceId:WANPPPConn1");
-    size_t find_controlURL = device_caps_reply.find("<controlURL>",find_serviceId_WANPPPConn1);
-    size_t find__controlURL = device_caps_reply.find("</controlURL>", find_controlURL);
-    std::string addnewportmapping_control_url = device_caps_reply.substr(find_controlURL+12,find__controlURL-find_controlURL-12);
-    std::cout << "\r\nAddNewPort control url = " << addnewportmapping_control_url <<  std::endl;
-
 
     char buffer[1024];
 
@@ -122,8 +84,8 @@ close(sock1);
 
     std::string soapbodylength (std::to_string(soapbody.length()-10));
 
-    std::string headerAndSoapBody ("POST " + addnewportmapping_control_url + " HTTP/1.0\r\n"
-                        "Host: " + deviceIP + ":" + std::to_string(devicePort) + "\r\n"
+    std::string headerAndSoapBody ("POST " + portmappingDevice.controlURL + " HTTP/1.0\r\n"
+                        "Host: " + portmappingDevice.descriptionUrl.host().toStdString() + ":" + std::to_string(portmappingDevice.descriptionUrl.port()) + "\r\n"
                         "Content-Length: " + soapbodylength + "\r\n"
                         "Content-Type: text/xml\r\n"
                         "SOAPAction: ""urn:schemas-upnp-org:service:WANPPPConnection:1#AddPortMapping""\r\n"

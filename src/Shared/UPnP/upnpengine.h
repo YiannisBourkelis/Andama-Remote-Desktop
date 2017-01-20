@@ -27,6 +27,9 @@
 #include <atomic>
 #include <chrono>
 #include "addportmappingresponse.h"
+#include <vector>
+#include <string>
+#include "deviceresponse.h"
 
 class UPnPEngine : public QObject
 {  
@@ -68,12 +71,15 @@ public:
                         int NewLeaseDuration);
 
     void waitForAllAddPortMappingPendingRequests();
+    std::string GETRequest(QUrl url);
 
 private:
     std::atomic<int> addPortMappingPendingRequests {0};
 
     UPnPDiscovery upnpDiscovery;
     QHostAddress getNetworkInterface();
+    std::vector<DeviceResponse> getDeviceResponses(std::vector<std::string> devices);
+    std::vector<DeviceResponse> getPortMappingCapableDevices(std::vector<DeviceResponse> devices);
 
 signals:
     void sig_addPortMappingResponse(AddPortMappingResponse addPortMappingRes);

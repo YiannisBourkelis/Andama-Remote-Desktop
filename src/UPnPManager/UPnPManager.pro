@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     ../Shared/UPnP/addportmappingresponse.cpp \
     ../Shared/AndamaHeaders/socket_functions.cpp \
     ../Shared/AndamaHeaders/byte_functions.cpp \
-    ../Shared/AndamaHeaders/exception_helper.cpp
+    ../Shared/AndamaHeaders/exception_helper.cpp \
+    ../Shared/UPnP/deviceresponse.cpp
 
 HEADERS += \
     ../Shared/UPnP/upnpcommands.h \
@@ -27,4 +28,5 @@ HEADERS += \
     ../Shared/UPnP/addportmappingresponse.h \
     ../Shared/AndamaHeaders/socket_functions.h \
     ../Shared/AndamaHeaders/byte_functions.h \
-    ../Shared/AndamaHeaders/exception_helper.h
+    ../Shared/AndamaHeaders/exception_helper.h \
+    ../Shared/UPnP/deviceresponse.h
