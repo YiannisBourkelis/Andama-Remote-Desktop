@@ -141,13 +141,13 @@ QUrl UPnPDiscovery::getDeviceLocationXmlUrl()
                                        "ST: upnp:rootdevice\r\n"
                                        "MX: 3\r\n"
                                        "\r\n");
-    ssize_t disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
+    int disc_send_res = sendto(sock, discovery_request_buffer, strlen(discovery_request_buffer), 0, (struct sockaddr*)&destadd,
                sizeof(destadd));
     if (disc_send_res < 0) {
         perror("sendto");
         return QUrl();
         //throw std::runtime_error("sendto");
-    } else if (disc_send_res != (ssize_t)strlen(discovery_request_buffer)){
+    } else if (disc_send_res != strlen(discovery_request_buffer)){
         perror("sendto - send bytes not equal to buffer");
         return QUrl();
     }
