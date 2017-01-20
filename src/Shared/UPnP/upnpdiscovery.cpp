@@ -177,11 +177,9 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
     while(true){
     if (recvfrom(sock, discovery_response_buffer, sizeof(discovery_response_buffer)-1, 0, NULL, NULL) < 0) { //TODO: edw na valw recv timeout
         #ifdef WIN32
-            std::cout <<
-                         "###### [source: displayErrno: " << strerror(WSAGetLastError()) << std::endl;
+            std::cout << "###### displayErrno: " << strerror(WSAGetLastError()) << std::endl;
         #else
-            std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
-                         "###### [source: " << source <<  "]  displayErrno: " << strerror(errno) << std::endl;
+            std::cout << "###### displayErrno: " << strerror(errno) << std::endl;
         #endif
             perror("recvfrom - device discovery");
             break;
