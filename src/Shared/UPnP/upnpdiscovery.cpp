@@ -141,7 +141,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
                                        "Host: 239.255.255.250:1900\r\n"
                                        "Man: \"ssdp:discover\"\r\n"
                                        "ST: upnp:rootdevice\r\n"
-                                       "MX: 3\r\n"
+                                       "MX: 1\r\n"
                                        "\r\n");
 
     for (int i = 0;i < 2; i++){
@@ -160,7 +160,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
 
     //thetw to recv timeout
 #ifdef WIN32
-    int iTimeout = 3000;
+    int iTimeout = 1000;
     setsockopt(sock,
                        SOL_SOCKET,
                        SO_RCVTIMEO,
@@ -168,7 +168,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
                        sizeof(iTimeout) );
 #else
     struct timeval tv;
-    tv.tv_sec = 3;  /* 90 Secs Timeout */
+    tv.tv_sec = 1;  /* 90 Secs Timeout */
     tv.tv_usec = 0;  // Not init'ing this can cause strange errors
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
