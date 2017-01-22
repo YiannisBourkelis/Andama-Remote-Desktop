@@ -57,4 +57,7 @@ int _receive(const SOCKET socketfd, std::vector<char> &charbuffer);
 int _receive(const int socketfd, std::vector<char> &charbuffer);
 #endif
 
+//syndeetai stin ip kai port eisodou kai epistrefei to socket
+int getClientSocket(std::string IP, unsigned short int Port);
+
 #endif // SOCKET_FUNCTIONS_H

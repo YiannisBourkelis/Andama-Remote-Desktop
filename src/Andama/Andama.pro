@@ -29,7 +29,7 @@ include(mousekeyb/mousekeyb.pri)
 
 QT         += core gui quick
 windows:QT += winextras
-linux:QMAKE_CXXFLAGS += -g -O0
+#linux:QMAKE_CXXFLAGS += -g -O0 #an thelw na kanw debugging se linux, kataxwrei etsi debug symbols
 
 CONFIG += c++11
 CONFIG += qt debug #debug symbols. na to vgazw opote den to xreiazomai
@@ -97,11 +97,11 @@ SOURCES += main.cpp\
     clientserverprotocol.cpp \
     serversocket.cpp \
     protocolsupervisor.cpp \
-    ../Shared/UPnP/upnpcommands.cpp \
     ../Shared/UPnP/upnpdiscovery.cpp \
     ../Shared/UPnP/upnpengine.cpp \
     ../Shared/UPnP/addportmappingresponse.cpp \
-    ../Shared/UPnP/deviceresponse.cpp
+    ../Shared/UPnP/deviceresponse.cpp \
+    ../Shared/UPnP/upnpaddportmapping.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -123,12 +123,12 @@ HEADERS  += clientserver.h \
     serversocket.h \
     protocolsupervisor.h \
     ../Shared/AndamaHeaders/finally.h \
-    ../Shared/UPnP/upnpcommands.h \
     ../Shared/UPnP/upnpdiscovery.h \
     ../Shared/UPnP/upnpengine.h \
     ../Shared/General/finally.h \
     ../Shared/UPnP/addportmappingresponse.h \
-    ../Shared/UPnP/deviceresponse.h
+    ../Shared/UPnP/deviceresponse.h \
+    ../Shared/UPnP/upnpaddportmapping.h
 
 FORMS    += mainwindow.ui \
     About.ui

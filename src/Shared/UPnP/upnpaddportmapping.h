@@ -18,8 +18,8 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#ifndef UPNPCOMMANDS_H
-#define UPNPCOMMANDS_H
+#ifndef UPNPADDPORTMAPPING_H
+#define UPNPADDPORTMAPPING_H
 
 #include <string>
 #include <QUrl>
@@ -27,10 +27,11 @@
 #include <QUrl>
 #include "deviceresponse.h"
 
-class UPnPCommands
+//
+class UPnPAddPortMapping
 {
 public: 
-    UPnPCommands();
+    UPnPAddPortMapping();
     AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
                         int NewExternalPort,
                         std::string NewProtocol,
@@ -40,9 +41,6 @@ public:
                         std::string NewPortMappingDescription,
                         int NewLeaseDuration,
                         const DeviceResponse portmappingDevice);
-
-private:
-    int getSocket(std::string deviceIP, unsigned short int devicePort);
 };
 
-#endif // UPNPCOMMANDS_H
+#endif // UPNPADDPORTMAPPING_H

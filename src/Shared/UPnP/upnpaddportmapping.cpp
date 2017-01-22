@@ -18,7 +18,7 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
-#include "upnpcommands.h"
+#include "upnpaddportmapping.h"
 
 #ifdef WIN32
 #define NOMINMAX
@@ -37,17 +37,18 @@
 
 #include "../Shared/AndamaHeaders/socket_functions.h"
 
+
 #include <iostream>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
-UPnPCommands::UPnPCommands()
+UPnPAddPortMapping::UPnPAddPortMapping()
 {
 
 }
 
-AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
+AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(std::string newRemoteHost,
                                   int newExternalPort,
                                   std::string newProtocol,
                                   int newInternalPort,
@@ -57,12 +58,10 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                                   int newLeaseDuration,
                                   const DeviceResponse portmappingDevice)
 {
-    int sock = getSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
+    int sock = getClientSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
 
     AddPortMappingResponse addPortMappingResponse;
     addPortMappingResponse.statusCode = 0;
-
-    char buffer[1024];
 
     std::cout << "\r\n\r\n ========================== \r\n\r\n";
 
@@ -70,7 +69,7 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
                             "<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"" s:encodingStyle=""http://schemas.xmlsoap.org/soap/encoding/"">"
                             "<s:Body>"
                             "<u:AddPortMapping xmlns:u=""urn:schemas-upnp-org:service:" + portmappingDevice.serviceName + """>"
-                            "<NewRemoteHost></NewRemoteHost>"
+                            "<NewRemoteHost>" + newRemoteHost + "</NewRemoteHost>"
                             "<NewExternalPort>" + std::to_string(newExternalPort) + "</NewExternalPort>"
                             "<NewProtocol>" + newProtocol + "</NewProtocol>"
                             "<NewInternalPort>" + std::to_string(newInternalPort) + "</NewInternalPort>"
@@ -128,55 +127,4 @@ AddPortMappingResponse UPnPCommands::AddPortMapping(std::string newRemoteHost,
     #endif
 
     return addPortMappingResponse;
-}
-
-int UPnPCommands::getSocket(std::string deviceIP, unsigned short int devicePort)
-{
-        int bytes_recv;
-        struct sockaddr_in serv_addr;
-
-        #ifdef WIN32
-            // Initialize Winsock
-            int iResult;
-            WSADATA wsaData;
-            iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-            if (iResult != 0) {
-                std::cout << "WSAStartup failed: " << iResult << std::endl;
-                return -1;
-            }
-        #endif
-
-        int sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef WIN32
-        if (sock == INVALID_SOCKET) {
-#else
-        if (sock < 0){
-#endif
-            perror("ERROR opening socket");
-            return -1;
-        }
-
-
-        memset((char *) &serv_addr,0, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr=inet_addr(deviceIP.data());
-        serv_addr.sin_port = htons(devicePort);
-
-        int conres = ::connect(sock,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
-        if (conres < 0)
-        {
-            std::cout << "ERROR connecting. result: " << conres << "\n";
-
-#ifdef WIN32
-            closesocket(sock);
-#else
-            close(sock);
-#endif
-            //edw xtypaei ean yparxei syndesi sto internet alla o proxy den trexei
-            //error("ERROR connecting");
-
-            return -1;
-         }
-
-        return sock;
 }

@@ -25,7 +25,7 @@
 #include "../General/finally.h"
 #include <QtNetwork>
 #include <QHttpPart>
-#include "upnpcommands.h"
+#include "upnpaddportmapping.h"
 #include <QTcpSocket>
 #include <QHostAddress>
 
@@ -78,11 +78,10 @@ void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
         {
             std::cout << "will call AddPortMapping from AddPortMappingPeriodically\r\n" << std::endl;
             int addport_retries = 0;
-             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort, NewProtocol,
+             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort + addport_retries, NewProtocol,
                                    NewInternalPort,NewInternalClient,NewEnabled,
                                    NewPortMappingDescription,NewLeaseDuration).statusCode != 200){
                  addport_retries++;
-                 NewExternalPort += addport_retries;
                 std::cout << "returned from AddPortMapping called from AddPortMappingPeriodically\r\n" << std::endl;
              }
 
@@ -155,8 +154,8 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
 
         std::cout << "7. kataxwrw to portmapping AddPortMapping" << std::endl;
         for (const DeviceResponse &portmapping_device : portmapping_devices){
-            UPnPCommands upnpcommands;
-            addPortMappingResp = upnpcommands.AddPortMapping(
+            UPnPAddPortMapping addportmapping;
+            addPortMappingResp = addportmapping.AddPortMapping(
                                       NewRemoteHost, // ""
                                       NewExternalPort, //5980
                                       NewProtocol, // "TCP"
@@ -207,29 +206,25 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
     for(const DeviceResponse &devres : devices){
         std::string devcaps = GETRequest(devres.descriptionUrl);
 
-        std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;
+        //std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;
 
         std::string devcaps_lowercase = devcaps;
         std::transform(devcaps_lowercase.begin(), devcaps_lowercase.end(), devcaps_lowercase.begin(), ::tolower);
 
         size_t find_serviceId_WANPPPConn1 = devcaps_lowercase.find("serviceid:wanpppconn1");
-        size_t find_serviceId_WANIPConn1  = devcaps_lowercase.find("serviceid:wanipconn1");
-        DeviceResponse newDevRes = devres;
-
-        std::cout << " devcaps_lowercase " << devcaps_lowercase << std::endl;
-
-
         if(find_serviceId_WANPPPConn1 < devcaps_lowercase.length()){
             size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANPPPConn1);
             size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
             std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
             std::cout << "\r\nAddNewPort control url 1 = " << addnewportmapping_control_url <<  std::endl;
 
+            DeviceResponse newDevRes = devres;
             newDevRes.controlURL = std::string(addnewportmapping_control_url);
             newDevRes.serviceName = "WANPPPConnection:1";
             portmapping_devices.push_back(newDevRes);
         }
 
+        size_t find_serviceId_WANIPConn1  = devcaps_lowercase.find("serviceid:wanipconn1");
         if (find_serviceId_WANIPConn1 < devcaps_lowercase.length()){
             size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANIPConn1);
             size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
@@ -242,7 +237,6 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
             portmapping_devices.push_back(newDevRes);
         }
 
-        devcaps.clear();
     }//for
 
     return portmapping_devices;
@@ -263,19 +257,16 @@ std::string UPnPEngine::GETRequest(QUrl url)
                                          "\r\nConnection: close\r\n\r\n");
 
     qtcp.write(device_caps_GET_request.c_str(),device_caps_GET_request.length());
-    //qtcp.waitForBytesWritten(1000);
-    char buf[4096] = {0};
-    //bzero(buf,sizeof(buf));
+    char buf[4096] = {};
     qtcp.waitForReadyRead(1000);
-    std::string total;
+    std::string getResponse;
     while (qtcp.read(buf,4096)>0){
-        total+=buf;
+        getResponse+=buf;
         qtcp.waitForReadyRead(1000);
     }
-    //std::cout << total << std::endl;
 
     qtcp.close();
-    return total;
+    return getResponse;
 }
 
 std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std::string>& devices)

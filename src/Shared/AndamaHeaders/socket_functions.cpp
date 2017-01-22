@@ -2,11 +2,17 @@
 
 #ifdef WIN32
 #define NOMINMAX
+#include <stdio.h>
 #include "winsock2.h"
+#include <ws2tcpip.h>
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
+#define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
+#define in_addr_t uint32_t
 #pragma comment(lib, "Ws2_32.lib")
 
 #else
-#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #endif
 
 std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
@@ -256,3 +262,56 @@ int _receive(const int socketfd, std::vector<char> &charbuffer)
 
     return bytes_cnt_payload + bytes_cnt;
 }
+
+int getClientSocket(std::string IP, unsigned short int Port)
+{
+        struct sockaddr_in serv_addr;
+
+        #ifdef WIN32
+            // Initialize Winsock
+            int iResult;
+            WSADATA wsaData;
+            iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+            if (iResult != 0) {
+                std::cout << "WSAStartup failed: " << iResult << std::endl;
+                return -1;
+            }
+        #endif
+
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef WIN32
+        if (sock == INVALID_SOCKET) {
+#else
+        if (sock < 0){
+#endif
+            perror("ERROR opening socket");
+            return -1;
+        }
+
+
+        memset((char *) &serv_addr,0, sizeof(serv_addr));
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr=inet_addr(IP.data());
+        serv_addr.sin_port = htons(Port);
+
+        int conres = ::connect(sock,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
+        if (conres < 0)
+        {
+            std::cout << "ERROR connecting. result: " << conres << "\n";
+
+#ifdef WIN32
+            closesocket(sock);
+#else
+            close(sock);
+#endif
+            //edw xtypaei ean yparxei syndesi sto internet alla o proxy den trexei
+            //error("ERROR connecting");
+
+            return -1;
+         }
+
+        return sock;
+}
+
+
+

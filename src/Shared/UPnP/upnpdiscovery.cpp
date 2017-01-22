@@ -133,7 +133,6 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(std::string searchTarget
         perror("bind");
         bindPortBindIncrementer++;
         interface_addr.sin_port = htons(MULTICAST_DISCOVERY_BIND_PORT + bindPortBindIncrementer);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));//TODO: isws den xreiazetai
     }
 
     char discovery_request_buffer[1024];
