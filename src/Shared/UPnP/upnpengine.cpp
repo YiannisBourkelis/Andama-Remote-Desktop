@@ -34,15 +34,15 @@ UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 
 }
 
-void UPnPEngine::AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
-                                                 int NewExternalPort,
-                                                 std::string NewProtocol,
-                                                 int NewInternalPort,
-                                                 std::string NewInternalClient,
-                                                 int NewEnabled,
-                                                 std::string NewPortMappingDescription,
-                                                 int NewLeaseDuration,
-                                                 int seconds_period)
+void UPnPEngine::AddPortMappingPeriodicallyAsync(const std::string &NewRemoteHost,
+                                                 const int NewExternalPort,
+                                                 const std::string &NewProtocol,
+                                                 const int NewInternalPort,
+                                                 const std::string &NewInternalClient,
+                                                 const int NewEnabled,
+                                                 const std::string &NewPortMappingDescription,
+                                                 const int NewLeaseDuration,
+                                                 const int seconds_period)
 {
     std::thread t(&UPnPEngine::AddPortMappingPeriodically,this,NewRemoteHost,
                                                                   NewExternalPort,
@@ -56,23 +56,23 @@ void UPnPEngine::AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
     t.detach();
 }
 
-void UPnPEngine::AddPortMappingPeriodically(std::string NewRemoteHost,
-                                            int NewExternalPort,
-                                            std::string NewProtocol,
-                                            int NewInternalPort,
-                                            std::string NewInternalClient,
-                                            int NewEnabled,
-                                            std::string NewPortMappingDescription,
-                                            int NewLeaseDuration,
-                                            int seconds_period)
+void UPnPEngine::AddPortMappingPeriodically(const std::string &NewRemoteHost,
+                                            const int NewExternalPort,
+                                            const std::string &NewProtocol,
+                                            const int NewInternalPort,
+                                            const std::string &NewInternalClient,
+                                            const int NewEnabled,
+                                            const std::string &NewPortMappingDescription,
+                                            const int NewLeaseDuration,
+                                            const int seconds_period)
 {
 
-    std::chrono::milliseconds sleep_dura(10);
+    const std::chrono::milliseconds sleep_dura(5);
     std::chrono::high_resolution_clock::time_point _lastAddNewPortMappingTimePoint;
 
     while (true && !stopAddPortMappingAsyncThread){
-        std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - _lastAddNewPortMappingTimePoint);
+        const std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - _lastAddNewPortMappingTimePoint);
 
         if (time_span.count() >= seconds_period)
         {
@@ -105,14 +105,14 @@ void UPnPEngine::AddPortMappingAsync()
     t.detach();
 }
 
-AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
-                    int NewExternalPort,
-                    std::string NewProtocol,
-                    int NewInternalPort,
-                    std::string NewInternalClient,
-                    int NewEnabled,
-                    std::string NewPortMappingDescription,
-                    int NewLeaseDuration)
+AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHost,
+                    const int &NewExternalPort,
+                    const std::string &NewProtocol,
+                    const int NewInternalPort,
+                    const std::string &NewInternalClient,
+                    const int NewEnabled,
+                    const std::string &NewPortMappingDescription,
+                    const int NewLeaseDuration)
 {
     AddPortMappingResponse addPortMappingResp;
 
@@ -138,19 +138,19 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
         }
 
         std::cout << "4. lamvanw ti lista me ta diathesima devices" << std::endl;
-        std::vector<std::string> devicesFound = future_getDeviceLocationXmlUrl.get();
+        const std::vector<std::string> devicesFound = future_getDeviceLocationXmlUrl.get();
 
         std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
         //std::cout << "deviceLocationXmlUrl.host: " << deviceLocationXmlUrl.host().toStdString() << std::endl;
         //std::cout << "deviceLocationXmlUrl: " << deviceLocationXmlUrl.toString().toStdString() << std::endl;
 
         std::cout << "5. lamvanw ta device responses" << std::endl;
-        std::vector<DeviceResponse> unique_devices = getDeviceResponses(devicesFound);
+        const std::vector<DeviceResponse> unique_devices = getDeviceResponses(devicesFound);
 
         std::cout << "6. lamvanw ti lista me ta devices poy ypostirizoyn addportmapping. sinithws einai ena, alla mporei na einai kai parapanw" << std::endl;
         //symfwna kai me afto to thread: (UPnP code needs cleanup and improved handling #432) https://github.com/syncthing/syncthing/issues/432
         //kai afto: (AddPortMapping with WANPPPConnection and/or WANIPConnection) http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=538
-        std::vector<DeviceResponse> portmapping_devices = getPortMappingCapableDevices(unique_devices);
+        const std::vector<DeviceResponse> portmapping_devices = getPortMappingCapableDevices(unique_devices);
 
         std::cout << "7. kataxwrw to portmapping AddPortMapping" << std::endl;
         for (const DeviceResponse &portmapping_device : portmapping_devices){
@@ -183,12 +183,12 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(std::string NewRemoteHost,
 QHostAddress UPnPEngine::getNetworkInterface()
 {
     //std::cout << "UPnPEngine::getNetworkInterface() === enter func\r\n"  << std::endl;
-    for (auto& address : QNetworkInterface::allAddresses()) {
+    for (const auto& address : QNetworkInterface::allAddresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol
                 && address != QHostAddress(QHostAddress::LocalHost)
                 && !address.isLoopback())
         {
-            std::string addip(address.toString().toStdString());
+            const std::string addip(address.toString().toStdString());
             if (addip.length() > 0 &&
                (addip.find(":") > addip.length())){
                 return address;
@@ -199,23 +199,26 @@ QHostAddress UPnPEngine::getNetworkInterface()
     return QHostAddress();
 }
 
+//epistrefei ta devices sta opoia nporei na ginei addportmapping mazi me tis plirofories pou xreiazontai.
+//gia ena device mporei na ginoun kai perissoteres apo mia kataxwriseis ena yparxei p.x. WANPPPConnection:1 kai WANIPConnection:1
+//sto idio device, parola afta den to exw testarei gia panw apo ena device
 std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::vector<DeviceResponse> &devices)
 {
     std::vector<DeviceResponse> portmapping_devices;
 
     for(const DeviceResponse &devres : devices){
-        std::string devcaps = GETRequest(devres.descriptionUrl);
+        const std::string devcaps = GETRequest(devres.descriptionUrl);
 
-        //std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;
+        std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;
 
         std::string devcaps_lowercase = devcaps;
         std::transform(devcaps_lowercase.begin(), devcaps_lowercase.end(), devcaps_lowercase.begin(), ::tolower);
 
-        size_t find_serviceId_WANPPPConn1 = devcaps_lowercase.find("serviceid:wanpppconn1");
+        const size_t find_serviceId_WANPPPConn1 = devcaps_lowercase.find("serviceid:wanpppconn1");
         if(find_serviceId_WANPPPConn1 < devcaps_lowercase.length()){
-            size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANPPPConn1);
-            size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
-            std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
+            const size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANPPPConn1);
+            const size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
+            const std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
             std::cout << "\r\nAddNewPort control url 1 = " << addnewportmapping_control_url <<  std::endl;
 
             DeviceResponse newDevRes = devres;
@@ -224,11 +227,11 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
             portmapping_devices.push_back(newDevRes);
         }
 
-        size_t find_serviceId_WANIPConn1  = devcaps_lowercase.find("serviceid:wanipconn1");
+        const size_t find_serviceId_WANIPConn1  = devcaps_lowercase.find("serviceid:wanipconn1");
         if (find_serviceId_WANIPConn1 < devcaps_lowercase.length()){
-            size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANIPConn1);
-            size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
-            std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
+            const size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANIPConn1);
+            const size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
+            const std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
             std::cout << "\r\nAddNewPort control url 2 = " << addnewportmapping_control_url <<  std::endl;
 
             DeviceResponse newDevRes = devres;
@@ -242,13 +245,13 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
     return portmapping_devices;
 }
 
-std::string UPnPEngine::GETRequest(QUrl url)
+std::string UPnPEngine::GETRequest(const QUrl &url)
 {
     QTcpSocket qtcp;
     qtcp.connectToHost(QHostAddress(url.host()),url.port());
     qtcp.waitForConnected(3000);
 
-    std::string device_caps_GET_request ("GET " +
+    const std::string device_caps_GET_request ("GET " +
                                          url.path().toStdString() +
                                          " HTTP/1.1\r\nHost: " +
                                          url.host().toStdString() +
@@ -257,11 +260,13 @@ std::string UPnPEngine::GETRequest(QUrl url)
                                          "\r\nConnection: close\r\n\r\n");
 
     qtcp.write(device_caps_GET_request.c_str(),device_caps_GET_request.length());
-    char buf[4096] = {};
+    const int bufsize = 4096;
+    char buf[bufsize] = {};
     qtcp.waitForReadyRead(1000);
     std::string getResponse;
-    while (qtcp.read(buf,4096)>0){
+    while (qtcp.read(buf,bufsize)>0){
         getResponse+=buf;
+        bzero(buf,bufsize);//TODO: isws kai na mi xreiazetai, alla to evala giati to qtcp.read nomizw kataxwrei ta dedomena sto telos tou buffer kathe fora
         qtcp.waitForReadyRead(1000);
     }
 
@@ -272,7 +277,6 @@ std::string UPnPEngine::GETRequest(QUrl url)
 std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std::string>& devices)
 {
     std::vector<DeviceResponse> deviceResponses;
-    //std::vector<QUrl> portmapping_devicesurl;
 
     for(const std::string &device : devices){
         //eksagw to discovery url
@@ -280,24 +284,22 @@ std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std
         //giati to location mporei na einai Location, LOCATION klp
         std::string device_lowercase = device;
         std::transform(device_lowercase.begin(), device_lowercase.end(), device_lowercase.begin(), ::tolower);
-        size_t locfinf = device_lowercase.find("location:");
+        const size_t locfinf = device_lowercase.find("location:");
 
         if (locfinf < device_lowercase.length()){
             //efoson to location vrethike, anazitw to url
             //sto original response (xwris lowercase diladi), gia na min epireastei to url
             //dimiourgw neo string meta to location:
-            std::string loc(device.substr(locfinf));
-            auto f = loc.find("\r\n");
-            std::string loc2(loc.substr(9,f-9));
-            //std::cout << loc2 << std::endl;
-            QUrl locationUrl;
-            locationUrl = QString::fromStdString(loc2).trimmed(); //to trimmed xreiazetai giati ean yparxei keno print to http den ginetai swsto parsing sto qurl
+            const std::string loc(device.substr(locfinf));
+            const auto f = loc.find("\r\n");
+            const std::string loc2(loc.substr(9,f-9));
+            const QUrl locationUrl(QString::fromStdString(loc2).trimmed()); //to trimmed xreiazetai giati ean yparxei keno print to http den ginetai swsto parsing sto qurl
 
             //efoson to url den yparxei sto portmapping_devicesurl
             if (std::find_if(deviceResponses.begin(),deviceResponses.end(), [&locationUrl](const DeviceResponse & r) { return locationUrl == r.descriptionUrl; } ) == deviceResponses.end()){
                 //portmapping_devicesurl.push_back(locationUrl);
                 DeviceResponse devres;
-                QUrl durl(locationUrl.toString());
+                const QUrl durl(locationUrl.toString());
                 devres.descriptionUrl = durl;
                 devres.rawResponse = std::string(device);
                 deviceResponses.push_back(devres);

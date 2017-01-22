@@ -32,15 +32,15 @@ class UPnPAddPortMapping
 {
 public: 
     UPnPAddPortMapping();
-    AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
-                        int NewExternalPort,
-                        std::string NewProtocol,
-                        int NewInternalPort,
-                        std::string NewInternalClient,
-                        int NewEnabled,
-                        std::string NewPortMappingDescription,
-                        int NewLeaseDuration,
-                        const DeviceResponse portmappingDevice);
+    AddPortMappingResponse AddPortMapping(const std::string &NewRemoteHost,
+                        const int NewExternalPort,
+                        const std::string &NewProtocol,
+                        const int NewInternalPort,
+                        const std::string &NewInternalClient,
+                        const int NewEnabled,
+                        const std::string &NewPortMappingDescription,
+                        const int NewLeaseDuration,
+                        const DeviceResponse &portmappingDevice);
 };
 
 #endif // UPNPADDPORTMAPPING_H

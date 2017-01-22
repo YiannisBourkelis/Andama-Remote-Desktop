@@ -364,7 +364,7 @@ MainWindow::MainWindow(QWidget *parent) :
     p2pserver.start();
 
     //upnp
-    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",0,600);
+    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
 
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 
@@ -393,7 +393,7 @@ void MainWindow::slot_protocol_finished_or_terminated()
     protocol_supervisor.start();
 }
 
-void MainWindow::slot_addPortMappingResponse(AddPortMappingResponse addPortMappingRes)
+void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes)
 {
     ui->lblP2PPort->setVisible(addPortMappingRes.statusCode == 200);
     if(addPortMappingRes.internalPort == addPortMappingRes.remotePort){

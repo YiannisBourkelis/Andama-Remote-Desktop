@@ -48,15 +48,15 @@ UPnPAddPortMapping::UPnPAddPortMapping()
 
 }
 
-AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(std::string newRemoteHost,
-                                  int newExternalPort,
-                                  std::string newProtocol,
-                                  int newInternalPort,
-                                  std::string newInternalClient,
-                                  int newEnabled,
-                                  std::string newPortMappingDescription,
-                                  int newLeaseDuration,
-                                  const DeviceResponse portmappingDevice)
+AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(const std::string &newRemoteHost,
+                                  const int newExternalPort,
+                                  const std::string &newProtocol,
+                                  const int newInternalPort,
+                                  const std::string &newInternalClient,
+                                  const int newEnabled,
+                                  const std::string &newPortMappingDescription,
+                                  const int newLeaseDuration,
+                                  const DeviceResponse &portmappingDevice)
 {
     int sock = getClientSocket(portmappingDevice.descriptionUrl.host().toStdString(), portmappingDevice.descriptionUrl.port());
 

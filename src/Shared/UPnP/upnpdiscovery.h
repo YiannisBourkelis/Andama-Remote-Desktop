@@ -32,7 +32,7 @@ public:
 
 
 
-    std::vector<std::string> discoverDevices(std::string searchTarget);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
+    std::vector<std::string> discoverDevices(const std::string &searchTarget);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
 
 private:
     const unsigned short MULTICAST_DISCOVERY_BIND_PORT = 26389;

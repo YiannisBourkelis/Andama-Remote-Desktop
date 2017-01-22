@@ -41,37 +41,37 @@ public:
 
     //public methods
     void AddPortMappingAsync();
-    void AddPortMappingPeriodicallyAsync(std::string NewRemoteHost,
-                                         int NewExternalPort,
-                                         std::string NewProtocol,
-                                         int NewInternalPort,
-                                         std::string NewInternalClient,
-                                         int NewEnabled,
-                                         std::string NewPortMappingDescription,
-                                         int NewLeaseDuration,
-                                         int seconds_period);
+    void AddPortMappingPeriodicallyAsync(const std::string &NewRemoteHost,
+                                         const int NewExternalPort,
+                                         const std::string &NewProtocol,
+                                         const int NewInternalPort,
+                                         const std::string &NewInternalClient,
+                                         const int NewEnabled,
+                                         const std::string &NewPortMappingDescription,
+                                         const int NewLeaseDuration,
+                                         const int seconds_period);
 
-    void AddPortMappingPeriodically(std::string NewRemoteHost,
-                                    int NewExternalPort,
-                                    std::string NewProtocol,
-                                    int NewInternalPort,
-                                    std::string NewInternalClient,
-                                    int NewEnabled,
-                                    std::string NewPortMappingDescription,
-                                    int NewLeaseDuration,
-                                    int seconds_period);
+    void AddPortMappingPeriodically(const std::string &NewRemoteHost,
+                                    const int NewExternalPort,
+                                    const std::string &NewProtocol,
+                                    const int NewInternalPort,
+                                    const std::string &NewInternalClient,
+                                    const int NewEnabled,
+                                    const std::string &NewPortMappingDescription,
+                                    const int NewLeaseDuration,
+                                    const int seconds_period);
 
-    AddPortMappingResponse AddPortMapping(std::string NewRemoteHost,
-                        int NewExternalPort,
-                        std::string NewProtocol,
-                        int NewInternalPort,
-                        std::string NewInternalClient,
-                        int NewEnabled,
-                        std::string NewPortMappingDescription,
-                        int NewLeaseDuration);
+    AddPortMappingResponse AddPortMapping(const std::string &NewRemoteHost,
+                        const int &NewExternalPort,
+                        const std::string &NewProtocol,
+                        const int NewInternalPort,
+                        const std::string &NewInternalClient,
+                        const int NewEnabled,
+                        const std::string &NewPortMappingDescription,
+                        const int NewLeaseDuration);
 
     void waitForAllAddPortMappingPendingRequests();
-    std::string GETRequest(QUrl url);
+    std::string GETRequest(const QUrl &url);
 
 private:
     std::atomic<int> addPortMappingPendingRequests {0};
@@ -82,7 +82,7 @@ private:
     std::vector<DeviceResponse> getPortMappingCapableDevices(const std::vector<DeviceResponse> &devices);
 
 signals:
-    void sig_addPortMappingResponse(AddPortMappingResponse addPortMappingRes);
+    void sig_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes);
 };
 
 #endif // UPNPENGINE_H

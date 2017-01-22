@@ -87,7 +87,7 @@ private slots:
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();
     void slot_protocol_finished_or_terminated();
-    void slot_addPortMappingResponse(AddPortMappingResponse addPortMappingRes);
+    void slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes);
 
     void on_connectWidget_customContextMenuRequested(const QPoint &pos);
 
