@@ -260,8 +260,11 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         bytes.clear();
         //QImage locimg(outimg);
         //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
-        outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
 
+        {
+            Bench bench("JPG conversion");
+            outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+        }
 
         //int nSize = bytes.size();
          //qDebug("## image bytes size uncompressed: %i",nSize);
@@ -274,26 +277,29 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
          //QByteArray bytes
          std::vector<char> vimgbytes;
-         if(pendingMsg.load() == protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST)
          {
-             cmd[0] = 's';
+             Bench bench("vimgbytes creation");
+             if(pendingMsg.load() == protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST)
+             {
+                 cmd[0] = 's';
 
-             std::vector<char> cx(2);
-             intToBytes(x,cx);
-             vimgbytes.insert(vimgbytes.end(),cx.begin(),cx.end());
-             //qDebug("x to send: %i",x);
+                 std::vector<char> cx(2);
+                 intToBytes(x,cx);
+                 vimgbytes.insert(vimgbytes.end(),cx.begin(),cx.end());
+                 //qDebug("x to send: %i",x);
 
-             std::vector<char> cy(2);
-             intToBytes(y,cy);
-             vimgbytes.insert(vimgbytes.end(),cy.begin(),cy.end());
-             //qDebug("y to send: %i",y);
+                 std::vector<char> cy(2);
+                 intToBytes(y,cy);
+                 vimgbytes.insert(vimgbytes.end(),cy.begin(),cy.end());
+                 //qDebug("y to send: %i",y);
+             }
+             else
+             {
+                 cmd[0] = 'S';
+             }
+
+            vimgbytes.insert(vimgbytes.end(), bytes.begin(),bytes.end());
          }
-         else
-         {
-             cmd[0] = 'S';
-         }
-
-        vimgbytes.insert(vimgbytes.end(), bytes.begin(),bytes.end());
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
