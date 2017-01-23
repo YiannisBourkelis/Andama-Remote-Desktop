@@ -21,11 +21,16 @@
 #ifndef SERVERSOCKET_H
 #define SERVERSOCKET_H
 
+#include "clientserverprotocol.h"
 
 class serverSocket
 {
 public:
     serverSocket();
+
+    clientServerProtocol p2pServerProtocol;
+
+    void startServer(int listen_port);
 };
 
 #endif // SERVERSOCKET_H

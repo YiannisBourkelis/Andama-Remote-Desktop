@@ -282,15 +282,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ======== p2p client protocol ============
     this->connect(&p2pclient,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&p2pclient,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&p2pclient,
@@ -338,15 +338,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // ======== upnp ======================
 
     this->connect(&p2pserver,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&p2pserver,
-                  SIGNAL(sig_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientserver*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     //cst.start();

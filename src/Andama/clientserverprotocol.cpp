@@ -35,6 +35,8 @@ clientServerProtocol::clientServerProtocol()
     //this->_protocolSupervisor = protocol_supervisor;
 }
 
+
+
 void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
 {
     //qDebug("3. Inside proccessCommand. Checking recieved command: %s",command.data());

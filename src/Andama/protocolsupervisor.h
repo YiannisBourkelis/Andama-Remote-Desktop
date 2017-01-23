@@ -15,6 +15,9 @@ public:
     clientServerProtocol protocol;
     clientSocket clientsocket;
 
+    clientServerProtocol p2pServerProtocol;
+
+
 protected:
     void run(void);
 };

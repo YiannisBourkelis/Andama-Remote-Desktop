@@ -21,24 +21,6 @@
 #ifndef P2PSERVER_H
 #define P2PSERVER_H
 
-#ifdef WIN32
-#define NOMINMAX
-#include <stdio.h>
-#include "winsock2.h"
-#include <ws2tcpip.h>
-#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
-#define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
-#define in_addr_t uint32_t
-#pragma comment(lib, "Ws2_32.lib")
-
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h> //gia to TCP_NODELAY
-#endif
-
 #include "helperfuncs.h"
 #include <iostream> //std::cout
 #include "vector"
@@ -52,6 +34,7 @@
 #include <random>
 
 #include "clientserver.h" //TODO: isws den xreiazetai
+#include "clientserverprotocol.h"
 
 
 using namespace helperfuncs;
@@ -82,39 +65,15 @@ public:
     bool isP2PCientConnected;
     std::string password;
 
-    #ifdef WIN32
-    int _sendmsg(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message);
-    #else
-    int _sendmsg(const int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message);
-    #endif
-
 private:
     std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
     OS _remoteComputerOS;
-
-    #ifdef WIN32
-    int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    #else
-    int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>());
-    #endif
-
-    #ifdef WIN32
-    int _receivePlain(const SOCKET socketfd, std::vector<char> &charbuffer);
-    #else
-    int _receivePlain(const int socketfd, std::vector<char> &charbuffer);
-    #endif
-
-    #ifdef WIN32
-    int _receive(const SOCKET socketfd, std::vector<char> &charbuffer);
-    #else
-    int _receive(const int socketfd, std::vector<char> &charbuffer);
-    #endif
 
     connectionState m_connection_state = disconnected;
     std::mutex connection_state_mutex;
 
 signals:
-    void sig_messageRecieved(const clientserver *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageRecieved(const clientServerProtocol *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 protected:
