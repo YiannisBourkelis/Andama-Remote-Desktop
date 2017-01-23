@@ -258,14 +258,14 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         QByteArray bytes;
         QBuffer buffer(&bytes);
         buffer.open(QIODevice::WriteOnly);
-        bytes.clear();
+        //bytes.clear();
         //QImage locimg(outimg);
         //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
 
         {
             Bench bench("JPG conversion");
-            //outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
-            outimg.save(&buffer); // writes pixmap into bytes in PNG format
+            outimg.save(&buffer,"JPG",30); // writes pixmap into bytes in PNG format
+            //outimg.save(&buffer); // writes pixmap into bytes in PNG format
         }
 
         //int nSize = bytes.size();
