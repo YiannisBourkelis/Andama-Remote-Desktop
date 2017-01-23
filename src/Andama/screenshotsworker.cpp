@@ -156,7 +156,11 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             //qDebug("12. screenshotsWorker.prepareAndSendScreenshotDiff  Diaforetika screenshot. Antigrafi kai proetoimasia apostolis.");
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
             //outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
-            sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+
+            std::thread t(&screenshotsWorker::sendScreenshot,this, pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+            t.detach();
+            //sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+
             //std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
        }
        else
