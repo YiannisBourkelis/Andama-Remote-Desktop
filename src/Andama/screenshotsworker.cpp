@@ -25,6 +25,7 @@
 #include "screenshotsworker.h"
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
+#include "../Shared/General/bench.h"
 
 screenshotsWorker::screenshotsWorker()
 {
@@ -38,6 +39,7 @@ void screenshotsWorker::run(void){
         {
             //qDebug("9. screenshotsWorker: isDirty.load() == true. pendingScreenshot_mutex.lock()");
             { // lock_guard scope
+                Bench bench("screenshotWorker::run-isDirty");
                 std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
                 isDirty.store(false);
                 pendingScreenshot_working_copy = pendingScreenshot.copy();
