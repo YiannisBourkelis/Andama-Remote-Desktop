@@ -42,7 +42,7 @@ void screenshotsWorker::run(void){
                 Bench bench("screenshotWorker::run-isDirty");
                 std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
                 isDirty.store(false);
-                pendingScreenshot_working_copy = pendingScreenshot.copy();
+                pendingScreenshot_working_copy = std::move(pendingScreenshot); //pendingScreenshot.copy();
             } // lock_guard scope
             //qDebug("10. screenshotsWorker: isDirty set to false. pendingScreenshot_mutex.unlock()");
 
