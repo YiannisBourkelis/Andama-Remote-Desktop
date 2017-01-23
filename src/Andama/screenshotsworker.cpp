@@ -61,7 +61,7 @@ void screenshotsWorker::run(void){
     std::cout << "screenshotsWorker::run exiting...\r\n" << std::endl;
 }
 
-void screenshotsWorker::setScreenshot(QImage newScreenshot, const int msg)
+void screenshotsWorker::setScreenshot(const QImage &newScreenshot, const int msg)
 {
     //QMutexLocker locker(&pendingScreenshot_mutex);
 

@@ -43,7 +43,7 @@ class screenshotsWorker: public QThread
         Q_OBJECT
 public:
     screenshotsWorker();
-    void setScreenshot(QImage newScreenshot, const int msg);
+    void setScreenshot(const QImage &newScreenshot, const int msg);
     protocolSupervisor * protocol_supervisor;
     P2PServer * p2pServer;
     std::atomic<int> imageQuality;
