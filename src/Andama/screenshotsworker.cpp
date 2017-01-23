@@ -68,7 +68,7 @@ void screenshotsWorker::setScreenshot(const QImage &newScreenshot, const int msg
     //qDebug("7. Inside screenshotsWorker. Will set pendingScreenshot. pendingScreenshot_mutex.lock()");
     { // lock_guard scope
         std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
-        pendingScreenshot = newScreenshot.copy();
+        pendingScreenshot = std::move(newScreenshot); //newScreenshot.copy();
         pendingMsg.store(msg);
         isDirty.store(true);
     } // lock_guard scope
