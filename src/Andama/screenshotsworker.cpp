@@ -182,14 +182,17 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         QByteArray bytes;
         QBuffer buffer(&bytes);
-        buffer.open(QIODevice::WriteOnly);
-        QImage locimg(outimg);
-        locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+        //buffer.open(QIODevice::WriteOnly);
+        //QImage locimg(outimg);
+        //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+        outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
 
-        int nSize = bytes.size();
+
+        //int nSize = bytes.size();
          //qDebug("## image bytes size uncompressed: %i",nSize);
 
         QByteArray compressed_bytes = qCompress(bytes,9);
+
          //qDebug("## image bytes size commpressed: %i",compressed_bytes.size());
 
          std::array<char,1> cmd;
@@ -225,8 +228,8 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
 
-        vimgbytes.clear();
-        vimgbytes.swap(vimgbytes);
+        //vimgbytes.clear();
+        //vimgbytes.swap(vimgbytes);
     }
     catch (std::exception& ex)
     {
