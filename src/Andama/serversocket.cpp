@@ -36,6 +36,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h> //gia to TCP_NODELAY
+#include <csignal> // xreiazetai gia na ginei compile se linux gia tin signal
 #endif
 
 #include "helperfuncs.h"
