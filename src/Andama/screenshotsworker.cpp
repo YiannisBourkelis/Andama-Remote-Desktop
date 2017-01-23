@@ -37,12 +37,13 @@ void screenshotsWorker::run(void){
     {
         if (isDirty.load() == true)
         {
+            Bench bench("screenshotWorker::run-isDirty - ALL");
             //qDebug("9. screenshotsWorker: isDirty.load() == true. pendingScreenshot_mutex.lock()");
             { // lock_guard scope
                 Bench bench("screenshotWorker::run-isDirty");
                 std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
                 isDirty.store(false);
-                pendingScreenshot_working_copy = std::move(pendingScreenshot); //pendingScreenshot.copy();
+                pendingScreenshot_working_copy = std::move(pendingScreenshot); //pendingScreenshot.copy(); !! mono afti i allagi apo .copy se std::move meiwse to xrono antigrafis apo 22ms se 0ms sto raspberry pi
             } // lock_guard scope
             //qDebug("10. screenshotsWorker: isDirty set to false. pendingScreenshot_mutex.unlock()");
 
