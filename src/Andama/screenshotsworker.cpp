@@ -85,7 +85,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
     //dimiourgw antigrafo tou pending screenshot wste na klithei kai pali
     //std::cout << "prepareAndSendScreenshotDiff : Enarksi elegxou screenshot kai apostolis" << std::endl;
 
-    QImage outimg;
+    //QImage outimg;
 
        //sigrinw to proigoumeno screenshot kai to trexon gia diafores
 
@@ -155,8 +155,8 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             //std::cout << std::chrono::duration<double,std::milli>(diff).count() << " ms" <<std::endl;
             //qDebug("12. screenshotsWorker.prepareAndSendScreenshotDiff  Diaforetika screenshot. Antigrafi kai proetoimasia apostolis.");
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
-            outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
-            sendScreenshot(outimg,minx,miny);
+            //outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
+            sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
             //std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
        }
        else
@@ -169,12 +169,12 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
            //QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
            //setScreenshot(qimg,protocol->MSG_SCREENSHOT_DIFF_REQUEST);
 
-           sendScreenshot(outimg,0,0);
+           sendScreenshot(QImage(),0,0);
            //std::cout << "prepareAndSendScreenshotDiff : Apostoli adeiou screenshot" << std::endl;
        }
 }
 
-void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
+void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 {
     try
     {

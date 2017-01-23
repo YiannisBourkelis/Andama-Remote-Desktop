@@ -60,7 +60,7 @@ private:
     //std::recursive_mutex pendingScreenshot_mutex;
     std::mutex pendingScreenshot_mutex;
     std::atomic<bool> isDirty;
-    void sendScreenshot(QImage outimg, int x, int y);
+    void sendScreenshot(const QImage &outimg, int x, int y);
     void prepareAndSendScreenshotDiff();
 };
 
