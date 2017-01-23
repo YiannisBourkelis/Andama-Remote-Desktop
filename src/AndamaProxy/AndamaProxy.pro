@@ -20,7 +20,8 @@ TEMPLATE = app
 SOURCES += main.cpp \
     ../Shared/AndamaHeaders/byte_functions.cpp \
     ../Shared/AndamaHeaders/socket_functions.cpp \
-    ../Shared/AndamaHeaders/exception_helper.cpp
+    ../Shared/AndamaHeaders/exception_helper.cpp \
+    ../Shared/General/bench.cpp
 
 HEADERS += \
     ../Shared/AndamaHeaders/shared_constants.h \
@@ -29,4 +30,5 @@ HEADERS += \
     clientinfo.h \
     ipprotection.h \
     ../Shared/AndamaHeaders/socket_functions.h \
-    ../Shared/AndamaHeaders/exception_helper.h
+    ../Shared/AndamaHeaders/exception_helper.h \
+    ../Shared/General/bench.h

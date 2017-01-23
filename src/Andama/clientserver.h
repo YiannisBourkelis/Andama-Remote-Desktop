@@ -158,7 +158,7 @@ private:
     std::atomic<long> diffRequestCounter;
 
     void error(const char *msg);
-    void proccesCommand(const std::array<char, 1> &command);
+    bool proccesCommand(const std::array<char, 1> &command);
     void createConnectCommandData(std::vector<char> &all_data, const std::vector<char> &remoteComputerID, const std::vector<char> &remoteComputerPassword);
     void createConnectP2PCommandData(std::vector<char> &all_data, const std::vector<char> remoteComputerPassword);
     OS _remoteComputerOS;

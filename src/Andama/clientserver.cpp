@@ -197,7 +197,7 @@ void clientserver::sendDisconnectFromRemoteComputer()
     _sendmsgPlain(this->getActiveSocket(),CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
 
 #ifdef WIN32
-     //closesocket(this->getActiveSocket());
+     closesocket(this->getActiveSocket());
 #else
      shutdown(this->getActiveSocket(),2);
      //close(this->getActiveSocket());
@@ -406,7 +406,7 @@ void clientserver::createConnectP2PCommandData(std::vector<char> &all_data, cons
     all_data.insert(all_data.end(), remoteComputerPassword.begin(), remoteComputerPassword.end()); // to PWD
 }
 
-void clientserver::proccesCommand(const std::array<char, 1> &command){
+bool clientserver::proccesCommand(const std::array<char, 1> &command){
     //qDebug("3. Inside proccessCommand. Checking recieved command: %s",command.data());
 
     if(command == CMD_PROTOCOL)
@@ -525,8 +525,9 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
             unsigned int iclientIP = bytesToInt(vclientIP);
 
             //elegxw ean exei ginei ban i IP
-            if (isIPBannedForWrongPasswords(iclientIP, this->getActiveSocket()))
-                return;
+            if (isIPBannedForWrongPasswords(iclientIP, this->getActiveSocket())){
+                return true;
+            }
 
             //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
             std::string passwdQuestion(vpassword.begin(),vpassword.end());
@@ -549,6 +550,8 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
                 //to password pou stalthike einai lathos
                 //lamvanw apo to vector tin ip tou client
                 addWrongPasswordIPProtection(iclientIP,this->getActiveSocket());
+                return true;
+
             }
         } // if connectMessageType::proxy
     } // CMD_CONNECT
@@ -601,6 +604,7 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
     {
         setConnectionState(connectionState::connectedWithProxy);
         emit sig_messageRecieved(NULL, MSG_REMOTE_COMPUTER_DISCONNECTED);
+        return false;
 
 //#ifdef Q_OS_MAC
 //        enableAppNap();
@@ -695,7 +699,10 @@ void clientserver::proccesCommand(const std::array<char, 1> &command){
     else
     {
         qDebug ("---->> TO COMMAND DEN VRETHIKE : %s", command);
+        return false;
     }
+
+    return true;
 }
 
 //TODO: einai static afto?
@@ -864,7 +871,14 @@ void clientserver::start_protocol()
                 }
 
                 //qDebug("2 -----> Command recieved: %s. Bytes: %i. Ksekina epeksergasia tou command",cmdbuffer.data(),bytes_recv);
-                proccesCommand(cmdbuffer);
+                if (proccesCommand(cmdbuffer) == false){
+#ifdef WIN32
+                    closesocket(this->getActiveSocket());
+#else
+                    close(this->getActiveSocket());
+#endif
+                    return;
+                }
 
             }
             catch(std::exception& ex)

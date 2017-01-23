@@ -26,6 +26,20 @@ void P2PServer::run(void)
     this->start_p2pserver();
 }
 
+void P2PServer::sendDisconnectFromRemoteComputer(int socket)
+{
+    //1 byte
+     setConnectionState(connectionState::connectedWithProxy);
+    _sendmsgPlain(socket,CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
+
+#ifdef WIN32
+     closesocket(socket);
+#else
+     //shutdown(socket,2);
+     close(socket);
+#endif
+
+}
 
 
 void P2PServer::start_p2pserver()
@@ -333,6 +347,8 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
             else if(cmdbuffer == CMD_P2P_CONNECT)
             {
+                std::cout << "entering CMD_P2P_CONNECT " << std::endl;
+
                 //TO CMD_P2P_CONNECT exei tin morfi:
                 //[remote computer os 1 byte][password ta ypoloipa bytes]
                 std::vector<char> remote_client_idbuff;
@@ -351,6 +367,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 //elegxw ean exei ginei ban i IP
                 if (clientserver::isIPBannedForWrongPasswords(clientIP,socketfd))
+                    sendDisconnectFromRemoteComputer(socketfd);
                     return;
 
                 //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
@@ -372,6 +389,9 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                         //to password pou stalthike einai lathos
                         //lamvanw apo to vector tin ip tou client
                         clientserver::addWrongPasswordIPProtection(clientIP,socketfd);
+                        sendDisconnectFromRemoteComputer(socketfd);
+                        std::cout << "will exit thread: addWrongPasswordIPProtection " << std::endl;
+                        return;
                     }
             } // CMD_P2P_CONNECT
 

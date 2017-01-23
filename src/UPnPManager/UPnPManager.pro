@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     ../Shared/AndamaHeaders/byte_functions.cpp \
     ../Shared/AndamaHeaders/exception_helper.cpp \
     ../Shared/UPnP/deviceresponse.cpp \
-    ../Shared/UPnP/upnpaddportmapping.cpp
+    ../Shared/UPnP/upnpaddportmapping.cpp \
+    ../Shared/General/bench.cpp
 
 HEADERS += \
     ../Shared/UPnP/upnpdiscovery.h \
@@ -29,4 +30,5 @@ HEADERS += \
     ../Shared/AndamaHeaders/byte_functions.h \
     ../Shared/AndamaHeaders/exception_helper.h \
     ../Shared/UPnP/deviceresponse.h \
-    ../Shared/UPnP/upnpaddportmapping.h
+    ../Shared/UPnP/upnpaddportmapping.h \
+    ../Shared/General/bench.h

@@ -19,6 +19,7 @@
  * ***********************************************************************/
 
 // The C10K problem: http://www.kegel.com/c10k.html
+// SOCKETS - SERVER & CLIENT - 2017 http://www.bogotobogo.com/cplusplus/sockets_server_client.php
 #ifdef WIN32
 #define NOMINMAX
 #include <stdio.h>
