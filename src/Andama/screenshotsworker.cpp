@@ -157,9 +157,10 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
             //outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
 
-            std::thread t(&screenshotsWorker::sendScreenshot,this, pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
-            t.detach();
-            //sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+            //std::thread t(&screenshotsWorker::sendScreenshot,this, pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+            //t.detach();
+
+            sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
 
             //std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
        }
@@ -263,7 +264,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         {
             Bench bench("JPG conversion");
-            outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+            //outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
             outimg.save(&buffer); // writes pixmap into bytes in PNG format
         }
 
