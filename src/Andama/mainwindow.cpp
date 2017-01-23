@@ -530,7 +530,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
         ui->lblStatus->setText("Remote computer disconnected. Ready!");
-        ui->btnConnectToRemoteClient->setEnabled(false);
+        ui->btnConnectToRemoteClient->setEnabled(true);
+        ui->txtRemotePCID->setEnabled(true);
+        ui->txtRemotePassword->setEnabled(true);
 
         event->ignore();
         return;
