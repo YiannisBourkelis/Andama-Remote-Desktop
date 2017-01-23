@@ -366,9 +366,10 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 std::vector<char> vpassword(remote_client_idbuff.begin() + 2, remote_client_idbuff.begin() + 2 + ipwdSize);
 
                 //elegxw ean exei ginei ban i IP
-                if (clientserver::isIPBannedForWrongPasswords(clientIP,socketfd))
+                if (clientserver::isIPBannedForWrongPasswords(clientIP,socketfd) == true){
                     sendDisconnectFromRemoteComputer(socketfd);
                     return;
+                }
 
                 //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
                 std::string passwdQuestion(vpassword.begin(),vpassword.end());
