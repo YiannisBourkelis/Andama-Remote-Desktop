@@ -770,7 +770,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
            //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
-           screenshotWrk.setScreenshot(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage(),msgType);
+           screenshotWrk.setScreenshot(std::move(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage()),msgType);
            //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
