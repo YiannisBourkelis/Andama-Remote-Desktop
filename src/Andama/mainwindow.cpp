@@ -761,16 +761,16 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
 
            //qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
-           QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
+           //QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
            //QImage qimg(QGuiApplication::screens()[QGuiApplication::screens().count()-1]->grabWindow(QApplication::desktop()->winId()).toImage());
-           if (qimg.isNull())
-           {
-               qDebug("---------> qimg is null!!!");
-           }
+           //if (qimg.isNull())
+           //{
+           //    qDebug("---------> qimg is null!!!");
+           //}
            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
            //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
-           screenshotWrk.setScreenshot(qimg,msgType);
+           screenshotWrk.setScreenshot(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage(),msgType);
            //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
