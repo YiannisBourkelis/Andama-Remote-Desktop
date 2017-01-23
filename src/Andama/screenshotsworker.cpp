@@ -295,6 +295,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         if (p2pServer->isP2PCientConnected){
             _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{
+            Bench bench("sendScreenshot-_sendmsg");
             _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vimgbytes);
         }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
