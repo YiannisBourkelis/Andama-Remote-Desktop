@@ -266,7 +266,7 @@ std::string UPnPEngine::GETRequest(const QUrl &url)
     std::string getResponse;
     while (qtcp.read(buf,bufsize)>0){
         getResponse+=buf;
-        bzero(buf,bufsize);//TODO: isws kai na mi xreiazetai, alla to evala giati to qtcp.read nomizw kataxwrei ta dedomena sto telos tou buffer kathe fora
+        memset(buf,NULL,bufsize);//TODO: isws kai na mi xreiazetai, alla to evala giati to qtcp.read nomizw kataxwrei ta dedomena sto telos tou buffer kathe fora
         qtcp.waitForReadyRead(1000);
     }
 
