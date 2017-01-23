@@ -174,6 +174,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
        }
 }
 
+/*
 void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 {
     try
@@ -182,7 +183,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         QByteArray bytes;
         QBuffer buffer(&bytes);
-        //buffer.open(QIODevice::WriteOnly);
+        buffer.open(QIODevice::WriteOnly);
         //QImage locimg(outimg);
         //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
         outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
@@ -218,6 +219,76 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
          }
 
         vimgbytes.insert(vimgbytes.end(), compressed_bytes.begin(),compressed_bytes.end());
+
+        //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
+
+        if (p2pServer->isP2PCientConnected){
+            _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
+        }else{
+            _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vimgbytes);
+        }
+        //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
+
+        //vimgbytes.clear();
+        //vimgbytes.swap(vimgbytes);
+    }
+    catch (std::exception& ex)
+    {
+        qDebug("EXCEPTION: void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y), What: %s",ex.what());
+    }
+    catch ( ... )
+    {
+        qDebug("EXCEPTION: void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)");
+    }
+}
+*/
+
+void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
+{
+    try
+    {
+        //qDebug("13. screenshotsWorker.sendScreenshot  called. Dimiourgia kai compress twn bytes tou image. meta apostoli");
+
+        QByteArray bytes;
+        QBuffer buffer(&bytes);
+        buffer.open(QIODevice::WriteOnly);
+        bytes.clear();
+        //QImage locimg(outimg);
+        //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+        outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+
+
+        //int nSize = bytes.size();
+         //qDebug("## image bytes size uncompressed: %i",nSize);
+
+        //QByteArray compressed_bytes = qCompress(bytes,9);
+
+         //qDebug("## image bytes size commpressed: %i",compressed_bytes.size());
+
+         std::array<char,1> cmd;
+
+         //QByteArray bytes
+         std::vector<char> vimgbytes;
+         if(pendingMsg.load() == protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST)
+         {
+             cmd[0] = 's';
+
+             std::vector<char> cx(2);
+             intToBytes(x,cx);
+             vimgbytes.insert(vimgbytes.end(),cx.begin(),cx.end());
+             //qDebug("x to send: %i",x);
+
+             std::vector<char> cy(2);
+             intToBytes(y,cy);
+             vimgbytes.insert(vimgbytes.end(),cy.begin(),cy.end());
+             //qDebug("y to send: %i",y);
+         }
+         else
+         {
+             cmd[0] = 'S';
+         }
+
+        vimgbytes.insert(vimgbytes.end(), bytes.begin(),bytes.end());
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
