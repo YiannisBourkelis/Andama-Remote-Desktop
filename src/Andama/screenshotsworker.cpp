@@ -264,6 +264,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         {
             Bench bench("JPG conversion");
             outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+            outimg.save(&buffer); // writes pixmap into bytes in PNG format
         }
 
         //int nSize = bytes.size();
