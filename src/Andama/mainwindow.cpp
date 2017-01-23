@@ -742,7 +742,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
            //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
-           Bench bench("MSG_SCREENSHOT_DIFF_REQUEST and MSG_SCREENSHOT_DIFF_REQUEST");
+           //Bench bench("MSG_SCREENSHOT_DIFF_REQUEST and MSG_SCREENSHOT_DIFF_REQUEST");
 #ifdef Q_OS_MAC
            //xreiazetai gia na anoigei to monitor se periptwsi
            //pou einai kleisto. Sta windows anoigei mono tou.

@@ -40,7 +40,7 @@ void screenshotsWorker::run(void){
             Bench bench("screenshotWorker::run-isDirty - ALL");
             //qDebug("9. screenshotsWorker: isDirty.load() == true. pendingScreenshot_mutex.lock()");
             { // lock_guard scope
-                Bench bench("screenshotWorker::run-isDirty");
+                //Bench bench("screenshotWorker::run-isDirty");
                 std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
                 isDirty.store(false);
                 pendingScreenshot_working_copy = std::move(pendingScreenshot); //pendingScreenshot.copy(); !! mono afti i allagi apo .copy se std::move meiwse to xrono antigrafis apo 22ms se 0ms sto raspberry pi
@@ -48,6 +48,7 @@ void screenshotsWorker::run(void){
             //qDebug("10. screenshotsWorker: isDirty set to false. pendingScreenshot_mutex.unlock()");
 
             if (this->pendingMsg.load() == this->protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST){
+                Bench bench("this->prepareAndSendScreenshotDiff() - ALLx2");
                 this->prepareAndSendScreenshotDiff();
             }
             else
@@ -133,7 +134,6 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             miny = miny - compareOffset + 1 < 0 ? 0 : miny - compareOffset + 1;
             maxx = maxx + compareOffset - 1 > pendingScreenshot_working_copy.width() - 1 ? pendingScreenshot_working_copy.width() - 1 :maxx + compareOffset - 1;
             maxy = maxy + compareOffset - 1 > pendingScreenshot_working_copy.height() - 1 ? pendingScreenshot_working_copy.height() - 1 : maxy + compareOffset - 1;
-
             /*
             minx = minx - compareOffset - 11 < 0 ? 0 :  minx - compareOffset - 11;
             miny = miny - compareOffset - 11 < 0 ? 0 : miny - compareOffset - 11;
@@ -245,6 +245,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
 void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 {
+    Bench bench("screenshotsWorker::sendScreenshot ALL");
     try
     {
         //qDebug("13. screenshotsWorker.sendScreenshot  called. Dimiourgia kai compress twn bytes tou image. meta apostoli");
