@@ -264,14 +264,14 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         {
             Bench bench("JPG conversion");
-            outimg.save(&buffer,"JPG",1); // writes pixmap into bytes in PNG format
+            outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
             //outimg.save(&buffer); // writes pixmap into bytes in PNG format
         }
 
         //int nSize = bytes.size();
          //qDebug("## image bytes size uncompressed: %i",nSize);
 
-        //QByteArray compressed_bytes = qCompress(bytes,9);
+        QByteArray compressed_bytes = qCompress(bytes,9);
 
          //qDebug("## image bytes size commpressed: %i",compressed_bytes.size());
 
@@ -300,7 +300,7 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
                  cmd[0] = 'S';
              }
 
-            vimgbytes.insert(vimgbytes.end(), bytes.begin(),bytes.end());
+            vimgbytes.insert(vimgbytes.end(), compressed_bytes.begin(),compressed_bytes.end());
          }
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());

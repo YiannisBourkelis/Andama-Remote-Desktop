@@ -195,6 +195,14 @@ void clientserver::sendDisconnectFromRemoteComputer()
     //1 byte
      setConnectionState(connectionState::connectedWithProxy);
     _sendmsgPlain(this->getActiveSocket(),CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
+
+#ifdef WIN32
+     //closesocket(this->getActiveSocket());
+#else
+     shutdown(this->getActiveSocket(),2);
+     //close(this->getActiveSocket());
+#endif
+
 }
 
 //aitisi connect se allo ypologisti

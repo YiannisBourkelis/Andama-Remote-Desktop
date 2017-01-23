@@ -530,6 +530,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
         ui->lblStatus->setText("Remote computer disconnected. Ready!");
+        ui->btnConnectToRemoteClient->setEnabled(false);
 
         event->ignore();
         return;
@@ -787,10 +788,10 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //}
            qbytes.insert(0, vdata.data(), vdata.size());
 
-          //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+          QByteArray image_bytes_uncompressed=qUncompress(qbytes);
 
-          //qpix.loadFromData(image_bytes_uncompressed,"JPG");
-           qpix.loadFromData(qbytes,"JPG");
+          qpix.loadFromData(image_bytes_uncompressed,"JPG");
+           //qpix.loadFromData(qbytes,"JPG");
 
           //*** symantiko. to lastScreenshot crataei kathe fora to pio prosfato
           //screenshot prosthetontas tis diafores
@@ -866,7 +867,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //}
            qbytes.insert(0, vdata.data() + 4, vdata.size() - 4);
 
-           //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+           QByteArray image_bytes_uncompressed=qUncompress(qbytes);
 
            //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
 
@@ -877,7 +878,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            }
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
-          qpix.loadFromData(qbytes,"JPG");
+          qpix.loadFromData(image_bytes_uncompressed,"JPG");
           //qpix.loadFromData(qbytes);
 
           //qDebug("DS.8 diff image loaded! Height: %i, width: %i",qpix.height(),qpix.width());
