@@ -248,6 +248,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->txtRemotePCID->setFont(txtFont);
     ui->txtRemotePassword->setFont(txtFont);
 
+    ui->tblLog->setFont(lblSmallFont);
+
     ui->lblStatus->setFont(lblFont);
 #endif
 
@@ -361,11 +363,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tblLog->setModel(&tbllogmodel);
     //ui->tblLog->setGridStyle();
     ui->tblLog->verticalHeader()->hide();
-    //ui->tblLog->horizontalHeader()->setStretchLastSection(true);
+    ui->tblLog->horizontalHeader()->setStretchLastSection(true);
     ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    //ui->tblLog->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    //ui->tblLog->horizontalHeader()->setResizeContentsPrecision(0);
+    //ui->tblLog->resizeColumnToContents(0); //de doulevei
     ui->tblLog->setColumnWidth(0,150);
     ui->tblLog->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tblLog->horizontalHeader()->setStyleSheet("::section {background-color: lightblue };"); //lightblue
+
     //ui->tblLog->horizontalHeader()
 
     screenshotWrk.protocol_supervisor = &protocol_supervisor;
@@ -423,7 +429,9 @@ void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPo
             s = "P2P internal port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)) + ", external port: " + QString::fromStdString(std::to_string(addPortMappingRes.remotePort));
             ui->lblP2PPort->setText(s);
         }
-        tbllogmodel.addLogData(s);
+        tbllogmodel.addLogData("UPnP Successful. " + s);
+    }else{
+        tbllogmodel.addLogData("UPnP returned error code: " +  QString::fromStdString(std::to_string(addPortMappingRes.statusCode)));
     }
 
 }
