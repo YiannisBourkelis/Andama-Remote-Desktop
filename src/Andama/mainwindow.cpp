@@ -365,6 +365,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tblLog->verticalHeader()->hide();
     ui->tblLog->horizontalHeader()->setStretchLastSection(true);
     ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tblLog->horizontalHeader()->hide();
     //ui->tblLog->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     //ui->tblLog->horizontalHeader()->setResizeContentsPrecision(0);
     //ui->tblLog->resizeColumnToContents(0); //de doulevei
