@@ -56,6 +56,7 @@ public:
 
     #ifdef WIN32
     void accept_client_messages(const SOCKET socketfd, const unsigned long clientIP);
+    void future_thread_accept_client_messages(const SOCKET socketfd, const unsigned long clientIP);
     SOCKET activeClientSocket;
     #else
     void accept_client_messages(const int socketfd, const in_addr_t clientIP);

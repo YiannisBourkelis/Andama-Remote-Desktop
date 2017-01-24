@@ -172,8 +172,11 @@ bool P2PServer::hasConnectedClientThreadsRunning()
     //return true;
 }
 
-void P2PServer::future_thread_accept_client_messages(const int socketfd, const in_addr_t clientIP)
-{
+#ifdef WIN32
+void P2PServer::future_thread_accept_client_messages(const SOCKET socketfd, const unsigned long clientIP){
+#else
+void P2PServer::future_thread_accept_client_messages(const int socketfd, const in_addr_t clientIP){
+#endif
     activeP2PClientsCounter++;
     Finally fin([]{activeP2PClientsCounter--;});
 
