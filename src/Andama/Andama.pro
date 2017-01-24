@@ -102,7 +102,10 @@ SOURCES += main.cpp\
     ../Shared/UPnP/addportmappingresponse.cpp \
     ../Shared/UPnP/deviceresponse.cpp \
     ../Shared/UPnP/upnpaddportmapping.cpp \
-    ../Shared/General/bench.cpp
+    ../Shared/General/bench.cpp \
+    tbllogmodel.cpp \
+    tbllogsortfilterproxymodel.cpp \
+    tbllogdata.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -130,7 +133,10 @@ HEADERS  += clientserver.h \
     ../Shared/UPnP/addportmappingresponse.h \
     ../Shared/UPnP/deviceresponse.h \
     ../Shared/UPnP/upnpaddportmapping.h \
-    ../Shared/General/bench.h
+    ../Shared/General/bench.h \
+    tbllogmodel.h \
+    tbllogsortfilterproxymodel.h \
+    tbllogdata.h
 
 FORMS    += mainwindow.ui \
     About.ui

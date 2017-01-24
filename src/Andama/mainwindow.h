@@ -49,6 +49,7 @@
 #include "p2pserver.h"
 //#include <appnapcontroller.h>
 #include "../Shared/UPnP/upnpengine.h"
+#include "tbllogmodel.h"
 
 #ifdef Q_OS_MAC
 #include <IOKit/pwr_mgt/IOPMLib.h> //gia na ksypnaei to monitor
@@ -79,6 +80,8 @@ public:
     screenshotsWorker screenshotWrk;
     keepalive keepAlive;
     About about;
+    tblLogModel tbllogmodel;
+
 
 private slots:
     void mymessageRecieved(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata);

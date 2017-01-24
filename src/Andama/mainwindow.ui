@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>728</width>
-    <height>290</height>
+    <height>418</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>728</width>
-    <height>290</height>
+    <height>288</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>728</width>
-    <height>290</height>
+    <height>418</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
       <x>0</x>
       <y>0</y>
       <width>728</width>
-      <height>291</height>
+      <height>421</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -581,6 +581,7 @@ color: white;</string>
      <zorder>btnConnectToRemoteClient</zorder>
      <zorder>lblRemotePasswordError</zorder>
      <zorder>lblP2PPort</zorder>
+     <zorder>tblLog</zorder>
     </widget>
     <widget class="QWidget" name="widgetStatus" native="true">
      <property name="geometry">
@@ -625,6 +626,30 @@ color: white;</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
+    </widget>
+    <widget class="QTableView" name="tblLog">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>290</y>
+       <width>731</width>
+       <height>130</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(15, 79, 77, 255), stop:1 rgba(7, 11, 37, 255));</string>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>false</bool>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
     </widget>
    </widget>
    <widget class="QLabel" name="lblDesktop">

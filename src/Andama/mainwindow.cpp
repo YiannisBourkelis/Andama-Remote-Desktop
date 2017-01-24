@@ -29,6 +29,8 @@
 #include "chrono"
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/General/bench.h"
+#include "tbllogsortfilterproxymodel.h"
+#include "tbllogdata.h"
 
 
 //xcode-select --install
@@ -351,6 +353,21 @@ MainWindow::MainWindow(QWidget *parent) :
                   Qt::ConnectionType::DirectConnection);
 
     //cst.start();
+
+    //log
+    //tbllogmodel = tblLogModel(0);
+    //TblLogSortFilterProxyModel sortFiler;
+    //sortFiler.setSourceModel(tbllogmodel);
+    ui->tblLog->setModel(&tbllogmodel);
+    //ui->tblLog->setGridStyle();
+    ui->tblLog->verticalHeader()->hide();
+    //ui->tblLog->horizontalHeader()->setStretchLastSection(true);
+    ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tblLog->setColumnWidth(0,150);
+    ui->tblLog->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tblLog->horizontalHeader()->setStyleSheet("::section {background-color: lightblue };"); //lightblue
+    //ui->tblLog->horizontalHeader()
+
     screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.p2pServer = &p2pserver;
     screenshotWrk.imageQuality=80; //default 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
@@ -397,11 +414,18 @@ void MainWindow::slot_protocol_finished_or_terminated()
 void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes)
 {
     ui->lblP2PPort->setVisible(addPortMappingRes.statusCode == 200);
-    if(addPortMappingRes.internalPort == addPortMappingRes.remotePort){
-        ui->lblP2PPort->setText("P2P port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)));
-    }else{
-        ui->lblP2PPort->setText("P2P internal port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)) + ", external port: " + QString::fromStdString(std::to_string(addPortMappingRes.remotePort)));
+    if (addPortMappingRes.statusCode == 200){
+        QString s;
+        if(addPortMappingRes.internalPort == addPortMappingRes.remotePort){
+            s = "P2P port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort));
+            ui->lblP2PPort->setText(s);
+        }else{
+            s = "P2P internal port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)) + ", external port: " + QString::fromStdString(std::to_string(addPortMappingRes.remotePort));
+            ui->lblP2PPort->setText(s);
+        }
+        tbllogmodel.addLogData(s);
     }
+
 }
 
 void MainWindow::protocol_exception(QString ex)
@@ -504,6 +528,7 @@ void MainWindow::non_UI_thread_messageRecieved(const clientServerProtocol *clien
     }
 }
 
+/*
 void MainWindow::setDisabledRemoteControlWidgets(bool flag)
 {
     ui->lblRemoteIDError->setDisabled(flag);
@@ -518,6 +543,7 @@ void MainWindow::setDisabledRemoteControlWidgets(bool flag)
         ui->txtRemotePCID->setFocus();
     }
 }
+*/
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -528,11 +554,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         setDefaultGUI();
 
-        ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-        ui->lblStatus->setText("Remote computer disconnected. Ready!");
-        ui->btnConnectToRemoteClient->setEnabled(true);
-        ui->txtRemotePCID->setEnabled(true);
-        ui->txtRemotePassword->setEnabled(true);
+        //ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+        //ui->lblStatus->setText("Remote computer disconnected. Ready!");
+        //ui->btnConnectToRemoteClient->setEnabled(true);
+        //ui->txtRemotePCID->setEnabled(true);
+        //ui->txtRemotePassword->setEnabled(true);
+        tbllogmodel.addLogData("P2P Connection: Disconnected from remote computer");
 
         event->ignore();
         return;
@@ -586,9 +613,9 @@ void MainWindow::setDefaultGUI()
     ui->btnConnectToRemoteClient->show();
     ui->btnConnectToRemoteClient->setEnabled(true);
 
-    this->setMaximumSize(728,290);
-    this->setMinimumSize(728,290);
-    this->resize(728,290);
+    this->setMaximumSize(728,418);
+    this->setMinimumSize(728,418);
+    this->resize(728,418);
     ui->mainWidget->setVisible(true);
     ui->lblDesktop->setVisible(false);
 }
@@ -598,9 +625,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
     try{
 
        if (msgType == protocol_supervisor.protocol.MSG_ID){
-           //AppNapController::EnableAppNap();
-
-           setDisabledRemoteControlWidgets(false);
+           //setDisabledRemoteControlWidgets(false);
 
             qDebug("Thread id inside mymessageRecieved %li", (long)QThread::currentThreadId());
             std::string strID(vdata.begin(),vdata.end());
@@ -610,6 +635,10 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
             ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
             ui->lblStatus->setText("Ready!");
+
+
+            tbllogmodel.addLogData("Application ID recieved from proxy. Ready to connect and accept connections!");
+
         }
        else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
             ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.password));
@@ -621,7 +650,8 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //otan lavw minima apodoxis tis syndesis apo ton allo ypologisti
            //tou stelnw minima na mou steilei to prwto screenshot
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Remote computer accepted the request. Requesting remote desktop image...");
+           ui->lblStatus->setText("Remote computer accepted the connection. Requesting remote desktop image...");
+            tbllogmodel.addLogData("Remote computer accepted the connection. Requesting remote desktop image");
 
            if(p2pclient.isClientConnected == true){
                 p2pclient.RequestScreenshot();
@@ -635,6 +665,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Ready!");
+           tbllogmodel.addLogData("The requested remote computer ID can't be found");
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_CONNECT_PASSWORD_NOT_CORRECT){
@@ -643,13 +674,17 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Ready!");
+           tbllogmodel.addLogData("The password you entered is not correct");
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_PWD){
            ui->btnConnectToRemoteClient->setVisible(true);
+           ui->lblRemotePasswordError->setVisible(true);
+           ui->lblRemotePasswordError->setText("IP banned");
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Connection rejected because of multiple wrong password attempts");
+           tbllogmodel.addLogData("The connection is rejected because of multiple wrong password attempts");
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_PWD){
@@ -657,15 +692,18 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            ui->txtRemotePassword->setFocus();
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
+           tbllogmodel.addLogData("The password you entered is not correct");
 
            std::string str1 = "The password is not correct. Remaining tries: ";
            int remain = bytesToInt(vdata);
            std::string str2 = str1 + std::to_string(remain);
+           tbllogmodel.addLogData(str2);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_orange.png)");
            ui->lblStatus->setText(QString::fromStdString(str2));
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_ERROR_APP_VERSION_NOT_ACCEPTED){
+           tbllogmodel.addLogData("The current version of the application is no longer supported. Pease upgrade");
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Upgrade required");
 
@@ -690,6 +728,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
        else if (msgType == protocol_supervisor.protocol.MSG_REMOTE_CLIENT_ACCEPTED){
            qDebug("Apodexthika ti syndesi tou remote pc.");
            //AppNapController::DisableAppNap();
+           tbllogmodel.addLogData("Remote client accepted");
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Remote client accepted.");
            ui->btnConnectToRemoteClient->setEnabled(false);
@@ -697,20 +736,23 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            this->showMinimized();
        }
        else if(msgType == protocol_supervisor.protocol.MSG_NO_INTERNET_CONNECTION){
-           setDisabledRemoteControlWidgets(true);
+           //setDisabledRemoteControlWidgets(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Error connecting. Please make sure you have an internet connection and try again.");
+           tbllogmodel.addLogData("Error connecting. Please make sure you have an internet connection and try again.");
        }
        else if(msgType == protocol_supervisor.protocol.MSG_NO_PROXY_CONNECTION){
-           setDisabledRemoteControlWidgets(true);
+           //setDisabledRemoteControlWidgets(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText("Error connecting with proxy server. Please check your internet connection or try again later");
+           tbllogmodel.addLogData("Error connecting. Please make sure you have an internet connection and try again.");
        }
        else if(msgType == protocol_supervisor.protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
            //AppNapController::EnableAppNap();
            setDefaultGUI();
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText("Remote computer disconnected. Ready!");
+           tbllogmodel.addLogData("The remote computer is disconnected");
        }
        else if(msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
@@ -721,6 +763,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            std::string str3 = str1 + std::to_string(remain);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_orange.png)");
            ui->lblStatus->setText(QString::fromStdString(str3));
+           tbllogmodel.addLogData(str3);
            QApplication::beep();
        }
        else if(msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_ID){
@@ -733,6 +776,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            std::string str4 = str3 + " sec.";
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
            ui->lblStatus->setText(QString::fromStdString(str4));
+           tbllogmodel.addLogData(str4);
            QApplication::beep();
        }
        else if(msgType == protocol_supervisor.protocol.MSG_ERROR_CANNOT_CONNECT_SAME_ID){
@@ -741,6 +785,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            ui->lblStatus->setText("Ready!");
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblRemoteIDError->setText("Cannot connect to the same ID");
+           tbllogmodel.addLogData("Hey! I cannot connect to myself");
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
@@ -929,6 +974,7 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
         //ui->txtRemotePCID->setFocus();//xreiazetai giati sta windows meta apo to click sto button pairnei to focus to local password field
         ui->lblRemoteIDError->clear();
         ui->lblRemotePasswordError->clear();
+        tbllogmodel.addLogData("Connecting to the remote computer...");
 
         //lamvanw ta remote id kai remote password
         //ta metatrepw se vector<char> kai ta pernaw sto protocolo
@@ -940,6 +986,8 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
         std::vector<char> vectRemotePassword = std::vector<char>(strPassword.begin(), strPassword.end());
 
         if (ui->txtRemotePCID->text().contains(":")){
+            tbllogmodel.addLogData("Connecting to the remote computer directly...");
+            lastMainWindowPosition = this->pos();
             p2pclient.remotePort=ui->txtRemotePCID->text().split(":")[1].toInt();
             p2pclient.remoteIpAddress = ui->txtRemotePCID->text().split(":")[0].toStdString();
             p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
