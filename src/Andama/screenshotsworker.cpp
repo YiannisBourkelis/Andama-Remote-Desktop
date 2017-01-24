@@ -305,7 +305,9 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
-        if (p2pServer->isP2PCientConnected){
+        //if (p2pServer->isP2PCientConnected)
+        if (p2pServer->hasConnectedClientThreadsRunning())
+        {
             Bench bench("sendScreenshot-_sendmsg");
             _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{

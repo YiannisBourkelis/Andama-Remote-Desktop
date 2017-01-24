@@ -2,6 +2,7 @@
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/shared_constants.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
+#include "../Shared/General/finally.h"
 
 #include <csignal> // xreiazetai gia na ginei compile se linux gia tin signal
 
@@ -143,9 +144,8 @@ void P2PServer::start_p2pserver()
                                     (char *) &flag,  /* the cast is historical cruft */
                                     sizeof(int));    /* length of option value */
 
-
             //diaxeirizomai ton neo client se neo thread.
-            auto t = std::thread(&P2PServer::accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
+            auto t = std::thread(&P2PServer::future_thread_accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
             t.detach();
         } catch ( std::exception& ex) {
             std::cout << "Accept loop exception: " << ex.what() << std::endl;
@@ -154,6 +154,32 @@ void P2PServer::start_p2pserver()
             std::cout << "Unknown error in main loop" << std::endl;
         }
     } /* end of while */
+}
+
+static std::atomic<int> activeP2PClientsCounter {0};
+bool P2PServer::hasConnectedClientThreadsRunning()
+{
+    /*
+    for(const std::future<void> &t : connectedClientsThread)
+    {
+        if (t.joinable()){
+            return true;
+        }
+    }
+    return false;
+    */
+    return (activeP2PClientsCounter > 0);
+    //return true;
+}
+
+void P2PServer::future_thread_accept_client_messages(const int socketfd, const in_addr_t clientIP)
+{
+    activeP2PClientsCounter++;
+    Finally fin([]{activeP2PClientsCounter--;});
+
+    std::future<void> future_getNewP2PClient = std::async(std::launch::async , &P2PServer::accept_client_messages, this, socketfd, clientIP);
+    future_getNewP2PClient.get();
+    std::cout << "thread done!";
 }
 
 #ifdef WIN32

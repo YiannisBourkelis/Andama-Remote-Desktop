@@ -32,6 +32,8 @@
 #include <thread>
 #include <array>
 #include <random>
+#include <future>
+#include <atomic>
 
 #include "clientserver.h" //TODO: isws den xreiazetai
 #include "clientserverprotocol.h"
@@ -57,6 +59,7 @@ public:
     SOCKET activeClientSocket;
     #else
     void accept_client_messages(const int socketfd, const in_addr_t clientIP);
+    void future_thread_accept_client_messages(const int socketfd, const in_addr_t clientIP);
     int activeClientSocket;
     #endif
 
@@ -64,6 +67,8 @@ public:
 
     bool isP2PCientConnected;
     std::string password;
+
+    bool hasConnectedClientThreadsRunning();
 
 private:
     std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket

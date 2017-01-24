@@ -562,8 +562,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         setDefaultGUI();
 
-        //ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-        //ui->lblStatus->setText("Remote computer disconnected. Ready!");
+        ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+        ui->lblStatus->setText("Disconnected from remote computer. Ready!");
         //ui->btnConnectToRemoteClient->setEnabled(true);
         //ui->txtRemotePCID->setEnabled(true);
         //ui->txtRemotePassword->setEnabled(true);
@@ -657,8 +657,8 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
            //otan lavw minima apodoxis tis syndesis apo ton allo ypologisti
            //tou stelnw minima na mou steilei to prwto screenshot
-           ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Remote computer accepted the connection. Requesting remote desktop image...");
+            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+            ui->lblStatus->setText("Remote computer accepted the connection. Requesting remote desktop image...");
             tbllogmodel.addLogData("Remote computer accepted the connection. Requesting remote desktop image");
 
            if(p2pclient.isClientConnected == true){
@@ -751,9 +751,13 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
        }
        else if(msgType == protocol_supervisor.protocol.MSG_NO_PROXY_CONNECTION){
            //setDisabledRemoteControlWidgets(true);
-           ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText("Error connecting with proxy server. Please check your internet connection or try again later");
-           tbllogmodel.addLogData("Error connecting. Please make sure you have an internet connection and try again.");
+           if (p2pclient.remotePort == 0){
+                ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
+                ui->lblStatus->setText("Error connecting with proxy server. Please check your internet connection or try again later");
+                tbllogmodel.addLogData("Error connecting. Please make sure you have an internet connection and try again.");
+           }else{
+               p2pclient.remotePort == 0;
+           }
        }
        else if(msgType == protocol_supervisor.protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
            //AppNapController::EnableAppNap();
