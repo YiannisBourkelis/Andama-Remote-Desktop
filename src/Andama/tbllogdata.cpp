@@ -7,6 +7,7 @@
 
 TblLogData::TblLogData()
 {
+    dateTime = time(0);
     //dateTime = std::chrono::system_clock::now();
 }
 
@@ -29,10 +30,9 @@ std::string TblLogData::getDateTimeString() const
 
 // Get current date/time, format is YYYY-MM-DD HH:mm:ss
 std::string TblLogData::getDateTimeString() const {
-    time_t     now = time(0);
     struct tm  tstruct;
     char       buf[80];
-    tstruct = *localtime(&now);
+    tstruct = *localtime(&dateTime);
     // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
     // for more information about date/time format
     strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
