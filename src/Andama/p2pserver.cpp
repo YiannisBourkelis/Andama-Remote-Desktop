@@ -156,20 +156,10 @@ void P2PServer::start_p2pserver()
     } /* end of while */
 }
 
-static std::atomic<int> activeP2PClientsCounter {0};
+static std::atomic<int> activeP2PClientsCounter {0}; //TODO: na tin kanw member variable tis clasis. dokimasa alla evgaze compile errors
 bool P2PServer::hasConnectedClientThreadsRunning()
 {
-    /*
-    for(const std::future<void> &t : connectedClientsThread)
-    {
-        if (t.joinable()){
-            return true;
-        }
-    }
-    return false;
-    */
     return (activeP2PClientsCounter > 0);
-    //return true;
 }
 
 #ifdef WIN32

@@ -27,7 +27,7 @@ void keepalive::run(void){
             if (protocol_supervisor->protocol.getConnectionState() != connectionState::disconnected){
                 try {
                     setLastHeartBeat(std::chrono::high_resolution_clock::now()); //thetw ton xrono prin kalesw to sendHeartBeat, wste se periptwsi exception na mi kaleitai synexeia to sendHeartBeat
-                    if (protocol_supervisor->isRunning()){
+                    if (protocol_supervisor->isRunning()){//TODO: panta epistrefei false giati to protocol_supervisor dimiourgei kai katasrefei to thread amesws.
                         protocol_supervisor->protocol.sendHeartBeat();
                     } else {
                         protocol_supervisor->protocol.setConnectionState(connectionState::disconnected);
