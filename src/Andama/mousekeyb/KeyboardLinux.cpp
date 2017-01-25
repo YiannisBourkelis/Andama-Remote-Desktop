@@ -397,7 +397,7 @@ int Keyboard::convertPortableKeyToLocal(portableVKey portableKey)
         case portableVKey::PVK_TAB:
             return XK_Tab;
             break;
-        case portableVKey::PVK_SPACE
+        case portableVKey::PVK_SPACE:
             return XK_Linefeed;
             break;
         case portableVKey::PVK_BACK:
