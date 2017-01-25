@@ -155,7 +155,7 @@ break;
     case XK_Tab:
         return portableVKey::PVK_TAB;
         break;
-    case XK_Linefeed
+    case XK_Linefeed:
         return portableVKey::PVK_SPACE;
         break;
     case XK_BackSpace:
