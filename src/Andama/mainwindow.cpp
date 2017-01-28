@@ -902,12 +902,19 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
+           if (vdata.size() == 8)
+           {
+               qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
+               return;
+           }
+
+           Bench("xronos emfanisis screenshot diff stin othoni");
+
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
 
            //qDebug("DS.3 UI - Screenshot diff recieved. Setting image in control! Total bytes: %lu", vdata.size());
            QImage qpix;
-           QByteArray qbytes; // edw topothetw ta sympiesmena bytes tis eikonas
 
            //lamvanw tin thesi x tis eikonas (prwta 2 bytes)
            std::vector<char> cx(vdata.begin(),vdata.begin()+2);
@@ -921,25 +928,12 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
            //qDebug("DS.4 desktop lbl height: %i, lastscreenshot height: %i",ui->lblDesktop->height(),lastScreenshot.height());
 
-           //topothetw ta bytes tis eikonas sto qbytes
-           //for(size_t i=4;i<vdata.size();i++){
-           //     qbytes.append(vdata.at(i));
-           //}
-           qbytes.insert(0, vdata.data() + 4, vdata.size() - 4);
-
-           QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()+4),vdata.size()-4);
 
            //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
-
-           if (qbytes.size() == 0)
-           {
-               //qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
-               return;
-           }
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
-          //qpix.loadFromData(qbytes);
 
           //qDebug("DS.8 diff image loaded! Height: %i, width: %i",qpix.height(),qpix.width());
 
