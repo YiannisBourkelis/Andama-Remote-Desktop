@@ -836,21 +836,18 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
        {
-           lastMainWindowPosition = this->pos();
+          lastMainWindowPosition = this->pos();
 
-           qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
-           QPixmap qpix;
-           QByteArray qbytes;
+          qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
+          QPixmap qpix;
+          //QByteArray qbytes;
 
-           //for(size_t i=0;i<vdata.size();i++){
-               //qDebug("i=%i",i);
-           //     qbytes.append(vdata.at(i));
-           //}
-           qbytes.insert(0, vdata.data(), vdata.size());
+          //qbytes.insert(0, vdata.data(), vdata.size());
 
-          QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+          //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
 
-          qpix.loadFromData(image_bytes_uncompressed,"JPG");
+          qpix.loadFromData(image_bytes_uncompressed,"WEBP");
            //qpix.loadFromData(qbytes,"JPG");
 
           //*** symantiko. to lastScreenshot crataei kathe fora to pio prosfato
@@ -899,12 +896,14 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            ui->lblDesktop->setPixmap(qpix.scaled(ui->lblDesktop->width(), ui->lblDesktop->height(),
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
+
+           std::cout << "IMAGE DIFF BYTES RECIEVED:" << vdata.size() << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
            if (vdata.size() == 8)
            {
-               qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
+               //qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
                return;
            }
 
@@ -933,7 +932,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
-          qpix.loadFromData(image_bytes_uncompressed,"JPG");
+          qpix.loadFromData(image_bytes_uncompressed,"WEBP");
 
           //qDebug("DS.8 diff image loaded! Height: %i, width: %i",qpix.height(),qpix.width());
 
@@ -954,6 +953,8 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
           QPixmap qp(QPixmap::fromImage(qimg2));
 
            ui->lblDesktop->setPixmap(qp);
+
+           std::cout << "IMAGE DIFF BYTES RECIEVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
     }
