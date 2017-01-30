@@ -31,6 +31,7 @@
 #include "../Shared/General/bench.h"
 #include "tbllogsortfilterproxymodel.h"
 #include "tbllogdata.h"
+//#include "imageconfig.h"
 
 
 //xcode-select --install
@@ -377,7 +378,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.p2pServer = &p2pserver;
-    screenshotWrk.imageQuality=80; //default 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
+    screenshotWrk.imageQuality=50; //default JPG 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
     screenshotWrk.start();
 
     keepAlive.protocol_supervisor = &protocol_supervisor;
@@ -847,8 +848,8 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
           //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
 
-          qpix.loadFromData(image_bytes_uncompressed,"WEBP");
-           //qpix.loadFromData(qbytes,"JPG");
+          //qpix.loadFromData(image_bytes_uncompressed,"WEBP");
+          qpix.loadFromData(image_bytes_uncompressed,"JPG");
 
           //*** symantiko. to lastScreenshot crataei kathe fora to pio prosfato
           //screenshot prosthetontas tis diafores
@@ -932,7 +933,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
-          qpix.loadFromData(image_bytes_uncompressed,"WEBP");
+          qpix.loadFromData(image_bytes_uncompressed,"JPG");
 
           //qDebug("DS.8 diff image loaded! Height: %i, width: %i",qpix.height(),qpix.width());
 
