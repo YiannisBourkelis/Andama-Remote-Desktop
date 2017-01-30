@@ -37,6 +37,7 @@
 #include <QDesktopWidget>
 #include <qpaintengine.h>
 #include "p2pserver.h"
+//#include "imageconfig.h"
 
 class screenshotsWorker: public QThread
 {

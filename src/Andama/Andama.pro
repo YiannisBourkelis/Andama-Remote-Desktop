@@ -136,7 +136,8 @@ HEADERS  += clientserver.h \
     ../Shared/General/bench.h \
     tbllogmodel.h \
     tbllogsortfilterproxymodel.h \
-    tbllogdata.h
+    tbllogdata.h \
+    imageconfig.h
 
 FORMS    += mainwindow.ui \
     About.ui

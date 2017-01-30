@@ -1,0 +1,9 @@
+#ifndef IMAGECONFIG
+#define IMAGECONFIG
+
+const char * ANDAMA__IMAGE_CODEC = "JPG"; //JPG, WEBP
+const int ANDAMA__IMAGE_QUALITY = 80;
+const bool ANDAMA__USE_IMAGE_COMPRESSION = true;
+
+#endif // IMAGECONFIG
+

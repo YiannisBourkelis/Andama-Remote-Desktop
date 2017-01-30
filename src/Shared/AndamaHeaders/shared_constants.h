@@ -28,5 +28,4 @@ const std::array<char,1> CMD_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = {{'v'}}; // (
 
 const std::array<char,1> CMD_P2P_PROTOCOL_OK = {{'d'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
 const std::array<char,1> CMD_P2P_CONNECT = {{'N'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
-
 #endif // SHARED_CONSTANTS_H
