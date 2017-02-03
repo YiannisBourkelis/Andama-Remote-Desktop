@@ -32,7 +32,7 @@ windows:QT += winextras
 #linux:QMAKE_CXXFLAGS += -g -O0 #an thelw na kanw debugging se linux, kataxwrei etsi debug symbols
 
 CONFIG += c++11
-CONFIG += qt debug #debug symbols. na to vgazw opote den to xreiazomai
+#CONFIG += qt debug #debug symbols. na to vgazw opote den to xreiazomai
 
 linux:CONFIG += static
 # ./configure -static -prefix /home/yiannis/Qt5.3.2-src -qt-xcb
