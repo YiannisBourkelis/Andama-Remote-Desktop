@@ -40,6 +40,9 @@ linux:CONFIG += static
 # make install
 #linux
 
+# disable all the deprecated APIs in Qt <= 5.7
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
+
 mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
 mac:LIBS += -framework CoreFoundation

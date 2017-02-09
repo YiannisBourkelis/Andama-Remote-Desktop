@@ -33,7 +33,8 @@ public:
     QUrl descriptionUrl;//to description url. Mas leei poy vrisketai to xml me ta capabilities tou sygekrimenou device
     std::string controlURL;//to control url gia tin ektelesi mias entolis p.x. AddPortMapping
     std::string serviceName; //Apothikevei to service name tis SOAP entolis pou tha ektelesti p.x. WANPPPConnection:1
-
+    std::string ServerTag;
+    void resolveServerTag();
 
 };
 

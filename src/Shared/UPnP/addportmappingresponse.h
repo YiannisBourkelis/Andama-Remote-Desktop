@@ -22,6 +22,7 @@
 #define ADDPORTMAPPINGRESPONSE_H
 
 #include <string>
+#include "deviceresponse.h"
 
 //otan stelnw upnp aitima gia AddPortMapping, apothikevw stadiaka
 //se afti tin class ta stoixeia twn devices
@@ -35,6 +36,7 @@ public:
     unsigned short internalPort; //i internal port. Idia me ton p2pserver pou kanei listen
     std::string portMappingDescription; //to portmapping description opws stalthike arxika
     std::string rawResponse; //i pliris apantisi
+    DeviceResponse deviceInfo;
 };
 
 #endif // ADDPORTMAPPINGRESPONSE_H

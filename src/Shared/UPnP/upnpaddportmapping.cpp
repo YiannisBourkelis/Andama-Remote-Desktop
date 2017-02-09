@@ -84,7 +84,7 @@ AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(const std::string &new
 
     std::string soapbodylength (std::to_string(soapbody.length()-10));
 
-    std::string headerAndSoapBody ("POST " + portmappingDevice.controlURL + " HTTP/1.0\r\n"
+    std::string headerAndSoapBody ("POST " + portmappingDevice.controlURL + " HTTP/1.1\r\n"
                         "Host: " + portmappingDevice.descriptionUrl.host().toStdString() + ":" + std::to_string(portmappingDevice.descriptionUrl.port()) + "\r\n"
                         "Content-Length: " + soapbodylength + "\r\n"
                         "Content-Type: text/xml\r\n"
@@ -109,6 +109,8 @@ AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(const std::string &new
         addportreply += addPortMappingReply;
     }
     std::cout << "\r\n server reply \r\n" << addportreply;
+
+    addPortMappingResponse.deviceInfo = portmappingDevice;
 
     if (addportreply.find("200 OK") < addportreply.length()){
         std::cout << "found index: " << addportreply.find("200 OK") << " of length: " << addportreply.length();

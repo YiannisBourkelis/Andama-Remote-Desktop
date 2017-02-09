@@ -279,6 +279,7 @@ std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std
     std::vector<DeviceResponse> deviceResponses;
 
     for(const std::string &device : devices){
+        std::cout << device << std::endl;
         //eksagw to discovery url
         //prwta metatrepw to response se lower case
         //giati to location mporei na einai Location, LOCATION klp
@@ -302,6 +303,7 @@ std::vector<DeviceResponse> UPnPEngine::getDeviceResponses(const std::vector<std
                 const QUrl durl(locationUrl.toString());
                 devres.descriptionUrl = durl;
                 devres.rawResponse = std::string(device);
+                devres.resolveServerTag();
                 deviceResponses.push_back(devres);
                 std::cout << "\r\n" << "Host: " << locationUrl.host().toStdString()<<"\r\nPort: "<< locationUrl.port() << std::endl;
             }

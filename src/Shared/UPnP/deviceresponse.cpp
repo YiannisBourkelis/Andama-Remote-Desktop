@@ -24,3 +24,20 @@ DeviceResponse::DeviceResponse()
 {
 
 }
+
+void DeviceResponse::resolveServerTag()
+{
+    std::string device_lowercase = rawResponse;
+    std::transform(device_lowercase.begin(), device_lowercase.end(), device_lowercase.begin(), ::tolower);
+    const size_t locfinf = device_lowercase.find("server:");
+
+    if (locfinf < device_lowercase.length()){
+        //efoson to location vrethike, anazitw to url
+        //sto original response (xwris lowercase diladi), gia na min epireastei to url
+        //dimiourgw neo string meta to location:
+        const std::string loc(rawResponse.substr(locfinf));
+        const auto f = loc.find("\r\n");
+        const std::string loc2(loc.substr(7,f-7));
+        ServerTag = std::move(loc2);
+    }
+}

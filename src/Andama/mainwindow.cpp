@@ -431,9 +431,11 @@ void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPo
             s = "P2P internal port: " + QString::fromStdString(std::to_string(addPortMappingRes.internalPort)) + ", external port: " + QString::fromStdString(std::to_string(addPortMappingRes.remotePort));
             ui->lblP2PPort->setText(s);
         }
-        tbllogmodel.addLogData("UPnP Successful. " + s);
+        tbllogmodel.addLogData("UPnP Successful. " + s + " (" + addPortMappingRes.deviceInfo.ServerTag.c_str() + ")");
     }else{
-        tbllogmodel.addLogData("UPnP returned error code: " +  QString::fromStdString(std::to_string(addPortMappingRes.statusCode)));
+        tbllogmodel.addLogData("UPnP returned error code: "
+                               +  QString::fromStdString(std::to_string(addPortMappingRes.statusCode))
+                               + " (" + addPortMappingRes.deviceInfo.ServerTag.c_str() + ")");
     }
 
 }
