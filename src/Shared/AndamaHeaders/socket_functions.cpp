@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 #endif
 
-#include "../Shared/General/bench.h"
+//#include "../Shared/General/bench.h"
 
 std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
 
@@ -118,7 +118,7 @@ int _sendmsg(const int socketfd,    const std::array<char, 1> &command, const st
         size_t bytesleft = msg.size(); // how many we have left to send
         int n;
         while (total < msg.size()){
-            Bench bench("_sendmsg");
+            //Bench bench("_sendmsg");
             n = send(socketfd,msg.data()+total,bytesleft,0);
             if (n < 0){
                 break;

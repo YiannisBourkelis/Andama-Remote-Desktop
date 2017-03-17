@@ -5,7 +5,8 @@
 //h apeftheias (peer-to-peer)
 enum connectMessageType {
     proxy = 0,
-    direct = 1
+    proxy_or_reverse_p2p = 1,
+    proxy_or_p2p = 2
 };
 
 enum msgType{ MSG_ID = 0,

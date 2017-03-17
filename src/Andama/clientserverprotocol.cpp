@@ -614,7 +614,7 @@ void clientServerProtocol::createConnectCommandData(std::vector<char> &all_data,
 {
     //1 byte msg type
     std::vector<char> connMsgTypeSize(1);
-    intToBytes(connectMessageType::proxy, connMsgTypeSize);
+    intToBytes(connectMessageType::proxy_or_p2p, connMsgTypeSize);
     all_data.insert(all_data.begin(),connMsgTypeSize[0]); // size tou connMsgTypeSize
 
     //1 byte OS

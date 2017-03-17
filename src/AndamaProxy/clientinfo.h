@@ -8,8 +8,9 @@ class ClientInfo
 public:
     int sockfd = -1; //to socket epikoinwnias me ton client
     int remote_socket = -1; //to socket epikoinwnias me ton remote client an ginei accept
-    std::string remote_id = ""; //to id to remote client ean exei ginei accept
+    std::string remote_id = ""; //to id tou remote client ean exei ginei accept
     std::vector<char> cachedID; //to cachedID pou xrisiopoieitai gia na diatirei o client to idio ID se periptwsi aposyndesis
+    unsigned short port = 0; //i port pou epitrepei p2p connection (ean exei anoixtei me uPnP i manually)
 };
 
 #endif // CLIENTINFO_H

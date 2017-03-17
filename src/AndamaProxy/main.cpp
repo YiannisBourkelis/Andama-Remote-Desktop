@@ -515,13 +515,13 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::vector<char> client_protocolbuff;
                 _receive(socketfd, client_protocolbuff); //<-----------------------------
                 std::cout << "examining client protocol" << std::endl;
-                std::string vapp_maj(client_protocolbuff.begin(),    client_protocolbuff.begin()+1);
-                std::string vapp_min(client_protocolbuff.begin() +1, client_protocolbuff.begin()+2);
-                std::string vapp_rev(client_protocolbuff.begin() +2, client_protocolbuff.begin()+3);
+                const std::string vapp_maj(client_protocolbuff.begin(),    client_protocolbuff.begin()+1);
+                const std::string vapp_min(client_protocolbuff.begin() +1, client_protocolbuff.begin()+2);
+                const std::string vapp_rev(client_protocolbuff.begin() +2, client_protocolbuff.begin()+3);
 
-                std::string vprot_maj(client_protocolbuff.begin()+3, client_protocolbuff.begin()+4);
-                std::string vprot_min(client_protocolbuff.begin()+4, client_protocolbuff.begin()+5);
-                std::string vprot_rev(client_protocolbuff.begin()+5, client_protocolbuff.begin()+6);
+                const std::string vprot_maj(client_protocolbuff.begin()+3, client_protocolbuff.begin()+4);
+                const std::string vprot_min(client_protocolbuff.begin()+4, client_protocolbuff.begin()+5);
+                const std::string vprot_rev(client_protocolbuff.begin()+5, client_protocolbuff.begin()+6);
                 std::cout << "examining client protocol. app version and protocol version ok" << std::endl;
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //             " Client protocol: v" << v_maj << "." << v_min << std::endl;
@@ -532,17 +532,17 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 if (vapp_maj != "0" || vapp_min != "1"){
                     //mi apodekto version efarmogis.
                     //enimerwnw ton xristi na kanei update
-                    std::string app_update_url = "http://forum.andama.org";
-                    std::vector<char> vapp_update_url(app_update_url.begin(),app_update_url.end());
+                    const std::string app_update_url = "http://forum.andama.org";
+                    const std::vector<char> vapp_update_url(app_update_url.begin(),app_update_url.end());
                     _sendmsg(socketfd, CMD_ERROR_APP_VERSION_NOT_ACCEPTED,vapp_update_url);
                     return;
                 }
 
                 //
-                std::vector<char> cachedIDSize(client_protocolbuff.begin() + 6,client_protocolbuff.begin() + 7);
-                int icachedIDSize = bytesToInt(cachedIDSize);
+                const std::vector<char> cachedIDSize(client_protocolbuff.begin() + 6,client_protocolbuff.begin() + 7);
+                const int icachedIDSize = bytesToInt(cachedIDSize);
                 //efou gnwrizoume to length tou id, lamvanoume to id sto vector
-                std::vector<char> cachedID(client_protocolbuff.begin() + 7,client_protocolbuff.begin() + 7 + icachedIDSize);
+                const std::vector<char> cachedID(client_protocolbuff.begin() + 7,client_protocolbuff.begin() + 7 + icachedIDSize);
 
 
                 //dimiourgw id kai ton kataxwrw sto dictionary map
@@ -618,18 +618,20 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     continue;
                 }
 
-                //agnoow to 1o byte kathws einai to msgtype
+                //evresi tou tropou syndesis poy zitithike (msgtype) sto prwto byte
+                const std::vector<char> connConnectionType(remote_client_idbuff.begin(), remote_client_idbuff.begin() + 1);
+                const connectMessageType connType = static_cast<connectMessageType>(bytesToInt(connConnectionType));
 
 
                 //to 2o byte einai to os
-                std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
-                int os = bytesToInt(connRemoteComputerOS);
+                const std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
+                const int os = bytesToInt(connRemoteComputerOS);
 
                 //lamvanw to 3o byte poy mas deixnei to size tou ID
-                std::vector<char> idSize(remote_client_idbuff.begin() + 2,remote_client_idbuff.begin() + 3);
-                int iIDSize = bytesToInt(idSize);
+                const std::vector<char> idSize(remote_client_idbuff.begin() + 2,remote_client_idbuff.begin() + 3);
+                const int iIDSize = bytesToInt(idSize);
                 //efou gnwrizoume to length tou id, lamvanoume to id sto vector
-                std::vector<char> vremoteID(remote_client_idbuff.begin() + 3,remote_client_idbuff.begin() + 3 + iIDSize);
+                const std::vector<char> vremoteID(remote_client_idbuff.begin() + 3,remote_client_idbuff.begin() + 3 + iIDSize);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //             " CMD_CONNECT > Zitithike syndesi pros client me ID: " << &remote_client_idbuff[0] << std::endl;
@@ -637,18 +639,33 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::lock_guard<std::mutex> lock (clients_mutex);
 
                 //anazitisi ean to remote client id einai kataxwrimeno sto dictionary
-                std::string sid(vremoteID.begin(),vremoteID.end());
-                std::map<std::string, ClientInfo>::iterator found_client =
+                const std::string sid(vremoteID.begin(),vremoteID.end());
+                const std::map<std::string, ClientInfo>::const_iterator found_client =
                         clients.find(sid);
                 if (found_client != clients.end()) {
                     //to remote id pou zitithike vrethike.
 
+                    //ean exei zitithei proxy h p2p connection elegxw ean yparxei anoixti port
+                    //kataxwrimeni gia ton apomakrismeno ypologisti gia ton opoio zitithike syndesi
+                    if(connType == connectMessageType::proxy_or_p2p){
+                        std::cout << "proxy_or_p2p2" << std::endl;
+                        const unsigned short remote_computer_p2p_port = (*found_client).second.port;
+                        std::cout << "remote computer p2p port: " << remote_computer_p2p_port << std::endl;
+                        if (remote_computer_p2p_port > 0){
+                            //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
+                            //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
+                        }
+
+                    }else {
+                        std::cout << "proxy" << std::endl;
+                    }
+
                     //lamvanw to size tou password
-                    std::vector<char> pwdSize(remote_client_idbuff.begin() + 3 + iIDSize, remote_client_idbuff.begin() + 3 + iIDSize + 1);
-                    int ipwdSize = bytesToInt(pwdSize);
+                    const std::vector<char> pwdSize(remote_client_idbuff.begin() + 3 + iIDSize, remote_client_idbuff.begin() + 3 + iIDSize + 1);
+                    const int ipwdSize = bytesToInt(pwdSize);
 
                     //lamvanw to password apo to vector poy ellava prin
-                    std::vector<char> vpassword(remote_client_idbuff.begin() + 3 + iIDSize + 1, remote_client_idbuff.begin() + 3 + iIDSize + 1 + ipwdSize);
+                    const std::vector<char> vpassword(remote_client_idbuff.begin() + 3 + iIDSize + 1, remote_client_idbuff.begin() + 3 + iIDSize + 1 + ipwdSize);
 
                     std::vector<char> connect_data;
                     createConnectCommandData(connect_data,myIDv,vpassword,clientIP,os);
@@ -694,8 +711,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::lock_guard<std::mutex> lock (clients_mutex);
 
                 //anazitisi ean to remote id pou egine accept yparxei sto dictionary
-                std::string sid(accepted_client_id_buff.begin(),accepted_client_id_buff.end());
-                std::map<std::string, ClientInfo>::iterator found_client =
+                const std::string sid(accepted_client_id_buff.begin(),accepted_client_id_buff.end());
+                const std::map<std::string, ClientInfo>::const_iterator found_client =
                         clients.find(sid);
                 if (found_client != clients.end()) {
                     { // lock_guard scope
@@ -740,9 +757,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::vector<char> screenshot_diff_id_data_buff;
                 _receive(socketfd, screenshot_diff_id_data_buff);
 
-                std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
-
-                std::string remoteID = getRemoteComputerID(myID);
+                //const std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
+                //std::string remoteID = getRemoteComputerID(myID);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //            " 4. CMD_REQUEST_SCREENSHOT_DIFF ID: " << rid << ". Tha ginei proothisi pros: " << remoteID << std::endl;

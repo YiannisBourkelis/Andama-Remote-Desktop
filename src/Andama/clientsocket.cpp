@@ -86,8 +86,8 @@ void clientSocket::connectToServer()
         return;
     }
 
-    SERVER = gethostbyname("mailgate.filoxeni.com");
-    //SERVER = gethostbyname("localhost");
+    //SERVER = gethostbyname("mailgate.filoxeni.com");
+    SERVER = gethostbyname("localhost");
 
     if (SERVER == NULL) {
         //event_messageRecieved(MSG_NO_INTERNET_CONNECTION);
