@@ -118,7 +118,7 @@ void clientSocket::connectToServer()
          (char *)&serv_addr.sin_addr.s_addr,
          SERVER->h_length);
 
-    //serv_addr.sin_addr.s_addr=inet_addr("192.168.32.20"); // <------------- local server
+    serv_addr.sin_addr.s_addr=inet_addr("192.168.32.20"); // <------------- local server
 
     //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
     int flag = 1;
