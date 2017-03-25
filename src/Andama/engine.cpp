@@ -2,6 +2,7 @@
 #include "mousekeyb/Mouse.h"
 #include "mousekeyb/Keyboard.h"
 #include "../Shared/AndamaHeaders/byte_functions.h"
+#include <QString>
 
 #ifdef Q_OS_MAC
 #include "osxobjectivecbridge.h"
@@ -239,7 +240,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             break;
         case clientserver::MSG_NO_PROXY_CONNECTION:
             statusErrorLevel = STATUS_ERROR;
-            statusText="Error connecting with proxy server. Please check your internet connection or try again later";
+            statusText="Error connecting with proxy server. Please make sure you have an internet connection and try again.";
             break;
         case clientserver::MSG_REMOTE_COMPUTER_DISCONNECTED:
             statusErrorLevel = STATUS_NOERROR;

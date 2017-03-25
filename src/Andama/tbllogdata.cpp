@@ -16,18 +16,6 @@ TblLogData::TblLogData(std::string eventDesc) : TblLogData::TblLogData()
     eventDescription = eventDesc;
 }
 
-/*
-std::string TblLogData::getDateTimeString() const
-{
-    auto in_time_t = std::chrono::system_clock::to_time_t(dateTime);
-
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-    return ss.str();
-}
-*/
-
-
 // Get current date/time, format is YYYY-MM-DD HH:mm:ss
 std::string TblLogData::getDateTimeString() const {
     struct tm  tstruct;

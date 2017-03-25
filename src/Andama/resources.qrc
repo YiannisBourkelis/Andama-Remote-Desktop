@@ -8,5 +8,6 @@
     </qresource>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>Andama_el.qm</file>
     </qresource>
 </RCC>

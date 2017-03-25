@@ -4,21 +4,23 @@ TblLogSortFilterProxyModel::TblLogSortFilterProxyModel(QObject *parent) : QSortF
 {
 }
 
+/*
 QVariant TblLogSortFilterProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+   if(orientation == Qt::Horizontal)
    {
-       if(orientation == Qt::Horizontal)
-       {
-           if(role == Qt::DisplayRole)
-               switch(section)
-               {
-               case 0: return "Date/time";            break;
-               case 1: return "Event";   break;
-               default:
-                   return QString("Column %1").arg(section + 1);
-                   break;
-               }
-       }
-
-       return QVariant();
+       if(role == Qt::DisplayRole)
+           switch(section)
+           {
+           case 0: return "Date/time";            break;
+           case 1: return "Event";   break;
+           default:
+               return QString("Column %1").arg(section + 1);
+               break;
+           }
    }
+
+   return QVariant();
+}
+*/
 

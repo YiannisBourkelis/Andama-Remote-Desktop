@@ -44,6 +44,10 @@ QVariant tblLogModel::data(const QModelIndex &index, int role) const
     {
         return QBrush(QColor::fromRgb(255,255,255));
     }
+    else if (role == Qt::ToolTipRole)
+    {
+        return QString::fromStdString(_logData.at(index.row()).eventDescription);
+    }
     return QVariant();
 }
 

@@ -558,7 +558,7 @@ color: white;</string>
        <string notr="true">color: rgb(79, 255, 91);</string>
       </property>
       <property name="text">
-       <string>P2P Port: 8050</string>
+       <string>TextLabel</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -641,7 +641,8 @@ color: white;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(15, 79, 77, 255), stop:1 rgba(7, 11, 37, 255));</string>
+      <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(15, 79, 77, 255), stop:1 rgba(7, 11, 37, 255));
+QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; };</string>
      </property>
      <property name="alternatingRowColors">
       <bool>false</bool>

@@ -26,6 +26,8 @@
 #include <QtDebug>
 #include <QFile>
 #include <QTextStream>
+//#include <QMessageBox>
+#include <QTranslator> //xreiazetai gia tis metafraseis
 
 #ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
 #include <QQmlApplicationEngine>
@@ -114,28 +116,48 @@ BOOL SetWinSta0Desktop(TCHAR *szDesktopName)
 }
 */
 
+//fortwnei to arxeio me tis metafraseis
+void loadTranslator(QApplication *a,  QTranslator *translator)
+{
+    QString lang = QLocale::system().name();
+    int lang_code_idx = QLocale::system().name().indexOf("_");
+    if (lang_code_idx > -1){
+        //krataw mono ti glwssa. p.x. apo el_GR krataw mono to el
+        lang.truncate(lang_code_idx);
+    }
+    QString lang_file = QString(":/Andama_%1.qm").arg(lang);
+    translator->load(lang_file);
+
+    a->installTranslator(translator);
+}
+
 int main(int argc, char *argv[])
 {
     //SetWinSta0Desktop(TEXT("winlogon"));
 
     QApplication a(argc, argv);
+
+    //fortwsi metafrasis annaloga me ti glwssa tou systimatos
+    //Prepei o orismos tis translator na vrisketai sto scope tis main giati alliws den ginetai metafrasi
+    QTranslator translator;
+    loadTranslator(&a,&translator);
+
     bool useQML = false;
     if (!useQML)
     {
         qInstallMessageHandler(myMessageOutput);
 
 #ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use widgets related code
+
         MainWindow w;
         w.show();
 #endif //ANDAMA_SERVICE_MODE
+        //QString locale = QLocale::system().name();
 
+        //QMessageBox::information(&w,"Language",lang);
         return a.exec();
     }
     else{
-        //Load translation file
-        /*QTranslator translator;
-        translator.load(QLocale::system(), ":/andama","_",QCoreApplication::applicationDirPath(),".qm");
-        a.installTranslator(&translator);*/
 
 #ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
 

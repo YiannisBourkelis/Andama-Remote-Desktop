@@ -86,8 +86,8 @@ void clientSocket::connectToServer()
         return;
     }
 
-    //SERVER = gethostbyname("mailgate.filoxeni.com");
-    SERVER = gethostbyname("localhost");
+    SERVER = gethostbyname("mailgate.filoxeni.com");
+    //SERVER = gethostbyname("localhost");
 
     if (SERVER == NULL) {
         //event_messageRecieved(MSG_NO_INTERNET_CONNECTION);
@@ -118,7 +118,7 @@ void clientSocket::connectToServer()
          (char *)&serv_addr.sin_addr.s_addr,
          SERVER->h_length);
 
-    serv_addr.sin_addr.s_addr=inet_addr("192.168.32.20"); // <------------- local server
+    //serv_addr.sin_addr.s_addr=inet_addr("192.168.32.20"); // <------------- local server
 
     //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
     int flag = 1;
@@ -185,7 +185,7 @@ void clientSocket::connectToServer()
                 return;
             }
             else if (bytes_recv == -1){
-                displayErrno("void clientserver::start_protocol() ## bytes_recv == -1 ## [MAIN command loop]. Returning from function.");
+                displayErrno("void clientsocket::connectToServer() ## bytes_recv == -1 ## [MAIN command loop]. Returning from function.");
 
     #ifdef WIN32
                 closesocket(protocol->activeSocket);

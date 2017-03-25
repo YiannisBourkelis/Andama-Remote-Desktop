@@ -76,7 +76,7 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 TARGET = Andama
 TEMPLATE = app
-VERSION = 0.1.0
+VERSION = 0.2.0
 
 DEFINES += APP_NAME=\\\"$$TARGET\\\"
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
