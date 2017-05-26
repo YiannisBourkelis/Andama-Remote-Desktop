@@ -10,6 +10,10 @@
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/exception_helper.h"
 
+#define NS_INADDRSZ  4
+#define NS_IN6ADDRSZ 16
+#define NS_INT16SZ   2
+
 //apostelei to message
 #ifdef WIN32
 int _sendmsgPlain(const SOCKET socketfd, const std::vector<char> &message);
@@ -59,5 +63,11 @@ int _receive(const int socketfd, std::vector<char> &charbuffer);
 
 //syndeetai stin ip kai port eisodou kai epistrefei to socket
 int getClientSocket(std::string IP, unsigned short int Port);
+
+//anti gia tin inet_pton pou den yparxei sto mingw compiler
+//https://stackoverflow.com/questions/15370033/how-to-use-inet-pton-with-the-mingw-compiler
+int inet_pton_mingw(int af, const char *src, char *dst);
+int inet_pton4_mingw(const char *src, char *dst);
+int inet_pton6_mingw(const char *src, char *dst);
 
 #endif // SOCKET_FUNCTIONS_H

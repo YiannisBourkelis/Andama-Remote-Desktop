@@ -21,6 +21,7 @@
 #include "upnpdiscovery.h"
 #include <stdexcept>
 #include <algorithm>
+#include "../AndamaHeaders/socket_functions.h"
 
 
 #ifdef WIN32
@@ -85,7 +86,8 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
     memset(&destadd, 0, sizeof(destadd));
     destadd.sin_family = AF_INET;
     destadd.sin_port = htons(1900);
-    if (inet_pton(AF_INET, "239.255.255.250", &destadd.sin_addr) < 1) {
+
+    if (inet_pton_mingw(AF_INET, "239.255.255.250", inet_ntoa(destadd.sin_addr)) < 1) {
         perror("inet_pton dest");
         return devices;
         //throw std::runtime_error("inet_pton dest");
