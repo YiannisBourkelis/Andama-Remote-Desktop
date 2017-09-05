@@ -439,7 +439,7 @@ color: white;</string>
         <x>390</x>
         <y>65</y>
         <width>291</width>
-        <height>41</height>
+        <height>51</height>
        </rect>
       </property>
       <property name="font">
@@ -675,7 +675,7 @@ QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }
      <x>0</x>
      <y>0</y>
      <width>728</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAndama">

@@ -206,7 +206,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lblFont.setPointSize(lblFont.pointSize() * 0.9);
 
     QFont lblSmallFont = ui->lblLocalDesc->font();
-    lblSmallFont.setPointSize(lblSmallFont.pointSize() * 0.9);
+    lblSmallFont.setPointSize(lblSmallFont.pointSize() * 0.8);
 
     QFont lblBigFont = ui->lblLocalHead->font();
     lblBigFont.setPointSize(lblBigFont.pointSize() * 0.9);
@@ -215,7 +215,7 @@ MainWindow::MainWindow(QWidget *parent) :
     txtFont.setPointSize(txtFont.pointSize() * 0.9);
 
     QFont buttonFont = ui->btnConnectToRemoteClient->font();
-    buttonFont.setPointSize(buttonFont.pointSize() * 0.9);
+    buttonFont.setPointSize(buttonFont.pointSize() * 0.8);
     ui->btnConnectToRemoteClient->setFont(buttonFont);
 
 
