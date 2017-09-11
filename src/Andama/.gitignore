@@ -3,3 +3,10 @@ syntax: glob
 Andama
 *.o
 .qmake.stash
+moc_About.cpp
+moc_clientserver.cpp
+moc_keepalive.cpp
+moc_mainwindow.cpp
+moc_screenshotsworker.cpp
+qrc_resources.cpp
+ui_mainwindow.h
