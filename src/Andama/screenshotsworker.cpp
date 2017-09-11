@@ -175,7 +175,7 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
         QImage locimg(outimg);
         locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
 
-        int nSize = bytes.size();
+        //int nSize = bytes.size();
          //qDebug("## image bytes size uncompressed: %i",nSize);
 
         QByteArray compressed_bytes = qCompress(bytes,9);
