@@ -21,8 +21,8 @@
 #include "Keyboard.h"
 
 #ifdef Q_OS_LINUX
-#define XK_LATIN1;
-#define XK_MISCELLANY;
+#define XK_LATIN1
+#define XK_MISCELLANY
 #include <X11/keysymdef.h>
 #include <X11/extensions/XTest.h>
 

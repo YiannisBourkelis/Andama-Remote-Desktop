@@ -232,7 +232,7 @@ int clientserver::_sendmsgPlain(const int socketfd, const std::array<char, 1> &c
         msg.insert(msg.begin()+1, message.begin(),message.end());
     }
 
-    int total = 0;        // how many bytes we've sent
+    unsigned total = 0;        // how many bytes we've sent
     { // lock_guard scope
         std::lock_guard<std::mutex> lock(sendmutex);
         //sendmutex.lock();
@@ -262,7 +262,7 @@ int clientserver::_sendmsgPlain(const int socketfd, const std::array<char, 1> &c
         //sendmutex.unlock();
     } // lock_guard scope
 
-    if (total != (int)msg.size()){
+    if (total != msg.size()){
         std::cout << "----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected." << std::endl;
         cleanup((socketfd));
         throw std::runtime_error(std::string("----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected."));
@@ -295,7 +295,7 @@ int clientserver::_sendmsg(const int socketfd,    const std::array<char, 1> &com
 
     msg.insert(msg.begin()+5, message.begin(),message.end());
 
-    int total = 0;        // how many bytes we've sent
+    unsigned total = 0;        // how many bytes we've sent
     //qDebug("17. Will lock send socket (sendmutex)");
     { // lock_guard scope
         std::lock_guard<std::mutex> lock(sendmutex);
@@ -327,7 +327,7 @@ int clientserver::_sendmsg(const int socketfd,    const std::array<char, 1> &com
     } // lock_guard scope
     //qDebug("############ 19. send socket unlocked (sendmutex). END");
 
-    if (total != (int)msg.size()){
+    if (total != msg.size()){
         std::cout << "----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected." << std::endl;
         cleanup((socketfd));
         throw std::runtime_error(std::string("----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected."));
@@ -1038,11 +1038,6 @@ void clientserver::start_protocol()
             catch(std::exception& ex)
             {
                 qDebug("----> EXCEPTION sto start_protocol ::: %s",ex.what());
-                emit sig_exception(QString::fromUtf8(ex.what()));
-            }
-            catch(std::runtime_error& ex)
-            {
-                qDebug("----> EXCEPTION :: RUNTIME_ERROR sto start_protocol ::: %s",ex.what());
                 emit sig_exception(QString::fromUtf8(ex.what()));
             }
 
