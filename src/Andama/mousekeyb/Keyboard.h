@@ -51,7 +51,7 @@ enum portableVKey
     PVK_D = 0x044,
     PVK_E = 0x045,
     PVK_F = 0x046,
-    PVK_G =	0x047,
+    PVK_G = 0x047,
     PVK_H = 0x048,
     PVK_I = 0x049,
     PVK_J = 0x04A,
