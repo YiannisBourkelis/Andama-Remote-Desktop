@@ -738,7 +738,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
                 ui->lblStatus->setText(str_error_connecting_proxy);
                 tbllogmodel.addLogData(str_error_connecting_proxy);
            }else{
-               p2pclient.remotePort == 0;
+               p2pclient.remotePort = 0;
            }
        }
        else if(msgType == protocol_supervisor.protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){

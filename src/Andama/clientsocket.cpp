@@ -207,16 +207,10 @@ void clientSocket::connectToServer()
             //event_exception(QString::fromUtf8(ex.what()));
             emit sig_exception(QString::fromUtf8(ex.what()));
         }
-        catch(std::runtime_error& ex)
-        {
-            qDebug("----> EXCEPTION :: RUNTIME_ERROR sto start_protocol ::: %s",ex.what());
-            //event_exception(QString::fromUtf8(ex.what()));
-            emit sig_exception(QString::fromUtf8(ex.what()));
-        }
 
         catch( ... )
         {
-            qDebug("----> EXCEPTION :: start_protocol unhundled exception");
+            qDebug("----> EXCEPTION :: start_protocol unhandled exception");
         }
 
     } // while

@@ -337,8 +337,6 @@ void clientServerProtocol::cleanup(const SOCKET socketfd)
 void clientServerProtocol::cleanup(const int socketfd)
 #endif
 {
-    int a;
-    a=1;
     /*
     try
     {

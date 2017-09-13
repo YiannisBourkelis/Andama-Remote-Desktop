@@ -74,8 +74,6 @@ void clientserver::cleanup(const SOCKET socketfd)
 void clientserver::cleanup(const int socketfd)
 #endif
 {
-    int a;
-    a=1;
     /*
     try
     {
@@ -887,16 +885,10 @@ void clientserver::start_protocol()
                 isClientConnected = false;
                 emit sig_exception(QString::fromUtf8(ex.what()));
             }
-            catch(std::runtime_error& ex)
-            {
-                qDebug("----> EXCEPTION :: RUNTIME_ERROR sto start_protocol ::: %s",ex.what());
-                isClientConnected = false;
-                emit sig_exception(QString::fromUtf8(ex.what()));
-            }
 
             catch( ... )
             {
-                qDebug("----> EXCEPTION :: start_protocol unhundled exception");
+                qDebug("----> EXCEPTION :: start_protocol unhandled exception");
                 isClientConnected = false;
             }
 
@@ -911,5 +903,4 @@ void clientserver::start_protocol()
         isClientConnected = false;
 
         return;
-
 }
