@@ -124,16 +124,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
         //sta windows to ke->nativeVirtualKey() epistrefei panta kapoio key
         //enw sto mac, gia shift,cmd,alt,ctrl,CAPS to ke->nativeVirtualKey() epistrefei 0
 
-#ifdef Q_OS_LINUX
-        portableVKey natPKey;
-        if (ke->nativeVirtualKey() >= 0x30 && ke->nativeVirtualKey() <= 0x5A){
-           natPKey = Keyboard::getPortableVKey(ke->nativeVirtualKey(), ke->key());
-        } else {
-           natPKey = Keyboard::getPortableVKey(ke->key(), ke->nativeVirtualKey());
-        }
-#else
         portableVKey natPKey = Keyboard::getPortableVKey(ke->nativeVirtualKey(),ke->key());
-#endif
 
         portableKeyboardModifier modPKey =  Keyboard::getPortableModifier(ke->key());
 
@@ -959,7 +950,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
 //click sto koumpi syndesis se apomakrismeno ypologisti
 void MainWindow::on_btnConnectToRemoteClient_clicked()
-{   
+{
     //efoson exei symplirwthei to remote ID kai remote password
     //apostelw to aitima syndesis
     if(ui->txtRemotePCID->text().size() > 0 && ui->txtRemotePassword->text().size() > 0){
