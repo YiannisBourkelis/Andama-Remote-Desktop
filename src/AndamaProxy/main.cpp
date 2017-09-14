@@ -481,7 +481,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
             // Kyrio simeio. Lamvanw to command (1 byte)
             cmd_bytes_recv = recv(socketfd, &cmdbuffer[0], 1, 0);
-            //std::cout << "DOSTUFF BYTES RECIEVED: " << cmd_bytes_recv << std::endl;
+            //std::cout << "DOSTUFF BYTES RECEIVED: " << cmd_bytes_recv << std::endl;
 
             if (cmd_bytes_recv == 0){
                 std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
@@ -600,7 +600,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 _receive(socketfd,screenshot_diff_data_buff);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
-                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_recieved << std::endl;
+                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_received << std::endl;
 
                 _sendmsg(getRemoteComputerSocket(myID), CMD_SCREENSHOT_DIFF,
                         screenshot_diff_data_buff);//>--------------

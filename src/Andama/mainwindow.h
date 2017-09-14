@@ -84,8 +84,8 @@ public:
 
 
 private slots:
-    void mymessageRecieved(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata);
-    void non_UI_thread_messageRecieved(const clientServerProtocol *client,const int msgType, const std::vector<char>& vdata);
+    void mymessageReceived(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageReceived(const clientServerProtocol *client,const int msgType, const std::vector<char>& vdata);
     void protocol_exception(QString ex);
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();

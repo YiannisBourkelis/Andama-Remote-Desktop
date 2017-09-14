@@ -76,11 +76,11 @@ public:
     void error(const char *msg);
 
     //events
-    //void event_messageRecieved(msgType messageType);
+    //void event_messageReceived(msgType messageType);
     //void event_exception(QString exceptionDescription);
 
 signals:
-    void sig_messageRecieved(const clientServerProtocol *_protocol, const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageReceived(const clientServerProtocol *_protocol, const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 };
 

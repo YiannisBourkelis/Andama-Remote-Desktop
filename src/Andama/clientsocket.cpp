@@ -38,7 +38,7 @@ void clientSocket::error(const char *msg)
 }
 
 /*
-void clientSocket::event_messageRecieved(msgType messageType)
+void clientSocket::event_messageReceived(msgType messageType)
 {
 }
 
@@ -90,8 +90,8 @@ void clientSocket::connectToServer()
     //SERVER = gethostbyname("localhost");
 
     if (SERVER == NULL) {
-        //event_messageRecieved(MSG_NO_INTERNET_CONNECTION);
-        emit sig_messageRecieved(protocol,MSG_NO_INTERNET_CONNECTION);
+        //event_messageReceived(MSG_NO_INTERNET_CONNECTION);
+        emit sig_messageReceived(protocol,MSG_NO_INTERNET_CONNECTION);
         fprintf(stderr,"ERROR, no such host\n");
 
 #ifdef WIN32
@@ -143,7 +143,7 @@ void clientSocket::connectToServer()
         close(protocol->activeSocket);
 #endif
         //if (remotePort == 0){
-         //   event_messageRecieved(MSG_NO_PROXY_CONNECTION);
+         //   event_messageReceived(MSG_NO_PROXY_CONNECTION);
         //}
         //edw xtypaei ean yparxei syndesi sto internet alla o proxy den trexei
         //error("ERROR connecting");
@@ -180,8 +180,8 @@ void clientSocket::connectToServer()
     #else
                 close(protocol->activeSocket);
     #endif
-                //event_messageRecieved(MSG_NO_PROXY_CONNECTION);
-                emit sig_messageRecieved(protocol,MSG_NO_PROXY_CONNECTION);
+                //event_messageReceived(MSG_NO_PROXY_CONNECTION);
+                emit sig_messageReceived(protocol,MSG_NO_PROXY_CONNECTION);
                 return;
             }
             else if (bytes_recv == -1){
@@ -192,12 +192,12 @@ void clientSocket::connectToServer()
     #else
                 close(protocol->activeSocket);
     #endif
-                //event_messageRecieved(MSG_NO_PROXY_CONNECTION);
-                emit sig_messageRecieved(protocol,MSG_NO_PROXY_CONNECTION);
+                //event_messageReceived(MSG_NO_PROXY_CONNECTION);
+                emit sig_messageReceived(protocol,MSG_NO_PROXY_CONNECTION);
                 return;
             }
 
-            //qDebug("2 -----> Command recieved: %s. Bytes: %i. Ksekina epeksergasia tou command",cmdbuffer.data(),bytes_recv);
+            //qDebug("2 -----> Command received: %s. Bytes: %i. Ksekina epeksergasia tou command",cmdbuffer.data(),bytes_recv);
             messageArrived(cmdbuffer);
 
         }

@@ -235,15 +235,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ======== proxy protocol ============
     this->connect(&protocol_supervisor.protocol,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&protocol_supervisor.protocol,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&protocol_supervisor.protocol,
@@ -261,15 +261,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ======== p2p client protocol ============
     this->connect(&p2pclient,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&p2pclient,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&p2pclient,
@@ -289,15 +289,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ======== client socket  ============
     this->connect(&protocol_supervisor.clientsocket,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&protocol_supervisor.clientsocket,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&protocol_supervisor.clientsocket,
@@ -317,15 +317,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // ======== upnp ======================
 
     this->connect(&p2pserver,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&p2pserver,
-                  SIGNAL(sig_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
 
@@ -416,7 +416,7 @@ void MainWindow::protocol_exception(QString ex)
     msgBox.exec();
 }
 
-void MainWindow::non_UI_thread_messageRecieved(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata)
+void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata)
 {
     try {
         if (msgType == protocol_supervisor.protocol.MSG_MOUSE)
@@ -505,7 +505,7 @@ void MainWindow::non_UI_thread_messageRecieved(const clientServerProtocol *clien
 
     } catch ( ... ){
        //TODO: oti kai na ginei edw den prepei na sykwthei exception
-        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
+        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageReceived(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
     }
 }
 
@@ -601,14 +601,14 @@ void MainWindow::setDefaultGUI()
     ui->lblDesktop->setVisible(false);
 }
 
-void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int msgType,const std::vector<char>& vdata)
+void MainWindow::mymessageReceived(const clientServerProtocol *client, const int msgType,const std::vector<char>& vdata)
 {
     try{
 
        if (msgType == protocol_supervisor.protocol.MSG_ID){
            //setDisabledRemoteControlWidgets(false);
 
-            qDebug("Thread id inside mymessageRecieved %li", (long)QThread::currentThreadId());
+            qDebug("Thread id inside mymessageReceived %li", (long)QThread::currentThreadId());
             std::string strID(vdata.begin(),vdata.end());
             QString qs = QString::fromStdString(strID);
             ui->lblID->setText(qs);
@@ -618,7 +618,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
             ui->lblStatus->setText(tr("Ready!"));
 
 
-            tbllogmodel.addLogData(tr("Application ID recieved from proxy. Ready to connect and accept connections!"));
+            tbllogmodel.addLogData(tr("Application ID received from proxy. Ready to connect and accept connections!"));
 
         }
        else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
@@ -782,7 +782,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            QApplication::beep();
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
-           //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
+           //std::cout << "MainWindow::mymessageReceived > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
            //Bench bench("MSG_SCREENSHOT_DIFF_REQUEST and MSG_SCREENSHOT_DIFF_REQUEST");
 #ifdef Q_OS_MAC
            //xreiazetai gia na anoigei to monitor se periptwsi
@@ -801,7 +801,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 #endif
 
 
-           //qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
+           //qDebug("5. UI myMessageReceived: Screensot request received. Etoimasia apostolis screenshot me grabwindow");
            //QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
            //QImage qimg(QGuiApplication::screens()[QGuiApplication::screens().count()-1]->grabWindow(QApplication::desktop()->winId()).toImage());
            //if (qimg.isNull())
@@ -810,15 +810,15 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //}
            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
-           //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
+           //std::cout << "MainWindow::mymessageReceived > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
            screenshotWrk.setScreenshot(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage(),msgType);
-           //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
+           //std::cout << "MainWindow::mymessageReceived > To screenshot tethike sto screenshotWrk" << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
        {
           lastMainWindowPosition = this->pos();
 
-          qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
+          qDebug("Screenshot received. Setting image in control! Total bytes: %lu", vdata.size());
           QPixmap qpix;
           //QByteArray qbytes;
 
@@ -877,7 +877,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
 
-           std::cout << "IMAGE DIFF BYTES RECIEVED:" << vdata.size() << std::endl;
+           std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
@@ -892,7 +892,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
 
-           //qDebug("DS.3 UI - Screenshot diff recieved. Setting image in control! Total bytes: %lu", vdata.size());
+           //qDebug("DS.3 UI - Screenshot diff received. Setting image in control! Total bytes: %lu", vdata.size());
            QImage qpix;
 
            //lamvanw tin thesi x tis eikonas (prwta 2 bytes)
@@ -909,7 +909,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
            QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()+4),vdata.size()-4);
 
-           //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
+           //qDebug("DS.5 diff image uncompressed received bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
@@ -923,7 +923,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
           QRectF tarRect(xx,yy,ww,hh);
 
-          //qDebug("DS.9 Will paint lastScreenshot image with diff recieved. qrectf x: %f, width: %f",tarRect.x(),tarRect.width());
+          //qDebug("DS.9 Will paint lastScreenshot image with diff received. qrectf x: %f, width: %f",tarRect.x(),tarRect.width());
           QPainter qPainter(&lastScreenshot);
           qPainter.drawImage(tarRect,qpix,qpix.rect());
           QSize qs(ui->lblDesktop->geometry().width(),ui->lblDesktop->geometry().height());
@@ -934,7 +934,7 @@ void MainWindow::mymessageRecieved(const clientServerProtocol *client, const int
 
            ui->lblDesktop->setPixmap(qp);
 
-           std::cout << "IMAGE DIFF BYTES RECIEVED:" << vdata.size() << std::endl;
+           std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
     }

@@ -113,7 +113,7 @@ signals:
 public slots:
     void slot_protocol_finished_or_terminated();
     void protocol_exception(QString);
-    void non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageReceived(const int msgType, const std::vector<char>& vdata);
     void mymessageReceived(const int msgType,const std::vector<char>& vdata);
 
 private:
