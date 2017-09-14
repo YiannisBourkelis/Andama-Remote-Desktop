@@ -136,7 +136,7 @@ public:
 
 
 signals:
-    void sig_messageRecieved(const clientServerProtocol *clientserver_protocol, const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageReceived(const clientServerProtocol *clientserver_protocol, const int msgType, const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 private:
