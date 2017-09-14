@@ -120,8 +120,8 @@ AddPortMappingResponse UPnPAddPortMapping::AddPortMapping(const std::string &new
         addPortMappingResponse.remotePort = newExternalPort;
         addPortMappingResponse.rawResponse = std::string(addportreply);
     }else {
-        int rn = addportreply.find(" ");
-            if (rn + 4 < addportreply.length()){
+        unsigned rn = addportreply.find(" ");
+        if (rn + 4 < addportreply.length()){
             std::string status = addportreply.substr(rn+1,3);
             QString s = QString::fromStdString(status);
             if (s.toShort()){
