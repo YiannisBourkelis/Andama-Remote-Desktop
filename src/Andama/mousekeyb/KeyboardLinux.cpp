@@ -199,6 +199,43 @@ portableVKey Keyboard::getPortableVKey(int key, int qtkey)
         return portableVKey::PVK_HELP;
     case Qt::Key_QuoteLeft:
         return portableVKey::PVK_GRAVE;
+
+    case Qt::Key_AsciiTilde:
+        return portableVKey::PVK_TILDE;
+    case Qt::Key_Underscore:
+        return portableVKey::PVK_UNDERSCORE;
+    case Qt::Key_Bar:
+        return portableVKey::PVK_BAR;
+    case Qt::Key_Ampersand:
+        return portableVKey::PVK_AMPERSAND;
+    case Qt::Key_Exclam:
+        return portableVKey::PVK_EXCLAMATION;
+    case Qt::Key_Percent:
+        return portableVKey::PVK_PERCENT;
+    case Qt::Key_Apostrophe:
+        return portableVKey::PVK_APOSTROPHE;
+    case Qt::Key_At:
+        return portableVKey::PVK_AT;
+    case Qt::Key_Colon:
+        return portableVKey::PVK_COLON;
+    case Qt::Key_Dollar:
+        return portableVKey::PVK_DOLLAR;
+    case Qt::Key_Question:
+        return portableVKey::PVK_QUESTION;
+    case Qt::Key_BraceLeft:
+        return portableVKey::PVK_LEFT_BRACE;
+    case Qt::Key_BraceRight:
+        return portableVKey::PVK_RIGHT_BRACE;
+    case Qt::Key_ParenLeft:
+        return portableVKey::PVK_LEFT_PAREN;
+    case Qt::Key_ParenRight:
+        return portableVKey::PVK_RIGHT_PAREN;
+    case Qt::Key_Less:
+        return portableVKey::PVK_LESS_THAN;
+    case Qt::Key_Greater:
+        return portableVKey::PVK_GREATER_THAN;
+    case Qt::Key_NumberSign:
+        return portableVKey::PVK_NUMBER;
     }
 
     //A-Z
@@ -409,6 +446,43 @@ int Keyboard::convertPortableKeyToLocal(portableVKey portableKey)
     case portableVKey::PVK_8:
     case portableVKey::PVK_9:
         return portableKey;
+
+    case portableVKey::PVK_TILDE:
+        return XK_asciitilde;
+    case portableVKey::PVK_UNDERSCORE:
+        return XK_underscore;
+    case portableVKey::PVK_BAR:
+        return XK_bar;
+    case portableVKey::PVK_AMPERSAND:
+        return XK_ampersand;
+    case portableVKey::PVK_EXCLAMATION:
+        return XK_exclam;
+    case portableVKey::PVK_PERCENT:
+        return XK_percent;
+    case portableVKey::PVK_APOSTROPHE:
+        return XK_apostrophe;
+    case portableVKey::PVK_AT:
+        return XK_at;
+    case portableVKey::PVK_COLON:
+        return XK_colon;
+    case portableVKey::PVK_DOLLAR:
+        return XK_dollar;
+    case portableVKey::PVK_QUESTION:
+        return XK_question;
+    case portableVKey::PVK_LEFT_BRACE:
+        return XK_braceleft;
+    case portableVKey::PVK_RIGHT_BRACE:
+        return XK_braceright;
+    case portableVKey::PVK_LEFT_PAREN:
+        return XK_parenleft;
+    case portableVKey::PVK_RIGHT_PAREN:
+        return XK_parenright;
+    case portableVKey::PVK_LESS_THAN:
+        return XK_less;
+    case portableVKey::PVK_GREATER_THAN:
+        return XK_greater;
+    case portableVKey::PVK_NUMBER:
+        return XK_numbersign;
 
     case PVK_CLEAR:
     case PVK_SEPARATOR:
