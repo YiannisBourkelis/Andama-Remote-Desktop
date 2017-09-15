@@ -144,15 +144,15 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
                                           "MX: 1\r\n"
                                           "\r\n");
 
-    int buf_size = discovery_request_buffer.length();
+    int _discovery_request_buffer_size = discovery_request_buffer.length();
 
     for (int i = 0;i < 2; i++){
-        int disc_send_res = sendto(sock, discovery_request_buffer.c_str(), buf_size, 0, (struct sockaddr*)&destadd,
+        int disc_send_res = sendto(sock, discovery_request_buffer.c_str(), _discovery_request_buffer_size, 0, (struct sockaddr*)&destadd,
                    sizeof(destadd));
         if (disc_send_res < 0) {
             perror("sendto");
             return devices;
-        } else if (disc_send_res != buf_size){
+        } else if (disc_send_res != _discovery_request_buffer_size){
             perror("sendto - send bytes not equal to buffer");
             return devices;
         }

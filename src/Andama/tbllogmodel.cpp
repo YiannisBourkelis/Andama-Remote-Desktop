@@ -28,9 +28,8 @@ QVariant tblLogModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    int size = _logData.size();
-
-    if (index.row() >= size || index.row() < 0)
+    int _logData_size = _logData.size();
+    if (index.row() >= _logData_size || index.row() < 0)
         return QVariant();
 
 
