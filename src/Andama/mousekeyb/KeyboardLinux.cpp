@@ -447,6 +447,8 @@ int Keyboard::convertPortableKeyToLocal(portableVKey portableKey)
     case portableVKey::PVK_9:
         return portableKey;
 
+    //TODO: begin: check possible mappings of these 18 linux specific special keys to other platforms
+    //TODO: test these linux special keys when an ubuntu client connects to a windows/osx host
     case portableVKey::PVK_TILDE:
         return XK_asciitilde;
     case portableVKey::PVK_UNDERSCORE:
@@ -483,6 +485,7 @@ int Keyboard::convertPortableKeyToLocal(portableVKey portableKey)
         return XK_greater;
     case portableVKey::PVK_NUMBER:
         return XK_numbersign;
+    //TODO: end: check possible mappings of these 18 linux specific special keys to other platforms
 
     case PVK_CLEAR:
     case PVK_SEPARATOR:

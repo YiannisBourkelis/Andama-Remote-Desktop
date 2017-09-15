@@ -175,6 +175,8 @@ enum portableVKey
     PVK_LWIN         = 0x5B, //mono apo windows, map se control ston mac
     PVK_RWIN         = 0x5C, //mono apo windows, map se control ston mac
 
+    //TODO: begin: check possible mappings of these 18 linux specific special keys to other platforms
+    //TODO: test these linux special keys when an ubuntu client connects to a windows/osx host
     PVK_TILDE        = 0xFF00,
     PVK_UNDERSCORE   = 0xFF01,
     PVK_BAR          = 0xFF02,
@@ -193,6 +195,7 @@ enum portableVKey
     PVK_LESS_THAN    = 0xFF0F,
     PVK_GREATER_THAN = 0xFF10,
     PVK_NUMBER       = 0xFF11
+    //TODO: end: check possible mappings of these 18 linux specific special keys to other platforms
 };
 
 class Keyboard {
