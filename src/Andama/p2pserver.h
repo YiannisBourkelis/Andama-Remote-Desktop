@@ -80,7 +80,7 @@ private:
 
     void sendDisconnectFromRemoteComputer(int socket);
 signals:
-    void sig_messageRecieved(const clientServerProtocol *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageReceived(const clientServerProtocol *client, const int msgType, const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 protected:

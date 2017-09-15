@@ -142,7 +142,7 @@ static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
     static void setRemotePassword(std::string password);
 
 signals:
-    void sig_messageRecieved(const clientServerProtocol *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
+    void sig_messageReceived(const clientServerProtocol *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
 
 protected:

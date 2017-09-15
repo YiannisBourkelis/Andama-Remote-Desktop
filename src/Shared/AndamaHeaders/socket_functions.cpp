@@ -172,9 +172,9 @@ int _receivePlain(const int socketfd, std::vector<char> &charbuffer)
     }
 
     if (bytes_cnt_payload != charbuffer.size()){
-        std::cout << "----> EXCEPTION IN recieve func int _receivePlain(int socketfd, std::vector<char> &charbuffer). Bytes recieved not equal to bytes expected. Expected: " << charbuffer.size() << " recieved: " << bytes_cnt_payload << std::endl;
+        std::cout << "----> EXCEPTION IN recieve func int _receivePlain(int socketfd, std::vector<char> &charbuffer). Bytes received not equal to bytes expected. Expected: " << charbuffer.size() << " received: " << bytes_cnt_payload << std::endl;
         displayErrno("int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected.\n"));
+        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes received not equal to bytes expected.\n"));
     }
 
     return bytes_cnt_payload;
@@ -216,9 +216,9 @@ int _receive(const int socketfd, std::vector<char> &charbuffer)
     }
 
     if (bytes_needed != bytes_cnt){
-        std::cout << "----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed << " recieved: " << bytes_cnt << std::endl;
+        std::cout << "----> EXCEPTION IN recieve func (payload length). Bytes received not equal to bytes expected. Expected: " << bytes_needed << " received: " << bytes_cnt << std::endl;
         displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - first while loop");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected."));
+        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload length). Bytes received not equal to bytes expected."));
     }
 
     //-----------
@@ -258,9 +258,9 @@ int _receive(const int socketfd, std::vector<char> &charbuffer)
     }
 
     if (bytes_cnt_payload != bytes_needed_payload){
-        std::cout << "----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed_payload << " recieved: " << bytes_cnt_payload << std::endl;
+        std::cout << "----> EXCEPTION IN recieve func (payload). Bytes received not equal to bytes expected. Expected: " << bytes_needed_payload << " received: " << bytes_cnt_payload << std::endl;
         displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - second while loop");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected."));
+        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes received not equal to bytes expected."));
     }
 
     return bytes_cnt_payload + bytes_cnt;

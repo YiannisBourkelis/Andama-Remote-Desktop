@@ -31,7 +31,7 @@ void P2PServer::sendDisconnectFromRemoteComputer(int socket)
 {
     //1 byte
      setConnectionState(connectionState::connectedWithProxy);
-    _sendmsgPlain(socket,CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
+    _sendmsgPlain(socket, CMD_DISCONNECT_FROM_REMOTE_COMPUTER);
 
 #ifdef WIN32
      closesocket(socket);
@@ -134,7 +134,7 @@ void P2PServer::start_p2pserver()
             struct timeval tv;
             tv.tv_sec = 90;  /* 90 Secs Timeout */
             tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-            setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+            setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
 #endif
             //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
             int flag = 1;
@@ -170,7 +170,7 @@ void P2PServer::future_thread_accept_client_messages(const int socketfd, const i
     activeP2PClientsCounter++;
     Finally fin([]{activeP2PClientsCounter--;});
 
-    std::future<void> future_getNewP2PClient = std::async(std::launch::async , &P2PServer::accept_client_messages, this, socketfd, clientIP);
+    std::future<void> future_getNewP2PClient = std::async(std::launch::async, &P2PServer::accept_client_messages, this, socketfd, clientIP);
     future_getNewP2PClient.get();
     std::cout << "thread done!";
 }
@@ -210,7 +210,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
         std::vector<char> server_protocol(2);
         server_protocol[0] = '1';
         server_protocol[1] = '0';
-        _sendmsgPlain(socketfd,CMD_PROTOCOL,server_protocol);
+        _sendmsgPlain(socketfd, CMD_PROTOCOL, server_protocol);
     }
     catch (std::exception ex)
     {
@@ -231,7 +231,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
             // Kyrio simeio. Lamvanw to command (1 byte)
             cmd_bytes_recv = recv(socketfd, &cmdbuffer[0], 1, 0);
-            //std::cout << "DOSTUFF BYTES RECIEVED: " << cmd_bytes_recv << std::endl;
+            //std::cout << "DOSTUFF BYTES Received: " << cmd_bytes_recv << std::endl;
 
             if (cmd_bytes_recv == 0){
                 // >>>>>>>>>>>>>>  std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
@@ -283,8 +283,8 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                     //mi apodekto version efarmogis.
                     //enimerwnw ton xristi na kanei update
                     std::string app_update_url = "http://forum.andama.org";
-                    std::vector<char> vapp_update_url(app_update_url.begin(),app_update_url.end());
-                    _sendmsg(socketfd, CMD_ERROR_APP_VERSION_NOT_ACCEPTED,vapp_update_url);
+                    std::vector<char> vapp_update_url(app_update_url.begin(), app_update_url.end());
+                    _sendmsg(socketfd, CMD_ERROR_APP_VERSION_NOT_ACCEPTED, vapp_update_url);
                     return;
                 }
 
@@ -352,10 +352,10 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //                 " 6.0. CMD_SCREENSHOT_DIFF > Tha ginei recieve twn dedomenwn eikonastou screenshot diff." << std::endl;
                 std::vector<char> screenshot_diff_data_buff;
-                _receive(socketfd,screenshot_diff_data_buff);
+                _receive(socketfd, screenshot_diff_data_buff);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
-                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_recieved << std::endl;
+                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_received << std::endl;
 
                 // >>>>>>>>>>>>>> _sendmsg(getRemoteComputerSocket(myID), CMD_SCREENSHOT_DIFF,
                 //        screenshot_diff_data_buff);//>--------------
@@ -374,11 +374,11 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 _receive(socketfd, remote_client_idbuff); //lamvanw olokliro to message
 
                 //to remote computer os
-                std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin(),remote_client_idbuff.begin() + 1);
+                std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin(), remote_client_idbuff.begin() + 1);
                 setRemoteComputerOS((OS)bytesToInt(connRemoteComputerOS));
 
                 //sti nynexeia lamvanoume to password size
-                std::vector<char> pwdSize(remote_client_idbuff.begin() + 1,remote_client_idbuff.begin() + 2);
+                std::vector<char> pwdSize(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
                 int ipwdSize = bytesToInt(pwdSize);
 
                 //lamvanw to password
@@ -391,7 +391,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 }
 
                 //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
-                std::string passwdQuestion(vpassword.begin(),vpassword.end());
+                std::string passwdQuestion(vpassword.begin(), vpassword.end());
                 if (passwdQuestion == this->password){
                         //to password pou stalthike einai swsto
                         std::cout << "Client connection accepted. Remote Client ID: "<< remote_client_idbuff.data() << std::endl;
@@ -401,14 +401,14 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                         setConnectionState(connectedWithOtherAsServer);
 
-                        _sendmsg(socketfd, CMD_ACCEPT,std::vector<char>());//>-------------stelnw sto server oti egine accept tou Andama request, stelnontas to remote id
+                        _sendmsg(socketfd, CMD_ACCEPT, std::vector<char>());//>-------------stelnw sto server oti egine accept tou Andama request, stelnontas to remote id
                         //std::vector<char> emtpyv;
-                        //emit sig_messageRecieved(this, MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff);
-                        emit sig_messageRecieved(NULL, 2, remote_client_idbuff);
+                        //emit sig_messageReceived(this, MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff);
+                        emit sig_messageReceived(NULL, 2, remote_client_idbuff);
                     } else {
                         //to password pou stalthike einai lathos
                         //lamvanw apo to vector tin ip tou client
-                        clientserver::addWrongPasswordIPProtection(clientIP,socketfd);
+                        clientserver::addWrongPasswordIPProtection(clientIP, socketfd);
                         sendDisconnectFromRemoteComputer(socketfd);
                         std::cout << "will exit thread: addWrongPasswordIPProtection " << std::endl;
                         return;
@@ -419,7 +419,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
             //proothisi aitimatos gia syndesi se apomakrismeno ypologisti
             else if (cmdbuffer == CMD_CONNECT && handshakeCompleted) {
                 std::vector<char> remote_client_idbuff;
-                _receive(socketfd,remote_client_idbuff); //<-----------to remote client id pou zitithike kai to remote password
+                _receive(socketfd, remote_client_idbuff); //<-----------to remote client id pou zitithike kai to remote password
 
                 // >>>>>>>>>>>>>>
                 /*
@@ -433,14 +433,14 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
 
                 //to 2o byte einai to os
-                std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
-                int os = bytesToInt(connRemoteComputerOS);
+                //std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
+                //int os = bytesToInt(connRemoteComputerOS);
 
                 //lamvanw to 3o byte poy mas deixnei to size tou ID
-                std::vector<char> idSize(remote_client_idbuff.begin() + 2,remote_client_idbuff.begin() + 3);
+                std::vector<char> idSize(remote_client_idbuff.begin() + 2, remote_client_idbuff.begin() + 3);
                 int iIDSize = bytesToInt(idSize);
                 //efou gnwrizoume to length tou id, lamvanoume to id sto vector
-                std::vector<char> vremoteID(remote_client_idbuff.begin() + 3,remote_client_idbuff.begin() + 3 + iIDSize);
+                std::vector<char> vremoteID(remote_client_idbuff.begin() + 3, remote_client_idbuff.begin() + 3 + iIDSize);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //             " CMD_CONNECT > Zitithike syndesi pros client me ID: " << &remote_client_idbuff[0] << std::endl;
@@ -501,7 +501,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 //o client apantise thetika sto aitima gia syndesi
                 //stelnontas to remote id pou prokalese to connect
                 std::vector<char> accepted_client_id_buff;
-                _receive(socketfd,accepted_client_id_buff); // <--------to remote id pou egine accept
+                _receive(socketfd, accepted_client_id_buff); // <--------to remote id pou egine accept
 
                 // >>>>>>>>>>>>>> std::lock_guard<std::mutex> lock (clients_mutex);
 
@@ -554,40 +554,40 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 std::vector<char> emptyv;
                 //std::vector<char> cdata;
-                emit sig_messageRecieved(NULL, 5,emptyv);
+                emit sig_messageReceived(NULL, 5, emptyv);
             } // CMD_REQUEST_SREENSHOT
 
             else if(cmdbuffer == CMD_REQUEST_SCREENSHOT_DIFF)
             {
                 //lamvanw to id tou request
                 std::vector<char> screenshot_diff_id_data_buff;
-                int bytes_recieved = _receive(socketfd,screenshot_diff_id_data_buff);
-                std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
+                _receive(socketfd, screenshot_diff_id_data_buff);
+                std::string rid(screenshot_diff_id_data_buff.begin(), screenshot_diff_id_data_buff.end());
 
-                //qDebug ("4. CMD_REQUEST_SCREENSHOT_DIFF ID: %s. Lipsi aitimatos apostolis screenshot diff. Will emit signal from protocol to ui. Bytes recv: %i",rid.c_str(),bytes_recieved);
+                //qDebug ("4. CMD_REQUEST_SCREENSHOT_DIFF ID: %s. Lipsi aitimatos apostolis screenshot diff. Will emit signal from protocol to ui. Bytes recv: %i",rid.c_str(),bytes_received);
                 //std::vector<char> cdata;
-                emit sig_messageRecieved(NULL, 6,screenshot_diff_id_data_buff);
+                emit sig_messageReceived(NULL, 6, screenshot_diff_id_data_buff);
             } // CMD_REQUEST_SCREENSHOT_DIFF
 
             //proothisi mouse
             else if(cmdbuffer == CMD_MOUSE && handshakeCompleted)
             {
                 std::vector<char> mouse_data_buff(10);
-                int bytes_received = _receivePlain(socketfd,mouse_data_buff);
+                _receivePlain(socketfd, mouse_data_buff);
 
                 //std::vector<char> cdata;
-                emit sig_messageRecieved(NULL, 7,mouse_data_buff);
+                emit sig_messageReceived(NULL, 7, mouse_data_buff);
             }
 
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
-            {                
+            {
                 std::vector<char> keyboard_data_buff(6);
-                int bytes_received = _receivePlain(socketfd,keyboard_data_buff);
+                _receivePlain(socketfd, keyboard_data_buff);
 
                 //std::vector<char> cdata;
-                //emit sig_messageRecieved(NULL, MSG_KEYBOARD,keyboard_data_buff);
-                emit sig_messageRecieved(NULL, 8,keyboard_data_buff);
+                //emit sig_messageReceived(NULL, MSG_KEYBOARD,keyboard_data_buff);
+                emit sig_messageReceived(NULL, 8, keyboard_data_buff);
             } // CMD_KEYBOARD
 
             //hearbeat. Ean den lifthei sto xrono tou socket timeout

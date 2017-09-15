@@ -10,7 +10,7 @@
 #endif
 
 
-typedef std::vector<char> MyArray; // required for SIGNAL(sig_messageRecieved(const int, const std::vector<char>&))
+typedef std::vector<char> MyArray; // required for SIGNAL(sig_messageReceived(const int, const std::vector<char>&))
 
 
 Engine::Engine(QObject *parent) : QObject(parent)
@@ -18,15 +18,15 @@ Engine::Engine(QObject *parent) : QObject(parent)
     qRegisterMetaType<MyArray>("MyArray");
     qRegisterMetaType<clientserver *>("myClientServer");
     this->connect(&protocol_supervisor.protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const int, const std::vector<char>&)),
                   this,
                   SLOT(mymessageReceived(const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
     this->connect(&protocol_supervisor.protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+                  SIGNAL(sig_messageReceived(const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
     this->connect(&protocol_supervisor.protocol,
@@ -78,7 +78,7 @@ void Engine::protocol_exception(QString ex)
     emit exceptionErrorTextChanged();
 }
 
-void Engine::non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata)
+void Engine::non_UI_thread_messageReceived(const int msgType, const std::vector<char>& vdata)
 {
     try {
         if (msgType == protocol_supervisor.protocol.MSG_MOUSE)
@@ -168,7 +168,7 @@ void Engine::non_UI_thread_messageRecieved(const int msgType, const std::vector<
 
     } catch ( ... ){
        //TODO: oti kai na ginei edw den prepei na sykwthei exception
-        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
+        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageReceived(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
     }
 }
 
@@ -265,7 +265,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             statusText="Ready!";
             //screenshotWrk.setScreenshot(qimg,msgType);
 
-            //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
+            //std::cout << "MainWindow::mymessageReceived > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
  #ifdef Q_OS_MAC
             //xreiazetai gia na anoigei to monitor se periptwsi
             //pou einai kleisto. Sta windows anoigei mono tou.
@@ -283,7 +283,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
  #endif
 
 
-            qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
+            qDebug("5. UI myMessageReceived: Screensot request received. Etoimasia apostolis screenshot me grabwindow");
 #ifdef Q_OS_WIN
 {
             //HDESK old_desktop = GetThreadDesktop(GetCurrentThreadId());
@@ -414,12 +414,12 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             }
             qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
-            //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
+            //std::cout << "MainWindow::mymessageReceived > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
             screenshotWrk.setScreenshot(qimg,msgType);
-            //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
+            //std::cout << "MainWindow::mymessageReceived > To screenshot tethike sto screenshotWrk" << std::endl;
             break;
         case clientserver::MSG_SCREENSHOT:
-            qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
+            qDebug("Screenshot received. Setting image in control! Total bytes: %lu", vdata.size());
 #ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
             screenshotProvider->setFrame(vdata);
 #endif //ANDAMA_SERVICE_MODE
