@@ -49,6 +49,115 @@ UPnPDiscovery::UPnPDiscovery()
 
 }
 
+
+std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searchTarget)
+{
+    // Structs needed
+    struct in_addr localInterface;
+    struct sockaddr_in groupSock;
+    struct sockaddr_in localSock;
+    struct ip_mreq group;
+
+    std::vector<std::string> devices; // devices found
+
+#ifdef WIN32
+    SOCKET udpSocket;
+#else
+    int udpSocket;
+#endif
+
+#ifdef WIN32
+    // Initialize Winsock
+    int iResult;
+    WSADATA wsaData;
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        std::cout << "WSAStartup failed: " << iResult << std::endl;
+        return devices;
+        //throw std::runtime_error("WSAStartup failed");
+    }
+#endif
+
+    // Create the Socket
+    udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    // Enable SO_REUSEADDR to allow multiple instances of this application to receive copies of the multicast datagrams.
+    int reuse = 1;
+    setsockopt(udpSocket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+
+    // Initialize the group sockaddr structure with a group address of 239.255.255.250 and port 1900.
+    memset((char *) &groupSock, 0, sizeof(groupSock));
+
+    groupSock.sin_family = AF_INET;
+    groupSock.sin_addr.s_addr = inet_addr("239.255.255.250");
+    groupSock.sin_port = htons(1900);
+
+    // Disable loopback so you do not receive your own datagrams.
+    char loopch = 0;
+    setsockopt(udpSocket, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&loopch, sizeof(loopch));
+
+    // Set local interface for outbound multicast datagrams. The IP address specified must be associated with a local, multicast capable interface.
+    localInterface.s_addr = inet_addr("192.168.1.228");
+
+    setsockopt(udpSocket, IPPROTO_IP, IP_MULTICAST_IF, (char *)&localInterface, sizeof(localInterface));
+
+    // Bind to the proper port number with the IP address specified as INADDR_ANY.
+    memset((char *) &localSock, 0, sizeof(localSock));
+    localSock.sin_family = AF_INET;
+    localSock.sin_port = htons(33589);
+    localSock.sin_addr.s_addr = INADDR_ANY;
+    bind(udpSocket, (struct sockaddr*)&localSock, sizeof(localSock));
+
+    // Join the multicast group on the local interface. Note that this IP_ADD_MEMBERSHIP option must be called for each local interface over which the multicast datagrams are to be received.
+    group.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
+    group.imr_interface.s_addr = inet_addr("192.168.1.228");
+    setsockopt(udpSocket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
+
+    //char *request = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nST:ssdp:all\r\nMX:3\r\n\r\n";
+    char buff[]= "M-SEARCH * HTTP/1.1\r\n"\
+    "HOST: 239.255.255.250:1900\r\n"\
+    "MAN: \"ssdp:discover\"\r\n"\
+    "MX: 3\r\n"\
+    "ST: udap:rootservice\r\n"\
+    "USER-AGENT: RTLINUX/5.0 UDAP/2.0 printer/4\r\n\r\n";
+
+    int  ret1 = sendto(udpSocket, buff, strlen(buff), 0, (struct sockaddr*)&groupSock, sizeof groupSock);
+
+
+    char discovery_response_buffer[1024] = {};
+    struct sockaddr_in si_other;
+    socklen_t slen = sizeof(si_other);
+    while(true){
+
+    if (recvfrom(udpSocket, discovery_response_buffer, 1024, 0, (struct sockaddr *) &si_other, &slen) < 0) { //TODO: edw na valw recv timeout
+        #ifdef WIN32
+            std::cout << "###### displayErrno: " << strerror(WSAGetLastError()) << std::endl;
+        #else
+            std::cout << "###### displayErrno: " << strerror(errno) << std::endl;
+        #endif
+            perror("recvfrom - device discovery");
+            break;
+        }
+        //std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
+        //i
+        if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
+            devices.push_back(discovery_response_buffer);
+        }
+    }
+
+#ifdef WIN32
+    if (closesocket(udpSocket) < 0) {
+#else
+    if (close(udpSocket) < 0) {
+#endif
+        perror("close");
+    }
+
+
+    return devices;
+}
+
+/*
 std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searchTarget)
 {
     int loop = 1; // Needs to be on to get replies from clients on the same host
@@ -141,7 +250,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
                                           "Host: 239.255.255.250:1900\r\n"
                                           "Man: ""ssdp:discover""\r\n"
                                           "ST: " + searchTarget + "\r\n"
-                                          "MX: 1\r\n"
+                                          "MX: 3\r\n"
                                           "\r\n");
 
     int _discovery_request_buffer_size = discovery_request_buffer.length();
@@ -161,7 +270,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
 
     //thetw to recv timeout
 #ifdef WIN32
-    int iTimeout = 1000;
+    int iTimeout = 3000;
     setsockopt(sock,
                        SOL_SOCKET,
                        SO_RCVTIMEO,
@@ -169,7 +278,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
                        sizeof(iTimeout) );
 #else
     struct timeval tv;
-    tv.tv_sec = 1;  /* 90 Secs Timeout */
+    tv.tv_sec = 3;  // 90 Secs Timeout
     tv.tv_usec = 0;  // Not init'ing this can cause strange errors
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
@@ -203,3 +312,4 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
 
     return devices;
 }
+*/
