@@ -30,12 +30,7 @@ class UPnPDiscovery
 public:
     UPnPDiscovery();
 
-
-
     std::vector<std::string> discoverDevices(const std::string &searchTarget);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
-
-private:
-    const unsigned short MULTICAST_DISCOVERY_BIND_PORT = 34644; //26389;
 };
 
 #endif // UPNPDISCOVERY_H

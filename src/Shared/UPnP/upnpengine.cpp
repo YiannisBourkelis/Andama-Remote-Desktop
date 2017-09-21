@@ -225,6 +225,9 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
             newDevRes.controlURL = std::string(addnewportmapping_control_url);
             newDevRes.serviceName = "WANPPPConnection:1";
             portmapping_devices.push_back(newDevRes);
+
+            //efoson exei vrei wanpppconn1 den psanxw gia wanipconn1
+            continue;
         }
 
         const size_t find_serviceId_WANIPConn1  = devcaps_lowercase.find("serviceid:wanipconn1");
