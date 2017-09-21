@@ -50,7 +50,7 @@ UPnPDiscovery::UPnPDiscovery()
 }
 
 
-std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searchTarget)
+std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searchTarget, const char *localIPv4)
 {
     // Structs needed
     struct in_addr localInterface;
@@ -115,7 +115,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
 
     // Join the multicast group on the local interface. Note that this IP_ADD_MEMBERSHIP option must be called for each local interface over which the multicast datagrams are to be received.
     group.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
-    group.imr_interface.s_addr = inet_addr("192.168.1.32");
+    group.imr_interface.s_addr = inet_addr(localIPv4);
     setsockopt(udpSocket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group));
 
     char buff[] = "M-SEARCH * HTTP/1.1\r\n"
@@ -136,7 +136,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
 
     //thetw to recv timeout
 #ifdef WIN32
-    int iTimeout = 1000;
+    int iTimeout = 2000;
     setsockopt(udpSocket,
                        SOL_SOCKET,
                        SO_RCVTIMEO,
@@ -144,7 +144,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
                        sizeof(iTimeout) );
 #else
     struct timeval tv;
-    tv.tv_sec = 1;  // 90 Secs Timeout
+    tv.tv_sec = 2;  // 90 Secs Timeout
     tv.tv_usec = 0;  // Not init'ing this can cause strange errors
     setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
@@ -156,22 +156,22 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
 
     while(true){
 
-    if (recvfrom(udpSocket, discovery_response_buffer, 1024, 0, (struct sockaddr *) &si_other, &slen) < 0) {
-        #ifdef WIN32
-            std::cout << "###### displayErrno: " << strerror(WSAGetLastError()) << std::endl;
-        #else
-            std::cout << "###### displayErrno: " << strerror(errno) << std::endl;
-        #endif
-            perror("recvfrom - device discovery");
-            break;
-        }
-        //std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
-        //logo UDP, mporei to idio device na stalei parapanw apo mia fora,
-        //opote an yparxei idi den to ksanakataxwrw
-        if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
-            devices.push_back(discovery_response_buffer);
-            std::cout << discovery_response_buffer << std::endl;
-        }
+        if (recvfrom(udpSocket, discovery_response_buffer, 1024, 0, (struct sockaddr *) &si_other, &slen) < 0) {
+            #ifdef WIN32
+                std::cout << "###### displayErrno: " << strerror(WSAGetLastError()) << std::endl;
+            #else
+                std::cout << "###### displayErrno: " << strerror(errno) << std::endl;
+            #endif
+                perror("recvfrom - device discovery");
+                break;
+            }
+            //std::cout << "==== discovery_response_buffer=====\r\n"<< discovery_response_buffer << std::endl;
+            //logo UDP, mporei to idio device na stalei parapanw apo mia fora,
+            //opote an yparxei idi den to ksanakataxwrw
+            if (std::find(devices.begin(),devices.end(),discovery_response_buffer) == devices.end()){
+                devices.push_back(discovery_response_buffer);
+                std::cout << discovery_response_buffer << std::endl;
+            }
     }
 
 #ifdef WIN32

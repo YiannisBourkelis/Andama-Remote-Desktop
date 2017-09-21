@@ -124,11 +124,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
         std::cout << "1. lamvanw ta network interfaces" << std::endl;
         auto future_getNetworkInterface = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
 
-        std::cout << "2. lamvanw ti lista me ta diathesima devices" << std::endl;
-        UPnPDiscovery upnpdiscovery;
-        auto future_getDeviceLocationXmlUrl = std::async(std::launch::async ,&UPnPDiscovery::discoverDevices,&upnpdiscovery,"upnp:rootdevice");
-
-        std::cout << "3. lamvanw tin topiki IP tou ypologisti pou me kalei (default) h" << std::endl;
+        std::cout << "2. lamvanw tin topiki IP tou ypologisti pou me kalei (default) h" << std::endl;
         // tin IP pou orise o xristis
         QHostAddress locan_lan_ip;
         if (NewInternalClient.empty()){
@@ -136,11 +132,15 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
         }else{
             locan_lan_ip = QHostAddress(QString::fromStdString(NewInternalClient));
         }
+        std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
+
+        std::cout << "2. lamvanw ti lista me ta diathesima devices" << std::endl;
+        UPnPDiscovery upnpdiscovery;
+        auto future_getDeviceLocationXmlUrl = std::async(std::launch::async ,&UPnPDiscovery::discoverDevices,&upnpdiscovery,"upnp:rootdevice",locan_lan_ip.toString().toStdString().c_str());
 
         std::cout << "4. lamvanw ti lista me ta diathesima devices" << std::endl;
         const std::vector<std::string> devicesFound = future_getDeviceLocationXmlUrl.get();
 
-        std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
         //std::cout << "deviceLocationXmlUrl.host: " << deviceLocationXmlUrl.host().toStdString() << std::endl;
         //std::cout << "deviceLocationXmlUrl: " << deviceLocationXmlUrl.toString().toStdString() << std::endl;
 

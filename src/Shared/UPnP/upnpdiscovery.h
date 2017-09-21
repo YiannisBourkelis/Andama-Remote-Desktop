@@ -30,7 +30,7 @@ class UPnPDiscovery
 public:
     UPnPDiscovery();
 
-    std::vector<std::string> discoverDevices(const std::string &searchTarget);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
+    std::vector<std::string> discoverDevices(const std::string &searchTarget, const char * localIPv4);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
 };
 
 #endif // UPNPDISCOVERY_H
