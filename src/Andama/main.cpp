@@ -51,6 +51,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtInfoMsg:
         txt = QString("Info: %1 (%2:%3, %4)").arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
         fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
 #endif
     case QtWarningMsg:
         txt = QString("Warning: %1 (%2:%3, %4)").arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
