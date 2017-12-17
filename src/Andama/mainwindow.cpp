@@ -32,6 +32,7 @@
 #include "tbllogsortfilterproxymodel.h"
 #include "tbllogdata.h"
 //#include "imageconfig.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 
 //xcode-select --install
@@ -824,8 +825,16 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
           //qbytes.insert(0, vdata.data(), vdata.size());
 
-          //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
-          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
+          openssl_aes myaes(EVP_aes_256_cbc());
+          openssl_aes::secure_string unencr_text;
+          openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
+          openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+          openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+          myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+          std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()),vect_unencrypted.size());
+
+          //QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
 
           //qpix.loadFromData(image_bytes_uncompressed,"WEBP");
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
@@ -877,7 +886,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
 
-           std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
+           std::cout << "IMAGE BYTES RECEIVED:" << vdata.size() << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
@@ -889,6 +898,15 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
            Bench("xronos emfanisis screenshot diff stin othoni");
 
+
+           openssl_aes myaes(EVP_aes_256_cbc());
+           openssl_aes::secure_string unencr_text;
+           openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
+           openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+           openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+           myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+           std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
 
@@ -896,18 +914,18 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            QImage qpix;
 
            //lamvanw tin thesi x tis eikonas (prwta 2 bytes)
-           std::vector<char> cx(vdata.begin(),vdata.begin()+2);
+           std::vector<char> cx(vect_unencrypted.begin(),vect_unencrypted.begin()+2);
            int x = bytesToInt(cx);
            //qDebug("x: %i",x);
 
            //lamvanw to y tis eikonas (epomena 2 bytes)
-           std::vector<char> cy(vdata.begin()+2,vdata.begin()+4);
+           std::vector<char> cy(vect_unencrypted.begin()+2,vect_unencrypted.begin()+4);
            int y = bytesToInt(cy);
            //qDebug("y: %i",y);
 
            //qDebug("DS.4 desktop lbl height: %i, lastscreenshot height: %i",ui->lblDesktop->height(),lastScreenshot.height());
 
-           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()+4),vdata.size()-4);
+           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()+4),vect_unencrypted.size()-4);
 
            //qDebug("DS.5 diff image uncompressed received bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
