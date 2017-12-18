@@ -54,6 +54,7 @@ public:
         static_cast<T*>(ptr)->~T();
     }
 
+
 #if __cpluplus >= 201103L
     template<typename U, typename... Args>
     void construct (U* ptr, Args&&  ... args) {

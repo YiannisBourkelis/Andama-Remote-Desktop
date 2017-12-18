@@ -183,6 +183,16 @@ macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 # this should compile openssl on windows
 windows:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -llibcrypto
 windows:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+
+# linux compile guide:
+# go inside OpenSSL-x.x folder using the terminal
+# type:
+# 1)    ./config
+# 2)    make clean
+# 3)    make
+# this should compile openssl on linux
+linux:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
+linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 #***************************************************************
 
 DISTFILES += \
