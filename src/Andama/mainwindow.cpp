@@ -453,8 +453,8 @@ void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *clien
             //apokryptografisi
             openssl_aes myaes(EVP_aes_256_cbc());
             openssl_aes::secure_string unencr_text;
-            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
-            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
             openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
             myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
             std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
@@ -578,20 +578,20 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (msgBox.exec() == QMessageBox::Yes){
             event->accept();
             protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
+
+            // threads cleanup
+            keepAlive.stopThread = true;
+            keepAlive.wait();
+
+            upnpengine.stopAddPortMappingAsyncThread = true;
+            //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
         }else {
             event->ignore();
         }
     }
 
-    // threads cleanup
-    keepAlive.stopThread = true;
-    keepAlive.wait();
-
     screenshotWrk.stopThread = true;
     screenshotWrk.wait();
-
-    upnpengine.stopAddPortMappingAsyncThread = true;
-    //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
 }
 
 void MainWindow::setDefaultGUI()
@@ -836,8 +836,8 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
           openssl_aes myaes(EVP_aes_256_cbc());
           openssl_aes::secure_string unencr_text;
-          openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
-          openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+          openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+          openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
           openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
           myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
           std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
@@ -910,8 +910,8 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
            openssl_aes myaes(EVP_aes_256_cbc());
            openssl_aes::secure_string unencr_text;
-           openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
-           openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+           openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+           openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
            openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
            myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
            std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
