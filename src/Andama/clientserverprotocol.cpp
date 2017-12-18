@@ -293,8 +293,8 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
 
     else if(command == CMD_KEYBOARD)
     {
-        std::vector<char> keyboard_data_buff(6);
-        _receivePlain(activeSocket, keyboard_data_buff);
+        std::vector<char> keyboard_data_buff;
+        _receive(activeSocket, keyboard_data_buff);
 
         //std::vector<char> cdata;
         emit sig_messageReceived(this, MSG_KEYBOARD, keyboard_data_buff);
@@ -353,6 +353,7 @@ void clientServerProtocol::cleanup(const int socketfd)
 
 void clientServerProtocol::sendHeartBeat()
 {
+    std::cout << ">> will send heart beat to proxy server" << std::endl;
     _sendmsgPlain(activeSocket, CMD_HEART_BEAT);
 }
 
