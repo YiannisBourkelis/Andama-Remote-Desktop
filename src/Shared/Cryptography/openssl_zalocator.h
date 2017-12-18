@@ -31,6 +31,11 @@ public:
         return static_cast<pointer> (::operator new (n * sizeof (value_type)));
     }
 
+    //TODO: workaround. added operator== to allow linux compilation
+    bool operator==(zallocator lhs) const {
+        return (memcmp(lhs,this, sizeof(zallocator)));
+    }
+
     void deallocate(pointer p, size_type n) {
         OPENSSL_cleanse(p, n*sizeof(T));
         ::operator delete(p);
