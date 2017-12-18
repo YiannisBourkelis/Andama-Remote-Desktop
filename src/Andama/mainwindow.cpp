@@ -450,9 +450,18 @@ void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *clien
 
         else if (msgType == protocol_supervisor.protocol.MSG_KEYBOARD)
         {
-            int _portableVKey       = bytesToInt(vdata,0,4);
-            int _portableModifiers  = bytesToInt(vdata,4,1);
-            int _keyEvent           = bytesToInt(vdata,5,1);
+            //apokryptografisi
+            openssl_aes myaes(EVP_aes_256_cbc());
+            openssl_aes::secure_string unencr_text;
+            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
+            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+            openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+            myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+            std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
+            int _portableVKey       = bytesToInt(vect_unencrypted,0,4);
+            int _portableModifiers  = bytesToInt(vect_unencrypted,4,1);
+            int _keyEvent           = bytesToInt(vect_unencrypted,5,1);
             int localVKey           = Keyboard::convertPortableKeyToLocal((portableVKey) _portableVKey);
 
             //ean to key pou stalthike den yparxei sto topiko mixanima den kanw tipota

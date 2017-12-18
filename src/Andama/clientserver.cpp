@@ -132,7 +132,7 @@ void clientserver::sendKeyboard(int portableVKey, int portableModifiers, int key
     myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
     std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
 
-    _sendmsgPlain(this->getActiveSocket(), CMD_KEYBOARD, vect_ciptext);
+    _sendmsg(this->getActiveSocket(), CMD_KEYBOARD, vect_ciptext);
     //_sendmsgPlain(this->getActiveSocket(), CMD_KEYBOARD, msg);
 }
 

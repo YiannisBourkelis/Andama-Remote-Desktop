@@ -784,12 +784,15 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
             {
-                std::vector<char> keyboard_data_buff(6);
-                _receivePlain(socketfd, keyboard_data_buff);
+                std::vector<char> keyboard_data_buff;
+                _receive(socketfd, keyboard_data_buff);
+                //std::vector<char> keyboard_data_buff(6);
+                //_receivePlain(socketfd, keyboard_data_buff);
                 int remso = getRemoteComputerSocket(myID);
                 if (remso > 0)
                 {
-                    _sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
+                     _sendmsg(remso, CMD_KEYBOARD, keyboard_data_buff);
+                    //_sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
                 }
             } // CMD_KEYBOARD
 
