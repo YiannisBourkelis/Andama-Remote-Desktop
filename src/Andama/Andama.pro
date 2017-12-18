@@ -42,6 +42,7 @@ linux:CONFIG += static
 
 # disable all the deprecated APIs in Qt <= 5.7
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
+windows:DEFINES += NOMINMAX
 
 mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
@@ -161,16 +162,27 @@ DEPENDPATH += $$PWD/../OSXObjectiveCBridge
 
 #***************************************************************
 #openssl library
+
 # osx compile guide:
 # https://gist.github.com/tmiz/1441111
 
 #osx build commands:
 # ./Configure darwin64-x86_64-cc -shared
 # make
+macx:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
+macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 
-
-LIBS += -L$$PWD/../openssl-1.1.0g/ -lcrypto
-INCLUDEPATH += $$PWD/../openssl-1.1.0g/include/
+# windows compile guide:
+# install activeperl - https://www.activestate.com/activeperl
+# install nasm - http://www.nasm.us/
+# go inside OpenSSL-x.x folder from visual studio 2010 command line prompt
+# type :
+# 1)    perl.exe Configure VC-WIN32
+# 2)    nmake clean
+# 3)    nmake
+# this should compile openssl on windows
+windows:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -llibcrypto
+windows:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 #***************************************************************
 
 DISTFILES += \
