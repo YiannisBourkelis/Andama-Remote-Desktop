@@ -33,7 +33,7 @@ public:
 
     //TODO: workaround. added operator== to allow linux compilation
     bool operator==(zallocator lhs) const {
-        return (memcmp(lhs,this, sizeof(zallocator)));
+        return (memcmp(&lhs, this, sizeof(lhs)));
     }
 
     void deallocate(pointer p, size_type n) {
