@@ -211,9 +211,14 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
 
         std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;
 
+
         std::string devcaps_lowercase = devcaps;
         std::transform(devcaps_lowercase.begin(), devcaps_lowercase.end(), devcaps_lowercase.begin(), ::tolower);
 
+        std::cout << "getPortMappingCapableDevices >>>>>>>> \r\n" << devcaps_lowercase;
+
+        //TODO: ginetai anazitisi gia serviceid:wanpppconn1 , serviceid:wanpppconn2 kai serviceid:wanipconn1
+        //Mporei na genikefthei mesa se loupa, na psaxnei gia ta p.x. 10 prwta wanpppconn1-10 klp
         const size_t find_serviceId_WANPPPConn1 = devcaps_lowercase.find("serviceid:wanpppconn1");
         if(find_serviceId_WANPPPConn1 < devcaps_lowercase.length()){
             const size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANPPPConn1);
@@ -227,6 +232,23 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
             portmapping_devices.push_back(newDevRes);
 
             //efoson exei vrei wanpppconn1 den psanxw gia wanipconn1
+            continue;
+        }
+
+        //to eida sto router mou otan energopoiithike i syndesi me optikes ines. Den yparxei pleon serviceid:wanpppconn1 alla yparxei serviceid:wanpppconn2
+        const size_t find_serviceId_WANPPPConn2 = devcaps_lowercase.find("serviceid:wanpppconn2");
+        if(find_serviceId_WANPPPConn2 < devcaps_lowercase.length()){
+            const size_t find_controlURL = devcaps_lowercase.find("<controlurl>",find_serviceId_WANPPPConn2);
+            const size_t find__controlURL = devcaps_lowercase.find("</controlurl>", find_controlURL);
+            const std::string addnewportmapping_control_url(devcaps.substr(find_controlURL+12,find__controlURL-find_controlURL-12));
+            std::cout << "\r\nAddNewPort control url 1 = " << addnewportmapping_control_url <<  std::endl;
+
+            DeviceResponse newDevRes = devres;
+            newDevRes.controlURL = std::string(addnewportmapping_control_url);
+            newDevRes.serviceName = "WANPPPConnection:2";
+            portmapping_devices.push_back(newDevRes);
+
+            //efoson exei vrei wanpppconn2 den psanxw gia wanipconn1
             continue;
         }
 
