@@ -310,7 +310,15 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
         if (p2pServer->hasConnectedClientThreadsRunning())
         {
             Bench bench("sendScreenshot-_sendmsg");
-            _sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
+            openssl_aes::secure_string ctext;
+            openssl_aes myaes(EVP_aes_256_cbc());
+            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = "0123456789012345678901234567890";
+            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = "123456789012345";
+            openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
+            myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
+            std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+            _sendmsg(p2pServer->activeClientSocket,cmd,vect_ciptext);
+            //_sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{
                 openssl_aes::secure_string ctext;
                 {
