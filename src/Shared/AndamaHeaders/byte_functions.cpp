@@ -1,4 +1,5 @@
 #include "byte_functions.h"
+#include <exception>
 
 //metatropi (serialization) enos int se vector<char> wste na ginetai
 //dynati i metafora tou sto socket.
