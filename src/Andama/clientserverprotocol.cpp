@@ -303,30 +303,9 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
     //o server esteile to id kai remote upnp port tou ypologisti
     //opote o client mporei na dokimasei na syndethei apeftheias ston remote client
     else if(command == CMD_P2P_REMOTE_CLIENT_UPNP_PORT){
-        //i morfi tou minimatos pou stelnetai ston client einai:
-        // | 1 byte command | 4 bytes message length | +
-        // | 1 bytes remote client ID length | x bytes remote client ID | +
-        // | 2 bytes UPnP port |
-        // | 1 byte remote client ip length | x bytes remote ip |
-        std::vector<char> buffsend_remote_p2p_client_id_and_port;
-        _receive(activeSocket, buffsend_remote_p2p_client_id_and_port);
-
-        //lamvanw to remote client ID kai to ID
-        int remoteClientIDLength = bytesToInt(buffsend_remote_p2p_client_id_and_port, 0, 1);
-        std::string remoteClientID;
-        remoteClientID.insert(remoteClientID.begin(), buffsend_remote_p2p_client_id_and_port.begin() + 1, buffsend_remote_p2p_client_id_and_port.begin() + 1 + remoteClientIDLength);
-
-        //lamvanw to remote UPnP port
-        int remoteUPnP = bytesToInt(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength, 2);
-
-        //lamvanw to IP length
-        int remoteIPLength = bytesToInt(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength + 2, 1);
-        //TODO: na dw sto mellon ylopoiisi gia IPv6
-        //lamvanw tin remote IP
-        unsigned long remoteIP = bytesToULong(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength + 2 + 1, remoteIPLength);
-
-        std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << remoteUPnP << " ,Remote IP:" << remoteIP << std::endl;
-        //lamvana to upnp port tou remote client
+        std::vector<char> buff_remote_p2p_client_id_and_port;
+        _receive(activeSocket, buff_remote_p2p_client_id_and_port);
+        emit sig_messageReceived(this, MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT, buff_remote_p2p_client_id_and_port);
 
     } //CMD_P2P_REMOTE_CLIENT_UPNP_PORT
 
