@@ -650,16 +650,17 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     if(connType == connectMessageType::proxy_or_p2p){
                         std::cout << "proxy_or_p2p2" << std::endl;
                         const unsigned short remote_computer_p2p_port = (*found_client).second.port;
-                        std::cout << "remote computer p2p port: " << remote_computer_p2p_port << std::endl;
+                        std::cout << "Remote computer p2p port: " << remote_computer_p2p_port << std::endl;
                         if (remote_computer_p2p_port > 0){
                             //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
                             //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
-                            std::cout << "Remote computer with id:" << sid << "has UPnP port:" << clients[sid].port << std::endl;
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port << std::endl;
 
                             //i morfi tou minimatos pou stelnetai ston client einai:
                             // | 1 byte command | 4 bytes message length | +
                             // | 1 bytes remote client ID length | x bytes remote client ID | +
                             // | 2 bytes UPnP port |
+                            // | 1 byte remote client ip length | x bytes remote ip |
                             std::vector<char> buffsend_remote_p2p_client_id_and_port;
 
                             //kataxwrw to megethos tou remote client ID kai to ID
@@ -672,6 +673,17 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             std::vector<char> buffUpnpPort(2);
                             intToBytes(remote_computer_p2p_port, buffUpnpPort);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffUpnpPort.begin(), buffUpnpPort.end());
+
+                            //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
+                            // 4 bytes length - hard coded.
+                            std::vector<char> buffLenIP(1);
+                            intToBytes(4, buffLenIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenIP.begin(), buffLenIP.end());
+
+                            //i IPv4
+                            std::vector<char> buffIP(4);
+                            ulongToBytes(clientIP, buffIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
 
                             //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
                             //p2p syndesi me ton allon client

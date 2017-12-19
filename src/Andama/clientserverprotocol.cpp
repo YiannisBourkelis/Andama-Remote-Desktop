@@ -307,6 +307,7 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
         // | 1 byte command | 4 bytes message length | +
         // | 1 bytes remote client ID length | x bytes remote client ID | +
         // | 2 bytes UPnP port |
+        // | 1 byte remote client ip length | x bytes remote ip |
         std::vector<char> buffsend_remote_p2p_client_id_and_port;
         _receive(activeSocket, buffsend_remote_p2p_client_id_and_port);
 
@@ -315,7 +316,16 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
         std::string remoteClientID;
         remoteClientID.insert(remoteClientID.begin(), buffsend_remote_p2p_client_id_and_port.begin() + 1, buffsend_remote_p2p_client_id_and_port.begin() + 1 + remoteClientIDLength);
 
-        std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << std::endl;
+        //lamvanw to remote UPnP port
+        int remoteUPnP = bytesToInt(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength, 2);
+
+        //lamvanw to IP length
+        int remoteIPLength = bytesToInt(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength + 2, 1);
+        //TODO: na dw sto mellon ylopoiisi gia IPv6
+        //lamvanw tin remote IP
+        unsigned long remoteIP = bytesToULong(buffsend_remote_p2p_client_id_and_port, 1 + remoteClientIDLength + 2 + 1, remoteIPLength);
+
+        std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << remoteUPnP << " ,Remote IP:" << remoteIP << std::endl;
         //lamvana to upnp port tou remote client
 
     } //CMD_P2P_REMOTE_CLIENT_UPNP_PORT
