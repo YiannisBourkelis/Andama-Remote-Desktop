@@ -401,6 +401,7 @@ void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPo
                                    s,
                                    addPortMappingRes.deviceInfo.ServerTag.c_str())
                                );
+        protocol_supervisor.protocol.sendUPnPPort(addPortMappingRes.internalPort);
     }else{
         tbllogmodel.addLogData(tr("UPnP returned error code: %1 (%2)").arg(
                                    QString::fromStdString(std::to_string(addPortMappingRes.statusCode)),

@@ -654,6 +654,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                         if (remote_computer_p2p_port > 0){
                             //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
                             //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
+
+                            continue;
                         }
 
                     }else {
@@ -804,6 +806,16 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 //std::cout << "------- >>> HeartBeat\n";
             }
 
+            //o client esteile oti exei anoixto UPnP port kai mporei na dextei
+            //apeftheias P2P connections, opote kataxwrw to port sto info tou
+            else if (cmdbuffer == CMD_P2P_CLIENT_UPNP_PORT){
+                std::lock_guard<std::mutex> lock (clients_mutex);
+                //to CMD_P2P_CLIENT_UPNP_PORT exei 2 bytes gia to port number 0-65535
+                std::vector<char> upnpport_buff;
+                _receive(socketfd,upnpport_buff);
+                clients[myID].port = bytesToInt(upnpport_buff);
+                std::cout << "upnp port for client with id:" << myID << " is:" << clients[myID].port << std::endl;
+            }
 
             else {
                 std::cout << "----> AGNWSTO COMMAND!! :" << &cmdbuffer[0] << std::endl;

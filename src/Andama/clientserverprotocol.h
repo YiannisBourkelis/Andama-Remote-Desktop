@@ -126,6 +126,7 @@ public:
 
     void sendKeyboard(int portableVKey, int portableModifiers, int keyEvent);
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
+    void sendUPnPPort(int port); //stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
     void setConnectionState(connectionState state);
     connectionState getConnectionState();
     void sendDisconnectFromRemoteComputer();

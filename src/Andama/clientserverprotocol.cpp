@@ -445,6 +445,20 @@ void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, i
     _sendmsgPlain(activeSocket, CMD_MOUSE, msg);
 }
 
+//stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
+void clientServerProtocol::sendUPnPPort(int port)
+{
+    //2 bytes  > port number 0-65535
+    std::vector<char> msg(2);
+
+    std::vector<char> _msg_bytes(2);
+    intToBytes(port, _msg_bytes);
+    msg[0] = _msg_bytes[0];
+    msg[1] = _msg_bytes[1];
+
+    _sendmsg(activeSocket, CMD_P2P_CLIENT_UPNP_PORT, _msg_bytes);
+}
+
 void clientServerProtocol::setConnectionState(connectionState state)
 {
     std::lock_guard<std::mutex> lock(connection_state_mutex);
