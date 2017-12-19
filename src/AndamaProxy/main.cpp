@@ -120,9 +120,9 @@ std::vector<char> generateRandomCachedID(int length)
 
 //dimiourgei kai epistrefei ena tyxaio kai monadiko clientid
 #ifdef WIN32
-std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID) {
+std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID, const unsigned long clientIP) {
 #else
-std::string getClientID(const int socketfd, std::vector<char> cachedID) {
+std::string getClientID(const int socketfd, std::vector<char> cachedID, const in_addr_t clientIP) {
 #endif
     std::lock_guard<std::mutex> lock(clients_mutex);
     while(true)
@@ -144,6 +144,7 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
                     ci.sockfd = socketfd;
                     ci.cachedID = cachedID;
                     clients[cachedIDs.at(cachedID)] = ci;
+                    ci.ip = clientIP;
 
                     return cachedIDs.at(cachedID);
                 }
@@ -166,6 +167,7 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
             ci.sockfd = socketfd;
             ci.cachedID = generateRandomCachedID(64);
             clients[tmpIDstream.str()] = ci;
+            ci.ip = clientIP;
 
             //prostheto to neo cachedID sto map
             cachedIDs[ci.cachedID]=tmpIDstream.str();
@@ -546,7 +548,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
 
                 //dimiourgw id kai ton kataxwrw sto dictionary map
-                myID = getClientID(socketfd, cachedID);
+                //Edw kataxwreitai kai o neos client sto array (an den yparxei idi apo prin)
+                myID = getClientID(socketfd, cachedID, clientIP);
                 myIDv.insert(myIDv.end(),myID.begin(),myID.end());//to id
 
                 std::vector<char> buffsendID; //to synoliko minima pou tha stalei
@@ -682,9 +685,9 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenIP.begin(), buffLenIP.end());
                             std::cout << "buffsend_remote_p2p_client_id_and_port size with buffLenIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
-                            //i IPv4
+                            //i IPv4 tou remote client
                             std::vector<char> buffIP(4);
-                            ulongToBytes(clientIP, buffIP);
+                            ulongToBytes((*found_client).second.ip, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
                             std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 

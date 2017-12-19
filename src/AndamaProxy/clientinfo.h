@@ -11,6 +11,14 @@ public:
     std::string remote_id = ""; //to id tou remote client ean exei ginei accept
     std::vector<char> cachedID; //to cachedID pou xrisiopoieitai gia na diatirei o client to idio ID se periptwsi aposyndesis
     unsigned short port = 0; //i port pou epitrepei p2p connection (ean exei anoixtei me uPnP i manually)
+
+    //i ip tou client
+#ifdef WIN32
+    unsigned long ip;
+#else
+    in_addr_t ip;
+#endif
+
 };
 
 #endif // CLIENTINFO_H
