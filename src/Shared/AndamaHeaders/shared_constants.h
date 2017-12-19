@@ -29,6 +29,6 @@ const std::array<char,1> CMD_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = {{'v'}}; // (
 
 const std::array<char,1> CMD_P2P_PROTOCOL_OK = {{'d'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
 const std::array<char,1> CMD_P2P_CONNECT = {{'N'}}; //o p2pserver stelnei afto to command enos byte otan to client protocol einai ok
-const std::array<char,1> CMD_P2P_CLIENT_UPNP_PORT = {{'U'}}; //o client stelnei ston server tin UPnP porta poy exei anoiksei wste na dexetai P2P connections
-
+const std::array<char,1> CMD_P2P_CLIENT_UPNP_PORT = {{'U'}}; //o client stelnei ston server tin UPnP port poy exei anoiksei wste na dexetai P2P connections
+const std::array<char,1> CMD_P2P_REMOTE_CLIENT_UPNP_PORT = {{'u'}}; // Ean o remote client poy zitithike syndexei exei UPnP port anoixti, o proxy stelnei ston client to ID kai UPnP port tou remote client wste na ginei prospatheia P2P syndesis
 #endif // SHARED_CONSTANTS_H

@@ -300,6 +300,26 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
         emit sig_messageReceived(this, MSG_KEYBOARD, keyboard_data_buff);
     }// CMD_KEYBOARD
 
+    //o server esteile to id kai remote upnp port tou ypologisti
+    //opote o client mporei na dokimasei na syndethei apeftheias ston remote client
+    else if(command == CMD_P2P_REMOTE_CLIENT_UPNP_PORT){
+        //i morfi tou minimatos pou stelnetai ston client einai:
+        // | 1 byte command | 4 bytes message length | +
+        // | 1 bytes remote client ID length | x bytes remote client ID | +
+        // | 2 bytes UPnP port |
+        std::vector<char> buffsend_remote_p2p_client_id_and_port;
+        _receive(activeSocket, buffsend_remote_p2p_client_id_and_port);
+
+        //lamvanw to remote client ID kai to ID
+        int remoteClientIDLength = bytesToInt(buffsend_remote_p2p_client_id_and_port, 0, 1);
+        std::string remoteClientID;
+        remoteClientID.insert(remoteClientID.begin(), buffsend_remote_p2p_client_id_and_port.begin() + 1, buffsend_remote_p2p_client_id_and_port.begin() + 1 + remoteClientIDLength);
+
+        std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << std::endl;
+        //lamvana to upnp port tou remote client
+
+    } //CMD_P2P_REMOTE_CLIENT_UPNP_PORT
+
     else if(command == CMD_WARNING_BAN_IP_WRONG_ID)
     {
         std::vector<char> warn_remaining_tries_data_buff(1);

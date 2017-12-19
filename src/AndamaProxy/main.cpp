@@ -654,7 +654,28 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                         if (remote_computer_p2p_port > 0){
                             //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
                             //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
+                            std::cout << "Remote computer with id:" << sid << "has UPnP port:" << clients[sid].port << std::endl;
 
+                            //i morfi tou minimatos pou stelnetai ston client einai:
+                            // | 1 byte command | 4 bytes message length | +
+                            // | 1 bytes remote client ID length | x bytes remote client ID | +
+                            // | 2 bytes UPnP port |
+                            std::vector<char> buffsend_remote_p2p_client_id_and_port;
+
+                            //kataxwrw to megethos tou remote client ID kai to ID
+                            std::vector<char> buffLenID(1);
+                            intToBytes(sid.length(),buffLenID);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenID.begin(),buffLenID.end());
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), sid.begin(),sid.end());
+
+                            //kataxwrw to upnp port tou remote client
+                            std::vector<char> buffUpnpPort(2);
+                            intToBytes(remote_computer_p2p_port, buffUpnpPort);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffUpnpPort.begin(), buffUpnpPort.end());
+
+                            //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
+                            //p2p syndesi me ton allon client
+                            _sendmsg(socketfd, CMD_P2P_REMOTE_CLIENT_UPNP_PORT, buffsend_remote_p2p_client_id_and_port);
                             continue;
                         }
 
