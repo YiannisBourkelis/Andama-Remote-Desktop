@@ -673,17 +673,20 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             std::vector<char> buffUpnpPort(2);
                             intToBytes(remote_computer_p2p_port, buffUpnpPort);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffUpnpPort.begin(), buffUpnpPort.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffUpmpPort:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
                             //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
                             // 4 bytes length - hard coded.
                             std::vector<char> buffLenIP(1);
                             intToBytes(4, buffLenIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenIP.begin(), buffLenIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffLenIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
                             //i IPv4
                             std::vector<char> buffIP(4);
                             ulongToBytes(clientIP, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
                             //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
                             //p2p syndesi me ton allon client
