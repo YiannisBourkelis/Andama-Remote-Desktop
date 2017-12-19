@@ -2,7 +2,8 @@
 #define SHARED_CONSTANTS_H
 
 const int PROXY_PORT_NUMBER = 80; //PROXY listening port
-const std::string PROXY_HOST_NAME = "mailgate.filoxeni.com";
+//const std::string PROXY_HOST_NAME = "mailgate.filoxeni.com";
+const std::string PROXY_HOST_NAME = "andamaproxy-us-west.filoxeni.com";
 
 const std::array<char,1> CMD_PROTOCOL = {{'P'}};
 const std::array<char,1> CMD_CONNECT = {{'C'}};
