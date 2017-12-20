@@ -657,7 +657,6 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                         if (remote_computer_p2p_port > 0){
                             //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
                             //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
-                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port << std::endl;
 
                             //i morfi tou minimatos pou stelnetai ston client einai:
                             // | 1 byte command | 4 bytes message length | +
@@ -689,7 +688,16 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             std::vector<char> buffIP(4);
                             ulongToBytes((*found_client).second.ip, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
-                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+                            //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+                            struct sockaddr_in sa;
+                            sa.sin_addr.s_addr = (*found_client).second.ip;
+                            char str[INET_ADDRSTRLEN];
+                            inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port << " and IP:" << str << std::endl;
+
 
                             //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
                             //p2p syndesi me ton allon client
