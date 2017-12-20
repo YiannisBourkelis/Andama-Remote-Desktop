@@ -120,9 +120,9 @@ std::vector<char> generateRandomCachedID(int length)
 
 //dimiourgei kai epistrefei ena tyxaio kai monadiko clientid
 #ifdef WIN32
-std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID) {
+std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID, const unsigned long clientIP) {
 #else
-std::string getClientID(const int socketfd, std::vector<char> cachedID) {
+std::string getClientID(const int socketfd, std::vector<char> cachedID, const in_addr_t clientIP) {
 #endif
     std::lock_guard<std::mutex> lock(clients_mutex);
     while(true)
@@ -143,7 +143,11 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
                     ci.remote_socket = 0;
                     ci.sockfd = socketfd;
                     ci.cachedID = cachedID;
+                    ci.ip = clientIP;
+
                     clients[cachedIDs.at(cachedID)] = ci;
+
+                    std::cout << "[1] client IP:" << ci.ip << std::endl;
 
                     return cachedIDs.at(cachedID);
                 }
@@ -165,6 +169,9 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
             ci.remote_socket = 0;
             ci.sockfd = socketfd;
             ci.cachedID = generateRandomCachedID(64);
+            ci.ip = clientIP;
+            std::cout << "[2] client IP:" << ci.ip << std::endl;
+
             clients[tmpIDstream.str()] = ci;
 
             //prostheto to neo cachedID sto map
@@ -546,7 +553,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
 
                 //dimiourgw id kai ton kataxwrw sto dictionary map
-                myID = getClientID(socketfd, cachedID);
+                //Edw kataxwreitai kai o neos client sto array (an den yparxei idi apo prin)
+                myID = getClientID(socketfd, cachedID, clientIP);
                 myIDv.insert(myIDv.end(),myID.begin(),myID.end());//to id
 
                 std::vector<char> buffsendID; //to synoliko minima pou tha stalei
@@ -580,6 +588,14 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
                 std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                              " CMD_PROTOCOL >  Client ID created and sent to client." << std::endl;
+
+                //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+                //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+                struct sockaddr_in sa;
+                sa.sin_addr.s_addr = clientIP;
+                char str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+                std::cout << "Client IP:" << str  << std::endl;
 
             } // CMD_PROTOCOL
 
@@ -650,10 +666,50 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     if(connType == connectMessageType::proxy_or_p2p){
                         std::cout << "proxy_or_p2p2" << std::endl;
                         const unsigned short remote_computer_p2p_port = (*found_client).second.port;
-                        std::cout << "remote computer p2p port: " << remote_computer_p2p_port << std::endl;
+                        std::cout << "Remote computer p2p port: " << remote_computer_p2p_port << std::endl;
                         if (remote_computer_p2p_port > 0){
                             //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
                             //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
+
+                            //i morfi tou minimatos pou stelnetai ston client einai:
+                            // | 1 byte command | 4 bytes message length | +
+                            // | 1 bytes remote client ID length | x bytes remote client ID | +
+                            // | 2 bytes UPnP port |
+                            // | 1 byte remote client ip length | x bytes remote ip |
+                            std::vector<char> buffsend_remote_p2p_client_id_and_port;
+
+                            //kataxwrw to megethos tou remote client ID kai to ID
+                            std::vector<char> buffLenID(1);
+                            intToBytes(sid.length(),buffLenID);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenID.begin(),buffLenID.end());
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), sid.begin(),sid.end());
+
+                            //kataxwrw to upnp port tou remote client
+                            std::vector<char> buffUpnpPort(2);
+                            intToBytes(remote_computer_p2p_port, buffUpnpPort);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffUpnpPort.begin(), buffUpnpPort.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffUpmpPort:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
+                            // 4 bytes length - hard coded.
+                            std::vector<char> buffLenIP(1);
+                            intToBytes(4, buffLenIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenIP.begin(), buffLenIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffLenIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            //i IPv4 tou remote client
+                            std::vector<char> buffIP(4);
+                            ulongToBytes(clients[sid].ip, buffIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << remote_computer_p2p_port << " and IP:" <<  clients[sid].ip << std::endl;
+
+
+                            //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
+                            //p2p syndesi me ton allon client
+                            _sendmsg(socketfd, CMD_P2P_REMOTE_CLIENT_UPNP_PORT, buffsend_remote_p2p_client_id_and_port);
+                            continue;
                         }
 
                     }else {
@@ -784,12 +840,15 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
             {
-                std::vector<char> keyboard_data_buff(6);
-                _receivePlain(socketfd, keyboard_data_buff);
+                std::vector<char> keyboard_data_buff;
+                _receive(socketfd, keyboard_data_buff);
+                //std::vector<char> keyboard_data_buff(6);
+                //_receivePlain(socketfd, keyboard_data_buff);
                 int remso = getRemoteComputerSocket(myID);
                 if (remso > 0)
                 {
-                    _sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
+                     _sendmsg(remso, CMD_KEYBOARD, keyboard_data_buff);
+                    //_sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
                 }
             } // CMD_KEYBOARD
 
@@ -801,6 +860,16 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 //std::cout << "------- >>> HeartBeat\n";
             }
 
+            //o client esteile oti exei anoixto UPnP port kai mporei na dextei
+            //apeftheias P2P connections, opote kataxwrw to port sto info tou
+            else if (cmdbuffer == CMD_P2P_CLIENT_UPNP_PORT){
+                std::lock_guard<std::mutex> lock (clients_mutex);
+                //to CMD_P2P_CLIENT_UPNP_PORT exei 2 bytes gia to port number 0-65535
+                std::vector<char> upnpport_buff;
+                _receive(socketfd,upnpport_buff);
+                clients[myID].port = bytesToInt(upnpport_buff);
+                std::cout << "upnp port for client with id:" << myID << " is:" << clients[myID].port << std::endl;
+            }
 
             else {
                 std::cout << "----> AGNWSTO COMMAND!! :" << &cmdbuffer[0] << std::endl;

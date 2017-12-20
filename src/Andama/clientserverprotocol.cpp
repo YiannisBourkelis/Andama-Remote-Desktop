@@ -20,6 +20,7 @@
  * ***********************************************************************/
 
 #include "clientserverprotocol.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 
 static std::mutex protect_password_mutex;
@@ -292,12 +293,21 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
 
     else if(command == CMD_KEYBOARD)
     {
-        std::vector<char> keyboard_data_buff(6);
-        _receivePlain(activeSocket, keyboard_data_buff);
+        std::vector<char> keyboard_data_buff;
+        _receive(activeSocket, keyboard_data_buff);
 
         //std::vector<char> cdata;
         emit sig_messageReceived(this, MSG_KEYBOARD, keyboard_data_buff);
     }// CMD_KEYBOARD
+
+    //o server esteile to id kai remote upnp port tou ypologisti
+    //opote o client mporei na dokimasei na syndethei apeftheias ston remote client
+    else if(command == CMD_P2P_REMOTE_CLIENT_UPNP_PORT){
+        std::vector<char> buff_remote_p2p_client_id_and_port;
+        _receive(activeSocket, buff_remote_p2p_client_id_and_port);
+        emit sig_messageReceived(this, MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT, buff_remote_p2p_client_id_and_port);
+
+    } //CMD_P2P_REMOTE_CLIENT_UPNP_PORT
 
     else if(command == CMD_WARNING_BAN_IP_WRONG_ID)
     {
@@ -352,6 +362,7 @@ void clientServerProtocol::cleanup(const int socketfd)
 
 void clientServerProtocol::sendHeartBeat()
 {
+    std::cout << ">> will send heart beat to proxy server" << std::endl;
     _sendmsgPlain(activeSocket, CMD_HEART_BEAT);
 }
 
@@ -386,7 +397,17 @@ void clientServerProtocol::sendKeyboard(int portableVKey, int portableModifiers,
     intToBytes(keyEvent, _keyEvent);
     msg[5] = _keyEvent[0];
 
-    _sendmsgPlain(activeSocket, CMD_KEYBOARD, msg);
+    openssl_aes::secure_string ctext;
+    openssl_aes myaes(EVP_aes_256_cbc());
+    openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+    openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+    openssl_aes::secure_string ptext (msg.begin(),msg.end());
+    myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
+    std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+
+    _sendmsg(activeSocket, CMD_KEYBOARD, vect_ciptext);
+
+    //_sendmsgPlain(activeSocket, CMD_KEYBOARD, msg);
 }
 
 void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation)
@@ -431,6 +452,20 @@ void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, i
     msg[9] = _wheelOrientation[0];
 
     _sendmsgPlain(activeSocket, CMD_MOUSE, msg);
+}
+
+//stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
+void clientServerProtocol::sendUPnPPort(int port)
+{
+    //2 bytes  > port number 0-65535
+    std::vector<char> msg(2);
+
+    std::vector<char> _msg_bytes(2);
+    intToBytes(port, _msg_bytes);
+    msg[0] = _msg_bytes[0];
+    msg[1] = _msg_bytes[1];
+
+    _sendmsg(activeSocket, CMD_P2P_CLIENT_UPNP_PORT, _msg_bytes);
 }
 
 void clientServerProtocol::setConnectionState(connectionState state)

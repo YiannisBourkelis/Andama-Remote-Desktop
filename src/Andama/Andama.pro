@@ -42,6 +42,7 @@ linux:CONFIG += static
 
 # disable all the deprecated APIs in Qt <= 5.7
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
+windows:DEFINES += NOMINMAX
 
 mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
@@ -93,22 +94,23 @@ SOURCES += main.cpp\
     engine.cpp \
     screenshotprovider.cpp \
     p2pserver.cpp \
-    ../Shared/AndamaHeaders/byte_functions.cpp \
-    ../Shared/AndamaHeaders/exception_helper.cpp \
-    ../Shared/AndamaHeaders/socket_functions.cpp \
     clientsocket.cpp \
     clientserverprotocol.cpp \
     serversocket.cpp \
     protocolsupervisor.cpp \
-    ../Shared/UPnP/upnpdiscovery.cpp \
-    ../Shared/UPnP/upnpengine.cpp \
+    tbllogmodel.cpp \
+    tbllogsortfilterproxymodel.cpp \
+    tbllogdata.cpp \
+    ../Shared/AndamaHeaders/byte_functions.cpp \
+    ../Shared/AndamaHeaders/exception_helper.cpp \
+    ../Shared/AndamaHeaders/socket_functions.cpp \
+    ../Shared/Cryptography/openssl_aes.cpp \
+    ../Shared/General/bench.cpp \
     ../Shared/UPnP/addportmappingresponse.cpp \
     ../Shared/UPnP/deviceresponse.cpp \
     ../Shared/UPnP/upnpaddportmapping.cpp \
-    ../Shared/General/bench.cpp \
-    tbllogmodel.cpp \
-    tbllogsortfilterproxymodel.cpp \
-    tbllogdata.cpp
+    ../Shared/UPnP/upnpdiscovery.cpp \
+    ../Shared/UPnP/upnpengine.cpp
 
 HEADERS  += clientserver.h \
     mainwindow.h \
@@ -120,27 +122,29 @@ HEADERS  += clientserver.h \
     engine.h \
     screenshotprovider.h \
     p2pserver.h \
-    ../Shared/AndamaHeaders/shared_constants.h \
-    ../Shared/AndamaHeaders/byte_functions.h \
-    ../Shared/AndamaHeaders/shared_enums.h \
-    ../Shared/AndamaHeaders/exception_helper.h \
-    ../Shared/AndamaHeaders/socket_functions.h \
     clientsocket.h \
     clientserverprotocol.h \
     serversocket.h \
     protocolsupervisor.h \
+    tbllogmodel.h \
+    tbllogsortfilterproxymodel.h \
+    tbllogdata.h \
+    imageconfig.h \
+    ../Shared/AndamaHeaders/byte_functions.h \
+    ../Shared/AndamaHeaders/exception_helper.h \
     ../Shared/AndamaHeaders/finally.h \
-    ../Shared/UPnP/upnpdiscovery.h \
-    ../Shared/UPnP/upnpengine.h \
+    ../Shared/AndamaHeaders/shared_constants.h \
+    ../Shared/AndamaHeaders/shared_enums.h \
+    ../Shared/AndamaHeaders/socket_functions.h \
+    ../Shared/Cryptography/openssl_aes.h \
+    ../Shared/Cryptography/openssl_zalocator.h \
+    ../Shared/General/bench.h \
     ../Shared/General/finally.h \
     ../Shared/UPnP/addportmappingresponse.h \
     ../Shared/UPnP/deviceresponse.h \
     ../Shared/UPnP/upnpaddportmapping.h \
-    ../Shared/General/bench.h \
-    tbllogmodel.h \
-    tbllogsortfilterproxymodel.h \
-    tbllogdata.h \
-    imageconfig.h
+    ../Shared/UPnP/upnpdiscovery.h \
+    ../Shared/UPnP/upnpengine.h
 
 FORMS    += mainwindow.ui \
     About.ui
@@ -155,6 +159,41 @@ OTHER_FILES +=
 macx: LIBS += -L$$PWD/../../../../Builds/OSXObjectiveCBridge/Release/ -lOSXObjectiveCBridge
 INCLUDEPATH += $$PWD/../OSXObjectiveCBridge
 DEPENDPATH += $$PWD/../OSXObjectiveCBridge
+
+#***************************************************************
+#openssl library
+
+# osx compile guide:
+# https://gist.github.com/tmiz/1441111
+
+#osx build commands:
+# ./Configure darwin64-x86_64-cc -shared
+# make
+macx:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
+macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+
+# windows compile guide:
+# install activeperl - https://www.activestate.com/activeperl
+# install nasm - http://www.nasm.us/
+# go inside OpenSSL-x.x folder from visual studio 2010 command line prompt
+# type :
+# 1)    perl.exe Configure VC-WIN32
+# 2)    nmake clean
+# 3)    nmake
+# this should compile openssl on windows
+windows:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -llibcrypto
+windows:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+
+# linux compile guide:
+# go inside OpenSSL-x.x folder using the terminal
+# type:
+# 1)    ./config
+# 2)    make clean
+# 3)    make
+# this should compile openssl on linux
+linux:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
+linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+#***************************************************************
 
 DISTFILES += \
     main.qml

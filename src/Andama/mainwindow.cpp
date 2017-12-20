@@ -32,6 +32,7 @@
 #include "tbllogsortfilterproxymodel.h"
 #include "tbllogdata.h"
 //#include "imageconfig.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 
 //xcode-select --install
@@ -400,6 +401,8 @@ void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPo
                                    s,
                                    addPortMappingRes.deviceInfo.ServerTag.c_str())
                                );
+        //apostoli ston proxy tou UPnP port pou mporei na xrisimopoiithei gia P2P syndeseis
+        protocol_supervisor.protocol.sendUPnPPort(addPortMappingRes.remotePort);
     }else{
         tbllogmodel.addLogData(tr("UPnP returned error code: %1 (%2)").arg(
                                    QString::fromStdString(std::to_string(addPortMappingRes.statusCode)),
@@ -449,9 +452,18 @@ void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *clien
 
         else if (msgType == protocol_supervisor.protocol.MSG_KEYBOARD)
         {
-            int _portableVKey       = bytesToInt(vdata,0,4);
-            int _portableModifiers  = bytesToInt(vdata,4,1);
-            int _keyEvent           = bytesToInt(vdata,5,1);
+            //apokryptografisi
+            openssl_aes myaes(EVP_aes_256_cbc());
+            openssl_aes::secure_string unencr_text;
+            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+            openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+            myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+            std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
+            int _portableVKey       = bytesToInt(vect_unencrypted,0,4);
+            int _portableModifiers  = bytesToInt(vect_unencrypted,4,1);
+            int _keyEvent           = bytesToInt(vect_unencrypted,5,1);
             int localVKey           = Keyboard::convertPortableKeyToLocal((portableVKey) _portableVKey);
 
             //ean to key pou stalthike den yparxei sto topiko mixanima den kanw tipota
@@ -568,20 +580,20 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (msgBox.exec() == QMessageBox::Yes){
             event->accept();
             protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
+
+            // threads cleanup
+            keepAlive.stopThread = true;
+            keepAlive.wait();
+
+            upnpengine.stopAddPortMappingAsyncThread = true;
+            //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
         }else {
             event->ignore();
         }
     }
 
-    // threads cleanup
-    keepAlive.stopThread = true;
-    keepAlive.wait();
-
     screenshotWrk.stopThread = true;
     screenshotWrk.wait();
-
-    upnpengine.stopAddPortMappingAsyncThread = true;
-    //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
 }
 
 void MainWindow::setDefaultGUI()
@@ -824,8 +836,16 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
           //qbytes.insert(0, vdata.data(), vdata.size());
 
-          //QByteArray image_bytes_uncompressed=qUncompress(qbytes);
-          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
+          openssl_aes myaes(EVP_aes_256_cbc());
+          openssl_aes::secure_string unencr_text;
+          openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+          openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+          openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+          myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+          std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()),vect_unencrypted.size());
+
+          //QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
 
           //qpix.loadFromData(image_bytes_uncompressed,"WEBP");
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
@@ -877,7 +897,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
 
-           std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
+           std::cout << "IMAGE BYTES RECEIVED:" << vdata.size() << std::endl;
        }
        else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
@@ -889,6 +909,15 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
            Bench("xronos emfanisis screenshot diff stin othoni");
 
+
+           openssl_aes myaes(EVP_aes_256_cbc());
+           openssl_aes::secure_string unencr_text;
+           openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+           openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+           openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+           myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+           std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
 
@@ -896,18 +925,18 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            QImage qpix;
 
            //lamvanw tin thesi x tis eikonas (prwta 2 bytes)
-           std::vector<char> cx(vdata.begin(),vdata.begin()+2);
+           std::vector<char> cx(vect_unencrypted.begin(),vect_unencrypted.begin()+2);
            int x = bytesToInt(cx);
            //qDebug("x: %i",x);
 
            //lamvanw to y tis eikonas (epomena 2 bytes)
-           std::vector<char> cy(vdata.begin()+2,vdata.begin()+4);
+           std::vector<char> cy(vect_unencrypted.begin()+2,vect_unencrypted.begin()+4);
            int y = bytesToInt(cy);
            //qDebug("y: %i",y);
 
            //qDebug("DS.4 desktop lbl height: %i, lastscreenshot height: %i",ui->lblDesktop->height(),lastScreenshot.height());
 
-           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()+4),vdata.size()-4);
+           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()+4),vect_unencrypted.size()-4);
 
            //qDebug("DS.5 diff image uncompressed received bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
@@ -937,6 +966,44 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
+       else if (msgType == protocol_supervisor.protocol.MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT){
+           //i morfi tou minimatos pou stelnetai ston client einai:
+           // | 1 byte command | 4 bytes message length | +
+           // | 1 bytes remote client ID length | x bytes remote client ID | +
+           // | 2 bytes UPnP port |
+           // | 1 byte remote client ip length | x bytes remote ip |
+
+           //lamvanw to remote client ID kai to ID
+           int remoteClientIDLength = bytesToInt(vdata, 0, 1);
+           std::string remoteClientID;
+           remoteClientID.insert(remoteClientID.begin(), vdata.begin() + 1, vdata.begin() + 1 + remoteClientIDLength);
+
+           //lamvanw to remote UPnP port
+           int remoteUPnP = bytesToInt(vdata, 1 + remoteClientIDLength, 2);
+
+           //lamvanw to IP length
+           int remoteIPLength = bytesToInt(vdata, 1 + remoteClientIDLength + 2, 1);
+           //TODO: na dw sto mellon ylopoiisi gia IPv6
+           //lamvanw tin remote IP
+           unsigned long remoteIP = bytesToULong(vdata, 1 + remoteClientIDLength + 2 + 1, remoteIPLength);
+
+           //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+           //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+           struct sockaddr_in sa;
+           sa.sin_addr.s_addr = remoteIP;
+           char str[INET_ADDRSTRLEN];
+           inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+
+           std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << remoteUPnP << " ,Remote IP:" << remoteIP << " ,Remote IP string:" << str << std::endl;
+
+           //apopeira apeftheias syndesis
+           tbllogmodel.addLogData(tr("Connecting to the remote computer directly..."));
+           lastMainWindowPosition = this->pos();
+           p2pclient.remotePort=remoteUPnP;
+           p2pclient.remoteIpAddress = str;
+           p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
+           p2pclient.start();
+       }
     }
     catch (std::exception &ex)
     {

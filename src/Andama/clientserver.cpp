@@ -24,6 +24,7 @@
 #include "../Shared/AndamaHeaders/shared_enums.h"
 #include "../Shared/AndamaHeaders/exception_helper.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 std::vector<char> myID;
 static std::mutex protect_password_mutex;
@@ -123,7 +124,16 @@ void clientserver::sendKeyboard(int portableVKey, int portableModifiers, int key
     intToBytes(keyEvent, _keyEvent);
     msg[5] = _keyEvent[0];
 
-    _sendmsgPlain(this->getActiveSocket(), CMD_KEYBOARD, msg);
+    openssl_aes::secure_string ctext;
+    openssl_aes myaes(EVP_aes_256_cbc());
+    openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+    openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
+    openssl_aes::secure_string ptext (msg.begin(),msg.end());
+    myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
+    std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+
+    _sendmsg(this->getActiveSocket(), CMD_KEYBOARD, vect_ciptext);
+    //_sendmsgPlain(this->getActiveSocket(), CMD_KEYBOARD, msg);
 }
 
 void clientserver::setRemotePassword(std::string password)
@@ -745,7 +755,8 @@ void clientserver::start_protocol()
             return;
         }
 
-        SERVER = gethostbyname("mailgate.filoxeni.com");
+        //SERVER = gethostbyname("mailgate.filoxeni.com");
+        SERVER = gethostbyname("andamaproxy-us-west.filoxeni.com");
         //SERVER = gethostbyname("localhost");
 
         if (SERVER == NULL) {

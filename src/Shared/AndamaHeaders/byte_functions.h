@@ -14,6 +14,11 @@ void intToBytes(const int value, std::vector<char> &buffer);
 //epitrepetai na exei megethos 1,2 h 4 bytes.
 int bytesToInt(const std::vector<char> &buffer);
 
+//ta idia me epanw alla gia unsigned long
+void ulongToBytes(unsigned long value, std::vector<char> &buffer);
+unsigned long  bytesToULong(const std::vector<char> &buffer);
+unsigned long bytesToULong(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes);
+
 unsigned int bytesToInt(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes);
 
 #endif // BYTE_FUNCTIONS_H
