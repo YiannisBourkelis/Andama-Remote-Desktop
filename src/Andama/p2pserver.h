@@ -49,6 +49,7 @@ public:
 
     //server listening port
     const int PORT_NUMBER = 17332;
+    bool stopThread = false;
 
     P2PServer();
     void setRemoteComputerOS(OS os);

@@ -164,10 +164,11 @@ DEPENDPATH += $$PWD/../OSXObjectiveCBridge
 #openssl library
 
 # osx compile guide:
-# https://gist.github.com/tmiz/1441111
-
-#osx build commands:
+# (https://gist.github.com/tmiz/1441111)
+# open a terminal window in OpenSSL-x.x folder
+# osx build commands:
 # ./Configure darwin64-x86_64-cc -shared
+# make clean
 # make
 macx:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
 macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/

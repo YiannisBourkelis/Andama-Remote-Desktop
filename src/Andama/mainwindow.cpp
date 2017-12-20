@@ -344,7 +344,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     screenshotWrk.protocol_supervisor = &protocol_supervisor;
     screenshotWrk.p2pServer = &p2pserver;
-    screenshotWrk.imageQuality=50; //default JPG 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
+    screenshotWrk.imageQuality=70; //default JPG 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
     screenshotWrk.start();
 
     keepAlive.protocol_supervisor = &protocol_supervisor;
@@ -566,6 +566,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         ui->lblStatus->setText(tr("Remote computer disconnected. Ready!"));
 
         event->ignore();
+        return;
     }
     else if (protocol_supervisor.protocol.getConnectionState() == connectionState::connectedWithOtherAsServer){
         //preidopoiw ton xristi oti yparxei syndedemenos ypologistis kai  oti tha diakopei i syndesi
@@ -580,20 +581,27 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (msgBox.exec() == QMessageBox::Yes){
             event->accept();
             protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
-
-            // threads cleanup
-            keepAlive.stopThread = true;
-            keepAlive.wait();
-
-            upnpengine.stopAddPortMappingAsyncThread = true;
-            //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
         }else {
             event->ignore();
+            return;
         }
     }
 
+    // threads cleanup
+    keepAlive.stopThread = true;
+
+    upnpengine.stopAddPortMappingAsyncThread = true;
+    //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
+
+    p2pserver.stopThread = true;
+
+    protocol_supervisor.quit();
+
     screenshotWrk.stopThread = true;
+
+    keepAlive.wait();
     screenshotWrk.wait();
+    p2pserver.wait();
 }
 
 void MainWindow::setDefaultGUI()

@@ -1,8 +1,16 @@
+// gia non blocking sockets diavasa apo edw:
+// https://www.ibm.com/support/knowledgecenter/en/ssw_i5_54/rzab6/xnonblock.htm
+// (Example: Nonblocking I/O and select())
+
 #include "p2pserver.h"
 #include "../Shared/AndamaHeaders/byte_functions.h"
 #include "../Shared/AndamaHeaders/shared_constants.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
 #include "../Shared/General/finally.h"
+
+
+#include <sys/ioctl.h> //gia non blocking sockets
+
 
 #include <csignal> // xreiazetai gia na ginei compile se linux gia tin signal
 
@@ -101,6 +109,25 @@ void P2PServer::start_p2pserver()
         perror("setsockopt(SO_REUSEPORT) failed");
 #endif
 
+
+    /*
+    int flags;
+    flags = fcntl(socketfd,F_GETFL,0);
+    assert(flags != -1);
+    fcntl(socketfd, F_SETFL, flags | O_NONBLOCK);
+*/
+
+    int rc;
+    int on = 1;
+    int off = 0;
+    rc = ioctl(socketfd, FIONBIO, (char *)&on);
+       if (rc < 0)
+       {
+          perror("ioctl() failed");
+          close(socketfd);
+          exit(-1);
+       }
+
     if (bind(socketfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
         // >>>>>>>>>>> error("ERROR on binding");
         std::cout << "p2pserver ERROR on binding" << std::endl;
@@ -112,48 +139,69 @@ void P2PServer::start_p2pserver()
 
     clilen = sizeof(cli_addr);
 
-    while (true) {
-        try {
-            newsockfd = accept(socketfd, (struct sockaddr *) &cli_addr, &clilen);
-            //int pHandle=new int;
-            if (newsockfd < 0) {
-                // >>>>>>>>>>> error("ERROR on accept");
-            }
+    //non blocking socket
 
-            std::cout << " New client accepted. Kalw accept_client_messages while loop se neo thread." << std::endl;
+    struct fd_set   master_set, working_set;
+    int max_sd;
+    FD_ZERO(&master_set);
+    max_sd = socketfd;
+    FD_SET(socketfd, &master_set);
 
-            //thetw to recv timeout
-#ifdef WIN32
-            int iTimeout = 90000;
-            setsockopt(newsockfd,
-                               SOL_SOCKET,
-                               SO_RCVTIMEO,
-                               (const char *)&iTimeout,
-                               sizeof(iTimeout) );
-#else
-            struct timeval tv;
-            tv.tv_sec = 90;  /* 90 Secs Timeout */
-            tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-            setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
-#endif
-            //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
-            int flag = 1;
-            setsockopt(newsockfd,                    /* socket affected */
-                                    IPPROTO_TCP,     /* set option at TCP level */
-                                    TCP_NODELAY,     /* name of option */
-                                    (char *) &flag,  /* the cast is historical cruft */
-                                    sizeof(int));    /* length of option value */
+     struct timeval tv;
+     tv.tv_sec = (long)1;
+     tv.tv_usec = 0;
 
-            //diaxeirizomai ton neo client se neo thread.
-            auto t = std::thread(&P2PServer::future_thread_accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
-            t.detach();
-        } catch ( std::exception& ex) {
-            std::cout << "Accept loop exception: " << ex.what() << std::endl;
-        }
-        catch ( ... ) {
-            std::cout << "Unknown error in main loop" << std::endl;
-        }
+    while (true && !stopThread) {
+        memcpy(&working_set, &master_set, sizeof(master_set));
+        rc = select(max_sd + 1, &working_set, NULL, NULL, &tv);
+        std::cout << "result >>>>>>>>>> " << rc << std::endl;
+        if(rc > 0)
+        {
+                try {
+                    newsockfd = accept(socketfd, (struct sockaddr *) &cli_addr, &clilen);
+                    //int pHandle=new int;
+                    if (newsockfd < 0) {
+                        // >>>>>>>>>>> error("ERROR on accept");
+                    }
+
+                    std::cout << " New client accepted. Kalw accept_client_messages while loop se neo thread." << std::endl;
+
+                    //thetw to recv timeout
+        #ifdef WIN32
+                    int iTimeout = 90000;
+                    setsockopt(newsockfd,
+                                       SOL_SOCKET,
+                                       SO_RCVTIMEO,
+                                       (const char *)&iTimeout,
+                                       sizeof(iTimeout) );
+        #else
+                    struct timeval tv;
+                    tv.tv_sec = 90;  /* 90 Secs Timeout */
+                    tv.tv_usec = 0;  // Not init'ing this can cause strange errors
+                    setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+        #endif
+                    //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
+                    int flag = 1;
+                    setsockopt(newsockfd,                    /* socket affected */
+                                            IPPROTO_TCP,     /* set option at TCP level */
+                                            TCP_NODELAY,     /* name of option */
+                                            (char *) &flag,  /* the cast is historical cruft */
+                                            sizeof(int));    /* length of option value */
+
+                    rc = ioctl(newsockfd, FIONBIO, (char *)&off);
+
+                    //diaxeirizomai ton neo client se neo thread.
+                    auto t = std::thread(&P2PServer::future_thread_accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
+                    t.detach();
+                } catch ( std::exception& ex) {
+                    std::cout << "Accept loop exception: " << ex.what() << std::endl;
+                }
+                catch ( ... ) {
+                    std::cout << "Unknown error in main loop" << std::endl;
+                }
+        } //accept socket
     } /* end of while */
+    std::cout << "p2pserver select socket loop exiting...\r\n" << std::endl;
 }
 
 static std::atomic<int> activeP2PClientsCounter {0}; //TODO: na tin kanw member variable tis clasis. dokimasa alla evgaze compile errors
