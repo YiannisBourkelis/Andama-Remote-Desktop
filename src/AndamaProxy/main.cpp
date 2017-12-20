@@ -696,6 +696,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             std::vector<char> buffIP(4);
                             ulongToBytes((*found_client).second.ip, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
                             std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port  << std::endl;
 
