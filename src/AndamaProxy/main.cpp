@@ -584,6 +584,14 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                              " CMD_PROTOCOL >  Client ID created and sent to client." << std::endl;
 
+                //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+                //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+                struct sockaddr_in sa;
+                sa.sin_addr.s_addr = clientIP;
+                char str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+                std::cout << "Client IP:" << str  << std::endl;
+
             } // CMD_PROTOCOL
 
             //proothisi arxikou screenshot ston paralipti
@@ -689,14 +697,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                             ulongToBytes((*found_client).second.ip, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
 
-                            //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
-                            //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
-                            struct sockaddr_in sa;
-                            sa.sin_addr.s_addr = (*found_client).second.ip;
-                            char str[INET_ADDRSTRLEN];
-                            inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
-
-                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port << " and IP:" << str << std::endl;
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << clients[sid].port  << std::endl;
 
 
                             //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
