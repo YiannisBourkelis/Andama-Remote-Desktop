@@ -143,8 +143,10 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID, const in
                     ci.remote_socket = 0;
                     ci.sockfd = socketfd;
                     ci.cachedID = cachedID;
-                    clients[cachedIDs.at(cachedID)] = ci;
                     ci.setip(clientIP);
+
+                    clients[cachedIDs.at(cachedID)] = ci;
+
                     std::cout << "[1] client IP:" << ci.getip() << std::endl;
 
                     return cachedIDs.at(cachedID);
@@ -167,9 +169,10 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID, const in
             ci.remote_socket = 0;
             ci.sockfd = socketfd;
             ci.cachedID = generateRandomCachedID(64);
-            clients[tmpIDstream.str()] = ci;
             ci.setip(clientIP);
             std::cout << "[2] client IP:" << ci.getip() << std::endl;
+
+            clients[tmpIDstream.str()] = ci;
 
             //prostheto to neo cachedID sto map
             cachedIDs[ci.cachedID]=tmpIDstream.str();
