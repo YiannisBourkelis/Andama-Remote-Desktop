@@ -57,6 +57,31 @@ unsigned int bytesToInt(const std::vector<char> &buffer, unsigned int begin, uns
 void ulongToBytes(unsigned long value, std::vector<char> &buffer)
 {
     if(buffer.size() == 4){
+        buffer[0] = (value >> 24) & 0xff;
+        buffer[1] = (value >> 16) & 0xff;
+        buffer[2] = (value >> 8)  & 0xff;
+        buffer[3] = value & 0xff;
+    } else {
+        throw std::runtime_error("void ulongToBytes: buffer size out of range");
+    }
+}
+
+unsigned long bytesToULong(const std::vector<char> &buffer)
+{
+    if (buffer.size() == 4){
+        return
+                (((unsigned char)buffer[0]) << 24) +
+                (((unsigned char)buffer[1]) << 16) +
+                (((unsigned char)buffer[2]) << 8) +
+                  (unsigned char)buffer[3];
+    }
+    throw std::runtime_error("unsigned long bytesToULong: buffer size out of range");
+}
+
+/*
+void ulongToBytes(unsigned long value, std::vector<char> &buffer)
+{
+    if(buffer.size() == 4){
         buffer[0] = (int)((value >> 24) & 0xFF) ;
         buffer[1] = (int)((value >> 16) & 0xFF) ;
         buffer[2] = (int)((value >> 8) & 0XFF);
@@ -77,6 +102,7 @@ unsigned long bytesToULong(const std::vector<char> &buffer)
     }
     throw std::runtime_error("unsigned long bytesToULong: buffer size out of range");
 }
+*/
 
 unsigned long bytesToULong(const std::vector<char> &buffer, unsigned int begin, unsigned int bytes)
 {
