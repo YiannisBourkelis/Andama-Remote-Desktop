@@ -12,23 +12,6 @@ public:
     std::vector<char> cachedID; //to cachedID pou xrisiopoieitai gia na diatirei o client to idio ID se periptwsi aposyndesis
     unsigned short port = 0; //i port pou epitrepei p2p connection (ean exei anoixtei me uPnP i manually)
 
-#ifdef WIN32
-    unsigned long getip() {
-        return ip;
-    }
-    void setip(unsigned long _ip) {
-        ip = _ip;
-    }
-#else
-    in_addr_t getip() {
-        return ip;
-    }
-    void setip(in_addr_t _ip) {
-        ip = _ip;
-    }
-#endif
-
-private:
     //i ip tou client
 #ifdef WIN32
     unsigned long ip = 0;

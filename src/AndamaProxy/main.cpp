@@ -143,11 +143,11 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID, const in
                     ci.remote_socket = 0;
                     ci.sockfd = socketfd;
                     ci.cachedID = cachedID;
-                    ci.setip(clientIP);
+                    ci.ip = clientIP;
 
                     clients[cachedIDs.at(cachedID)] = ci;
 
-                    std::cout << "[1] client IP:" << ci.getip() << std::endl;
+                    std::cout << "[1] client IP:" << ci.ip << std::endl;
 
                     return cachedIDs.at(cachedID);
                 }
@@ -169,8 +169,8 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID, const in
             ci.remote_socket = 0;
             ci.sockfd = socketfd;
             ci.cachedID = generateRandomCachedID(64);
-            ci.setip(clientIP);
-            std::cout << "[2] client IP:" << ci.getip() << std::endl;
+            ci.ip = clientIP;
+            std::cout << "[2] client IP:" << ci.ip << std::endl;
 
             clients[tmpIDstream.str()] = ci;
 
@@ -699,11 +699,11 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
                             //i IPv4 tou remote client
                             std::vector<char> buffIP(4);
-                            ulongToBytes(clients[sid].getip(), buffIP);
+                            ulongToBytes(clients[sid].ip, buffIP);
                             buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
                             std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
 
-                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << remote_computer_p2p_port << " and IP:" <<  clients[sid].getip() << std::endl;
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << remote_computer_p2p_port << " and IP:" <<  clients[sid].ip << std::endl;
 
 
                             //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
