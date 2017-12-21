@@ -8,8 +8,9 @@
 #include "../Shared/AndamaHeaders/socket_functions.h"
 #include "../Shared/General/finally.h"
 
-
+#ifndef WIN32
 #include <sys/ioctl.h> //gia non blocking sockets
+#endif
 
 
 #include <csignal> // xreiazetai gia na ginei compile se linux gia tin signal
@@ -120,13 +121,22 @@ void P2PServer::start_p2pserver()
     int rc;
     int on = 1;
     int off = 0;
+
+#ifdef WIN32
+    rc = ioctlsocket(socketfd, FIONBIO, (u_long *)&on);
+#else
     rc = ioctl(socketfd, FIONBIO, (char *)&on);
-       if (rc < 0)
-       {
-          perror("ioctl() failed");
-          close(socketfd);
-          exit(-1);
-       }
+#endif
+    if (rc < 0)
+    {
+        perror("ioctl() failed");
+#ifdef WIN32
+        closesocket(socketfd);
+#else
+        close(socketfd);
+#endif
+        exit(-1);
+    }
 
     if (bind(socketfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
         // >>>>>>>>>>> error("ERROR on binding");
@@ -188,7 +198,11 @@ void P2PServer::start_p2pserver()
                                             (char *) &flag,  /* the cast is historical cruft */
                                             sizeof(int));    /* length of option value */
 
+#ifdef WIN32
+                    rc = ioctlsocket(newsockfd, FIONBIO, (u_long *)&off);
+#else
                     rc = ioctl(newsockfd, FIONBIO, (char *)&off);
+#endif
 
                     //diaxeirizomai ton neo client se neo thread.
                     auto t = std::thread(&P2PServer::future_thread_accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
