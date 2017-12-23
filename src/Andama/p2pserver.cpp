@@ -34,10 +34,11 @@ void P2PServer::setConnectionState(connectionState state)
 void P2PServer::stopThread()
 {
     _stopThread = true;
-    shutdown(listensocket, SHUT_RDWR);
 #ifdef WIN32
+    shutdown(listensocket, SD_BOTH);
     closesocket(listensocket);
 #else
+    shutdown(listensocket, SHUT_RDWR);
     close(listensocket);
 #endif
 }

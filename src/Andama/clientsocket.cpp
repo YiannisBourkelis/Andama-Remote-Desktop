@@ -62,7 +62,11 @@ void _displayEndianness()
 void clientSocket::stopThread()
 {
     stopThreadFlag = true;
+#ifdef WIN32
+    shutdown(protocol->activeSocket, SD_BOTH);
+#else
     shutdown(protocol->activeSocket, SHUT_RDWR);
+#endif
 }
 
 void clientSocket::connectToServer()
