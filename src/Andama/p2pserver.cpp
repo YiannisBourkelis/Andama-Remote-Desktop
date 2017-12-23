@@ -31,6 +31,17 @@ void P2PServer::setConnectionState(connectionState state)
     m_connection_state = state;
 }
 
+void P2PServer::stopThread()
+{
+    _stopThread = true;
+    shutdown(listensocket, SHUT_RDWR);
+#ifdef WIN32
+    closesocket(listensocket);
+#else
+    close(listensocket);
+#endif
+}
+
 void P2PServer::run(void)
 {
     this->start_p2pserver();
@@ -61,9 +72,9 @@ void P2PServer::start_p2pserver()
     //gia na mi prokaleitai crash otan paw na grapsw se socket pou exei kleisei
     //http://stackoverflow.com/questions/108183/how-to-prevent-sigpipes-or-handle-them-properly
     #ifdef WIN32
-        SOCKET socketfd = INVALID_SOCKET;
+        //SOCKET socketfd = INVALID_SOCKET;
     #else
-        int socketfd;
+        //int socketfd;
     signal(SIGPIPE, SIG_IGN);
     #endif
 
@@ -82,11 +93,11 @@ void P2PServer::start_p2pserver()
     }
 #endif
 
-    socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    listensocket = socket(AF_INET, SOCK_STREAM, 0);
 #ifdef WIN32
-        if (socketfd == INVALID_SOCKET) {
+        if (listensocket == INVALID_SOCKET) {
 #else
-        if (socketfd < 0){
+        if (listensocket < 0){
 #endif
         // >>>>>>>>>>> error("ERROR opening socket");
             std::cout << "ERROR opening socket";
@@ -102,77 +113,34 @@ void P2PServer::start_p2pserver()
     //Xreiazetai wste se periptwsi crash na ginetai reuse to socket pou einai se state CLOSE_WAIT
     //mporw na to vrw se macos me: netstat -anp tcp | grep port_number
     int reuse = 1;
-    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+    if (setsockopt(listensocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
         perror("setsockopt(SO_REUSEADDR) failed");
 
 #ifdef SO_REUSEPORT
-    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0)
+    if (setsockopt(listensocket, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0)
         perror("setsockopt(SO_REUSEPORT) failed");
 #endif
 
-
-    /*
-    int flags;
-    flags = fcntl(socketfd,F_GETFL,0);
-    assert(flags != -1);
-    fcntl(socketfd, F_SETFL, flags | O_NONBLOCK);
-*/
-
-    int rc;
-    int on = 1;
-    int off = 0;
-
-#ifdef WIN32
-    rc = ioctlsocket(socketfd, FIONBIO, (u_long *)&on);
-#else
-    rc = ioctl(socketfd, FIONBIO, (char *)&on);
-#endif
-    if (rc < 0)
-    {
-        perror("ioctl() failed");
-#ifdef WIN32
-        closesocket(socketfd);
-#else
-        close(socketfd);
-#endif
-        exit(-1);
-    }
-
-    if (bind(socketfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+    if (bind(listensocket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
         // >>>>>>>>>>> error("ERROR on binding");
         std::cout << "p2pserver ERROR on binding" << std::endl;
         return;
     }
 
-    listen(socketfd, SOMAXCONN);//
+    listen(listensocket, SOMAXCONN);//
     std::cout << "Listenning for connections on port: " << PORT_NUMBER << std::endl;
 
     clilen = sizeof(cli_addr);
 
-    //non blocking socket
-
-    struct fd_set   master_set, working_set;
-    int max_sd;
-    FD_ZERO(&master_set);
-    max_sd = socketfd;
-    FD_SET(socketfd, &master_set);
-
-     struct timeval tv;
-     tv.tv_sec = (long)1;
-     tv.tv_usec = 0;
-
-    while (true && !stopThread) {
-        memcpy(&working_set, &master_set, sizeof(master_set));
-        rc = select(max_sd + 1, &working_set, NULL, NULL, &tv);
-        std::cout << "result >>>>>>>>>> " << rc << std::endl;
-        if(rc > 0)
-        {
+    while (true && !_stopThread) {
                 try {
-                    newsockfd = accept(socketfd, (struct sockaddr *) &cli_addr, &clilen);
+                    newsockfd = accept(listensocket, (struct sockaddr *) &cli_addr, &clilen);
                     //int pHandle=new int;
-                    if (newsockfd < 0) {
+                    if (listensocket < 0) {
                         // >>>>>>>>>>> error("ERROR on accept");
                     }
+
+                    if (_stopThread) break;
 
                     std::cout << " New client accepted. Kalw accept_client_messages while loop se neo thread." << std::endl;
 
@@ -198,12 +166,6 @@ void P2PServer::start_p2pserver()
                                             (char *) &flag,  /* the cast is historical cruft */
                                             sizeof(int));    /* length of option value */
 
-#ifdef WIN32
-                    rc = ioctlsocket(newsockfd, FIONBIO, (u_long *)&off);
-#else
-                    rc = ioctl(newsockfd, FIONBIO, (char *)&off);
-#endif
-
                     //diaxeirizomai ton neo client se neo thread.
                     auto t = std::thread(&P2PServer::future_thread_accept_client_messages, this, newsockfd, cli_addr.sin_addr.s_addr);
                     t.detach();
@@ -213,7 +175,6 @@ void P2PServer::start_p2pserver()
                 catch ( ... ) {
                     std::cout << "Unknown error in main loop" << std::endl;
                 }
-        } //accept socket
     } /* end of while */
     std::cout << "p2pserver select socket loop exiting...\r\n" << std::endl;
 }

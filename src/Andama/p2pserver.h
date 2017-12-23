@@ -49,11 +49,11 @@ public:
 
     //server listening port
     const int PORT_NUMBER = 17332;
-    bool stopThread = false;
 
     P2PServer();
     void setRemoteComputerOS(OS os);
     void setConnectionState(connectionState state);
+    void stopThread();
 
     #ifdef WIN32
     void accept_client_messages(const SOCKET socketfd, const unsigned long clientIP);
@@ -75,6 +75,13 @@ public:
 private:
     std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
     OS _remoteComputerOS;
+    bool _stopThread = false;
+
+#ifdef WIN32
+    SOCKET listensocket = INVALID_SOCKET;
+#else
+    int listensocket;
+#endif
 
     connectionState m_connection_state = disconnected;
     std::mutex connection_state_mutex;

@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include "deviceresponse.h"
+#include <thread>
 
 class UPnPEngine : public QObject
 {  
@@ -38,6 +39,7 @@ public:
     explicit UPnPEngine(QObject *parent = 0);
 
     std::atomic<bool> stopAddPortMappingAsyncThread {false};
+    std::thread AddPortMappingPeriodicallyAsyncThread;
 
     //public methods
     void AddPortMappingAsync();

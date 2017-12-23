@@ -351,8 +351,7 @@ MainWindow::MainWindow(QWidget *parent) :
     keepAlive.start();
 
     protocol_supervisor.start();
-    //protocol.start();
-    p2pclient.remotePort=17332;
+
     p2pserver.start();
 
     //upnp
@@ -371,18 +370,20 @@ MainWindow::MainWindow(QWidget *parent) :
 //kaleitai sto protocol thread
 void MainWindow::slot_protocol_finished_or_terminated()
 {
-    protocol_supervisor.protocol.setConnectionState(connectionState::disconnected);
-    while (protocol_supervisor.isRunning()) {
-        std::chrono::milliseconds sleep_dura(10);
-        std::this_thread::sleep_for(sleep_dura);
-    }
+    if (protocol_supervisor.clientsocket.stopThreadFlag == false){
+        protocol_supervisor.protocol.setConnectionState(connectionState::disconnected);
+        while (protocol_supervisor.isRunning()) {
+            std::chrono::milliseconds sleep_dura(10);
+            std::this_thread::sleep_for(sleep_dura);
+        }
 
-    if (firstRun){
-        firstRun=false;
-        setDefaultGUI();
-    }
+        if (firstRun){
+            firstRun=false;
+            setDefaultGUI();
+        }
 
-    protocol_supervisor.start();
+        protocol_supervisor.start();
+    }
 }
 
 void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes)
@@ -402,7 +403,9 @@ void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPo
                                    addPortMappingRes.deviceInfo.ServerTag.c_str())
                                );
         //apostoli ston proxy tou UPnP port pou mporei na xrisimopoiithei gia P2P syndeseis
-        protocol_supervisor.protocol.sendUPnPPort(addPortMappingRes.remotePort);
+        if (protocol_supervisor.protocol.getConnectionState() != connectionState::disconnected) {
+            protocol_supervisor.protocol.sendUPnPPort(addPortMappingRes.remotePort);
+        }
     }else{
         tbllogmodel.addLogData(tr("UPnP returned error code: %1 (%2)").arg(
                                    QString::fromStdString(std::to_string(addPortMappingRes.statusCode)),
@@ -593,15 +596,17 @@ void MainWindow::closeEvent(QCloseEvent *event)
     upnpengine.stopAddPortMappingAsyncThread = true;
     //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
 
-    p2pserver.stopThread = true;
+    p2pserver.stopThread();
 
-    protocol_supervisor.quit();
+    protocol_supervisor.clientsocket.stopThread();
 
     screenshotWrk.stopThread = true;
 
     keepAlive.wait();
     screenshotWrk.wait();
     p2pserver.wait();
+    protocol_supervisor.wait();
+    upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
 }
 
 void MainWindow::setDefaultGUI()
@@ -752,6 +757,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
        }
        else if(msgType == protocol_supervisor.protocol.MSG_NO_PROXY_CONNECTION){
            //setDisabledRemoteControlWidgets(true);
+           std::cout << "p2pclient.remotePort: " << p2pclient.remotePort << std::endl;
            if (p2pclient.remotePort == 0){
                 ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
                 QString str_error_connecting_proxy = tr("Error connecting with proxy server. %1").arg(tr("Please make sure you have an internet connection and try again."));

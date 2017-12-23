@@ -59,6 +59,12 @@ void _displayEndianness()
     }
 }
 
+void clientSocket::stopThread()
+{
+    stopThreadFlag = true;
+    shutdown(protocol->activeSocket, SHUT_RDWR);
+}
+
 void clientSocket::connectToServer()
 {
     int bytes_recv;
@@ -133,6 +139,7 @@ void clientSocket::connectToServer()
         //sybdesi mesw proxy
         serv_addr.sin_port = htons(PROXY_PORT_NUMBER);
 
+        //connect to server
     int conres = ::connect(protocol->activeSocket,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
     if (conres < 0)
     {
@@ -164,24 +171,29 @@ void clientSocket::connectToServer()
    // setsockopt(this->getActiveSocket(), SOL_SOCKET, SO_SNDTIMEO, (char*)&send_timeout, intlen);
     //getsockopt(socketfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, &ilen);
 
-    while(true){
+    while(true && !stopThreadFlag){
         try
         {
             //qDebug("1 -----> Waitting for command...");
-
             bytes_recv = recv(protocol->activeSocket, &cmdbuffer[0], 1, 0);
 
             if (bytes_recv == 0){
-                std::cout << std::this_thread::get_id() << " " <<
-                             "######### --- Main command loop disconnected from server. ---- ########" << " " <<
-                           "####  recv return 0 bytes. [MAIN command loop]. Returning from function." << std::endl;
+                            if (!stopThreadFlag) displayErrno(
+                             "######### --- Main command loop disconnected from server. ---- ######## "
+                             "####  recv return 0 bytes. [MAIN command loop]. Returning from function. ");
+
 
     #ifdef WIN32
                 closesocket(protocol->activeSocket);
     #else
                 close(protocol->activeSocket);
     #endif
+
+                if(stopThreadFlag) break;
+
                 //event_messageReceived(MSG_NO_PROXY_CONNECTION);
+                protocol->setConnectionState(connectionState::disconnected);
+
                 emit sig_messageReceived(protocol,MSG_NO_PROXY_CONNECTION);
                 return;
             }
@@ -194,9 +206,14 @@ void clientSocket::connectToServer()
                 close(protocol->activeSocket);
     #endif
                 //event_messageReceived(MSG_NO_PROXY_CONNECTION);
+                protocol->setConnectionState(connectionState::disconnected);
+
+                if(stopThreadFlag) break;
+
                 emit sig_messageReceived(protocol,MSG_NO_PROXY_CONNECTION);
                 return;
             }
+
 
             //qDebug("2 -----> Command received: %s. Bytes: %i. Ksekina epeksergasia tou command",cmdbuffer.data(),bytes_recv);
             messageArrived(cmdbuffer);
@@ -213,15 +230,9 @@ void clientSocket::connectToServer()
         {
             qDebug("----> EXCEPTION :: start_protocol unhandled exception");
         }
-
     } // while
 
-
-    #ifdef WIN32
-    //closesocket(sockfd);
-    #else
-    //close(sockfd);
-    #endif
+    std::cout << "clientsocket exiting...\r\n" << std::endl;
 
     return;
 }

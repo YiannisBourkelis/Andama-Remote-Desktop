@@ -53,7 +53,7 @@ void UPnPEngine::AddPortMappingPeriodicallyAsync(const std::string &NewRemoteHos
                                                                   NewPortMappingDescription,
                                                                   NewLeaseDuration,
                                                                   seconds_period);
-    t.detach();
+    AddPortMappingPeriodicallyAsyncThread = std::move(t);
 }
 
 void UPnPEngine::AddPortMappingPeriodically(const std::string &NewRemoteHost,

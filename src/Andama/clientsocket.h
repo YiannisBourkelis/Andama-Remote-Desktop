@@ -69,15 +69,20 @@ public:
     clientServerProtocol* protocol;
     int serverPort = PROXY_PORT_NUMBER;
     std::string serverHostName = PROXY_HOST_NAME;
+    bool stopThreadFlag = false;
 
     //public methods
     void messageArrived(std::array<char,1> message);
     void connectToServer();
     void error(const char *msg);
+    void stopThread();
 
     //events
     //void event_messageReceived(msgType messageType);
     //void event_exception(QString exceptionDescription);
+
+private:
+    //private variables
 
 signals:
     void sig_messageReceived(const clientServerProtocol *_protocol, const int msgType,const std::vector<char> &vdata = std::vector<char>());
