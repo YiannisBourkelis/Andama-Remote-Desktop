@@ -355,7 +355,7 @@ MainWindow::MainWindow(QWidget *parent) :
     p2pserver.start();
 
     //upnp
-    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
+    //upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
 
     qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
 
@@ -606,7 +606,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     screenshotWrk.wait();
     p2pserver.wait();
     protocol_supervisor.wait();
-    upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
+
+    if (upnpengine.AddPortMappingPeriodicallyAsyncThread.joinable()) upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
 }
 
 void MainWindow::setDefaultGUI()

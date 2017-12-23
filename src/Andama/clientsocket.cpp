@@ -97,7 +97,8 @@ void clientSocket::connectToServer()
     }
 
     //SERVER = gethostbyname("mailgate.filoxeni.com");
-    SERVER = gethostbyname("andamaproxy-us-west.filoxeni.com");
+    //SERVER = gethostbyname("andamaproxy-us-west.filoxeni.com");
+    SERVER = gethostbyname("andamaproxy-ro-timisoara.filoxeni.com");
     //SERVER = gethostbyname("localhost");
 
     if (SERVER == NULL) {
