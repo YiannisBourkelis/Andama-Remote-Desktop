@@ -20,6 +20,10 @@
 
 // The C10K problem: http://www.kegel.com/c10k.html
 // SOCKETS - SERVER & CLIENT - 2017 http://www.bogotobogo.com/cplusplus/sockets_server_client.php
+
+//Peer-to-Peer Communication Across Network Address Translators
+//http://www.bford.info/pub/net/p2pnat/index.html
+
 #ifdef WIN32
 #define NOMINMAX
 #include <stdio.h>
@@ -434,7 +438,7 @@ void createConnectCommandData(std::vector<char> &all_data, const std::vector<cha
  * PROFYLAKSEIS
  * - todo: apo tin idia ip mporoun na syndethoun to megisto 50 clients
  * - todo: i idia ip mporei na steilei to megisto 10 request pros client id pou den yparxei. meta ginetai ban gia 2 wres. (nomizw to ylopoiisa afto)
- * - todo: flood protect. megisto orio ana client:1GB/hour. megisto orio ana ip:10GB/hour
+ * - todo: flood protect. megisto orio ana client:1GB/hour. megisto orio ana ip:10GB/hour.
  */
 #ifdef WIN32
 void dostuff(const SOCKET socketfd, const unsigned long clientIP) {

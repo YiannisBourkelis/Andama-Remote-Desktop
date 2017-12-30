@@ -633,8 +633,7 @@ bool clientserver::proccesCommand(const std::array<char, 1> &command){
         //lamvanw to id tou request
         std::vector<char> screenshot_diff_id_data_buff;
         _receive(this->getActiveSocket(), screenshot_diff_id_data_buff);
-        std::string rid(screenshot_diff_id_data_buff.begin(), screenshot_diff_id_data_buff.end());
-
+        //std::string rid(screenshot_diff_id_data_buff.begin(), screenshot_diff_id_data_buff.end());
         //qDebug ("4. CMD_REQUEST_SCREENSHOT_DIFF ID: %s. Lipsi aitimatos apostolis screenshot diff. Will emit signal from protocol to ui. Bytes recv: %i",rid.c_str(),bytes_received);
         //std::vector<char> cdata;
         emit sig_messageReceived(NULL, MSG_SCREENSHOT_DIFF_REQUEST, screenshot_diff_id_data_buff);
