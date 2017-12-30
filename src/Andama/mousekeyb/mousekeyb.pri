@@ -31,4 +31,6 @@ SOURCES += \
     $$PWD/Keyboard.cpp \
     $$PWD/MouseLinux.cpp \
     $$PWD/KeyboardLinux.cpp \
-    $$PWD/MouseCursorHookWindows.cpp
+    $$PWD/MouseCursorHookWindows.cpp \
+    $$PWD/MouseCursorHookLinux.cpp \
+    $$PWD/MouseCursorHookMac.cpp

@@ -24,9 +24,12 @@ public:
 
 private:
     //private variables
+#ifdef _WIN32
     HHOOK _mouseHook;
-    bool _stopThread = false;
     DWORD _mythreadid;
+#endif
+
+    bool _stopThread = false;
 
 protected:
     void run(void);
