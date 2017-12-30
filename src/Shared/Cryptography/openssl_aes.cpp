@@ -28,8 +28,8 @@ void openssl_aes::aes_256_cbc_encrypt(const openssl_aes::byte key[], const opens
     // Set cipher text size now that we know it
     ctext.resize(out_len1 + out_len2);
 
-    OPENSSL_cleanse(&key, KEY_SIZE_256_BITS);
-    OPENSSL_cleanse(&iv, BLOCK_SIZE_128_BITS);
+    //OPENSSL_cleanse(&key, KEY_SIZE_256_BITS);
+    //OPENSSL_cleanse(&iv, BLOCK_SIZE_128_BITS);
 
 }
 
@@ -56,6 +56,6 @@ void openssl_aes::aes_256_cbc_decrypt(const openssl_aes::byte key[], const opens
     // Set recovered text size now that we know it
     rtext.resize(out_len1 + out_len2);
 
-    OPENSSL_cleanse(&key, KEY_SIZE_256_BITS);
-    OPENSSL_cleanse(&iv, BLOCK_SIZE_128_BITS);
+    //OPENSSL_cleanse(&key, KEY_SIZE_256_BITS);
+    //OPENSSL_cleanse(&iv, BLOCK_SIZE_128_BITS);
 }

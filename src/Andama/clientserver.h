@@ -22,7 +22,7 @@
 #define CLIENTSERVER_H
 
 #ifdef WIN32
-#define NOMINMAX
+//#define NOMINMAX
 #include <stdio.h>
 #include "winsock2.h"
 #include <ws2tcpip.h>

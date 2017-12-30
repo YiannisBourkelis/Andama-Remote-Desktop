@@ -354,6 +354,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     p2pserver.start();
 
+    //mouseCursorHook.start();
+   // mouseCursorHook.setMouseCursorHook();
+
     //upnp
     //upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
 
@@ -602,10 +605,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     screenshotWrk.stopThread = true;
 
+    if (mouseCursorHook.isRunning())
+    mouseCursorHook.unhookMouseCursorHook();
+
     keepAlive.wait();
     screenshotWrk.wait();
     p2pserver.wait();
     protocol_supervisor.wait();
+    //TODO: to mouseCursorHook thread den ginetai terminate swsta
+   // mouseCursorHook.wait();
 
     if (upnpengine.AddPortMappingPeriodicallyAsyncThread.joinable()) upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
 }

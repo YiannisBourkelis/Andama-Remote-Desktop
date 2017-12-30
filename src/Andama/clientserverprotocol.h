@@ -31,7 +31,7 @@
 #include "../Shared/AndamaHeaders/shared_constants.h"
 
 #ifdef WIN32
-#define NOMINMAX
+//#define NOMINMAX
 #define in_addr_t uint32_t
 #pragma comment(lib, "Ws2_32.lib")
 #else

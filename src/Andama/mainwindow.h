@@ -50,6 +50,7 @@
 //#include <appnapcontroller.h>
 #include "../Shared/UPnP/upnpengine.h"
 #include "tbllogmodel.h"
+#include "mousekeyb/MouseCursorHook.h"
 
 #ifdef Q_OS_MAC
 #include <IOKit/pwr_mgt/IOPMLib.h> //gia na ksypnaei to monitor
@@ -101,6 +102,7 @@ private:
     void setDefaultGUI();
     bool firstRun;
     UPnPEngine upnpengine;
+    MouseCursorHook mouseCursorHook;
 
 
 protected:

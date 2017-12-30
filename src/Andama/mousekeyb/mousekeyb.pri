@@ -20,7 +20,8 @@
 
 HEADERS += \
     $$PWD/Mouse.h \
-    $$PWD/Keyboard.h
+    $$PWD/Keyboard.h \
+    $$PWD/MouseCursorHook.h
 
 SOURCES += \
     $$PWD/MouseWindows.cpp \
@@ -29,4 +30,5 @@ SOURCES += \
     $$PWD/KeyboardWindows.cpp \
     $$PWD/Keyboard.cpp \
     $$PWD/MouseLinux.cpp \
-    $$PWD/KeyboardLinux.cpp
+    $$PWD/KeyboardLinux.cpp \
+    $$PWD/MouseCursorHookWindows.cpp
