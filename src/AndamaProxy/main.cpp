@@ -979,7 +979,7 @@ int main(int argc, char *argv[]) {
     if (bind(socketfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
         error("ERROR on binding");
 
-    listen(socketfd, 5);
+    listen(socketfd, SOMAXCONN);
     std::cout << "Listenning for connections on port: " << PROXY_PORT_NUMBER << std::endl;
 
     clilen = sizeof(cli_addr);
@@ -995,26 +995,47 @@ int main(int argc, char *argv[]) {
                          " New client accepted. Kalw dostuff while loop se neo thread." << std::endl;
 
             //thetw to recv timeout
+            int setsockopt_recv_timeout_ret = 0;
 #ifdef WIN32
             int iTimeout = 90000;
-            setsockopt(newsockfd,
-                               SOL_SOCKET,
-                               SO_RCVTIMEO,
-                               (const char *)&iTimeout,
-                               sizeof(iTimeout) );
+            setsockopt_recv_timeout_ret = setsockopt(newsockfd,
+                                                       SOL_SOCKET,
+                                                       SO_RCVTIMEO,
+                                                       (const char *)&iTimeout,
+                                                       sizeof(iTimeout) );
 #else
             struct timeval tv;
             tv.tv_sec = 90;  /* 90 Secs Timeout */
             tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-            setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+            setsockopt_recv_timeout_ret = setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
+            if (setsockopt_recv_timeout_ret < 0){
+                perror("setsockopt for recv timeout failed for new client");
+                #ifdef WIN32
+                closesocket(newsockfd);
+                #else
+                close(newsockfd);
+                #endif
+                continue;
+            }
+
             //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
             int flag = 1;
-            setsockopt(newsockfd,                    /* socket affected */
+            int setsockopt_nagle_ret = 0;
+            setsockopt_nagle_ret = setsockopt(newsockfd,                    /* socket affected */
                                     IPPROTO_TCP,     /* set option at TCP level */
                                     TCP_NODELAY,     /* name of option */
                                     (char *) &flag,  /* the cast is historical cruft */
                                     sizeof(int));    /* length of option value */
+            if (setsockopt_nagle_ret < 0){
+                perror("setsockopt to disable nagle algorithm failed for new client");
+                #ifdef WIN32
+                closesocket(newsockfd);
+                #else
+                close(newsockfd);
+                #endif
+                continue;
+            }
 
             //diaxeirizomai ton neo client se neo thread.
             std::thread(dostuff, newsockfd, cli_addr.sin_addr.s_addr).detach();

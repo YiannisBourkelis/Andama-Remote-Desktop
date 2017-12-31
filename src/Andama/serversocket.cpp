@@ -120,7 +120,7 @@ void serverSocket::startServer(int listen_port)
         return;
     }
 
-    listen(socketfd, 5);
+    listen(socketfd, SOMAXCONN);
     std::cout << "Listenning for connections on port: " << listen_port << std::endl;
 
     clilen = sizeof(cli_addr);

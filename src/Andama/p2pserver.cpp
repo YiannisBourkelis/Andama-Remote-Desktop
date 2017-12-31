@@ -128,7 +128,7 @@ void P2PServer::start_p2pserver()
         return;
     }
 
-    listen(listensocket, SOMAXCONN);//
+    listen(listensocket, SOMAXCONN);
     std::cout << "Listenning for connections on port: " << PORT_NUMBER << std::endl;
 
     clilen = sizeof(cli_addr);
