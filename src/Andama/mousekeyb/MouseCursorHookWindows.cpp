@@ -60,8 +60,6 @@ MouseCursorHook::MouseCursorHook()
     }
 }
 
-static HCURSOR c_IDC_SIZEWE,c_IDC_ARROW,c_IDC_SIZENS;
-
 static LRESULT CALLBACK WinEventCallback2(_In_ int nCode,
                                           _In_ WPARAM wParam,
                                           _In_ LPARAM lParam)
@@ -70,8 +68,10 @@ static LRESULT CALLBACK WinEventCallback2(_In_ int nCode,
     curInfo.cbSize = sizeof(curInfo);
 
 
-    if (GetCursorInfo(&curInfo)){     
+    if (GetCursorInfo(&curInfo)){
+
         auto found_cursor = _sysMouseCursorsMap.find(curInfo.hCursor);
+
         if ( found_cursor != _sysMouseCursorsMap.end()) { // system cursor shape
             if (currentCursorShape != found_cursor->second){
                 currentCursorShape =  found_cursor->second;
@@ -81,27 +81,20 @@ static LRESULT CALLBACK WinEventCallback2(_In_ int nCode,
                     MouseCursorHook::protocSupervisor->protocol.sendMouseCursorType(found_cursor->second);
                 }
             }
-        }
+        }//system cursor shape
         else if (curInfo.flags == 0){ //hidden cursor
             //Qt::BlankCursor
             if (currentCursorShape != Qt::BlankCursor){
                 currentCursorShape = Qt::BlankCursor;
                 std::cout << "Hidden (blank) cursor" << std::endl;
             }
-        }
+        }//hidden cursor
         else {
              std::cout << "Other cursor" << curInfo.hCursor << std::endl;
-        }
+        }//Other cursor
+
     }
-
-
-        //LPMSLLHOOKSTRUCT lpmh = reinterpret_cast<LPMSLLHOOKSTRUCT>(lParam);
-
-    //if (wParam != 512){
-        //std::cout << "Cusros change. mouseData:" << curInfo-> << " wParam:" << wParam << " lParam:" << lParam << std::endl;
-//}
         return CallNextHookEx(0, nCode, wParam, lParam);
-//return 0L;
 }
 
 
@@ -116,12 +109,6 @@ void MouseCursorHook::setMouseCursorHook()
                                                0
 
                     );
-
-    //c_IDC_SIZEWE = LoadCursor(NULL, IDC_SIZEWE);
-    //c_IDC_SIZENS = LoadCursor(NULL, IDC_SIZENS);
-   // c_IDC_ARROW =  LoadCursor(NULL, IDC_ARROW);
-    c_IDC_SIZEWE = (HCURSOR)LoadImage(0, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-
      std::cout << "Mouse Cursor hook set:" << _mouseHook << std::endl;
 
      MSG message;
