@@ -34,7 +34,6 @@
 //#include "imageconfig.h"
 #include "../Shared/Cryptography/openssl_aes.h"
 
-
 //xcode-select --install
 //https://bugreports.qt-project.org/browse/QTCREATORBUG-13077?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel
 
@@ -357,8 +356,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     p2pserver.start();
 
-    //mouseCursorHook.start();
-   // mouseCursorHook.setMouseCursorHook();
+
+    if(!mouseCursorHook.isRunning()){
+        mouseCursorHook.protocSupervisor = &protocol_supervisor;
+        mouseCursorHook.start();
+        //mouseCursorHook.setMouseCursorHook();
+    }
 
     //upnp
     //upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
@@ -992,6 +995,13 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
+       if (msgType == protocol_supervisor.protocol.MSG_MOUSE_CURSOR)
+       {
+           int _cursor = bytesToInt(vdata);
+           Qt::CursorShape _cursorShape = static_cast<Qt::CursorShape>(_cursor);
+           this->ui->lblDesktop->setCursor(_cursorShape);
+
+       } //MSG_MOUSE_CURSOR
        else if (msgType == protocol_supervisor.protocol.MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT){
            //i morfi tou minimatos pou stelnetai ston client einai:
            // | 1 byte command | 4 bytes message length | +

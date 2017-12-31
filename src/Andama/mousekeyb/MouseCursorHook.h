@@ -4,11 +4,11 @@
 #include <iostream>
 #include <QThread>
 #include <atomic>
+#include "../../Andama/protocolsupervisor.h"
 
 #ifdef _WIN32
     #include <windows.h>
 #endif
-
 
 class MouseCursorHook  : public QThread
 {
@@ -17,6 +17,9 @@ class MouseCursorHook  : public QThread
 public:
     //constructors
     MouseCursorHook();
+
+    //public static variables
+    static protocolSupervisor* protocSupervisor;
 
     //public methods
     void setMouseCursorHook();

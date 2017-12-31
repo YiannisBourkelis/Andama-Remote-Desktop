@@ -18,6 +18,7 @@ const std::array<char,1> CMD_SCREENSHOT_DIFF = {{'s'}};
 const std::array<char,1> CMD_REQUEST_SCREENSHOT = {{'R'}};
 const std::array<char,1> CMD_REQUEST_SCREENSHOT_DIFF = {{'r'}};
 const std::array<char,1> CMD_MOUSE = {{'M'}}; // mouse
+const std::array<char,1> CMD_MOUSE_CURSOR = {{'m'}}; // mouse cusror type
 const std::array<char,1> CMD_KEYBOARD = {{'K'}}; // KEYBOARD
 const std::array<char,1> CMD_DISCONNECT_FROM_REMOTE_COMPUTER = {{'D'}}; // disconnect from remote computer
 const std::array<char,1> CMD_HEART_BEAT = {{'H'}};

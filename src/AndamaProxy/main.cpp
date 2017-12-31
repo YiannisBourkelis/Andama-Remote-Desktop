@@ -841,6 +841,15 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 }
             } // CMD_MOUSE
 
+            //proothisi mouse cursor type
+            else if(cmdbuffer == CMD_MOUSE_CURSOR && handshakeCompleted)
+            {
+                std::vector<char> mouse_data_buff;
+                _receive(socketfd, mouse_data_buff);
+
+                _sendmsg(getRemoteComputerSocket(myID), CMD_MOUSE_CURSOR, mouse_data_buff);
+            } // CMD_MOUSE_CURSOR
+
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
             {

@@ -291,6 +291,17 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
         emit sig_messageReceived(this, MSG_MOUSE, mouse_data_buff);
     }// send mouse
 
+    else if(command == CMD_MOUSE_CURSOR)
+    {
+        // | 1 byte command | 4 byte msg size |
+        // | 2 byte cursor type |
+        // argotera mporw edw na stelnw to cursor image px | 4 bytes msg size | cursor image data |
+        std::vector<char> mouse_data_buff;
+        _receive(activeSocket, mouse_data_buff);
+
+        emit sig_messageReceived(this, MSG_MOUSE_CURSOR, mouse_data_buff);
+    }// send mouse
+
     else if(command == CMD_KEYBOARD)
     {
         std::vector<char> keyboard_data_buff;
@@ -452,6 +463,20 @@ void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, i
     msg[9] = _wheelOrientation[0];
 
     _sendmsgPlain(activeSocket, CMD_MOUSE, msg);
+}
+
+//stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
+void clientServerProtocol::sendMouseCursorType(Qt::CursorShape cursorShape)
+{
+    //2 bytes gia to mouse cursor type
+    std::vector<char> msg(2);
+
+    std::vector<char> _msg_bytes(2);
+    intToBytes(cursorShape, _msg_bytes);
+    msg[0] = _msg_bytes[0];
+    msg[1] = _msg_bytes[1];
+
+    _sendmsg(activeSocket, CMD_MOUSE_CURSOR, _msg_bytes);
 }
 
 //stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis

@@ -76,21 +76,22 @@ public:
                   MSG_SCREENSHOT_REQUEST = 5,
                   MSG_SCREENSHOT_DIFF_REQUEST = 6,
                   MSG_MOUSE = 7,
-                  MSG_KEYBOARD = 8,
-                  MSG_CONNECT_ID_NOT_FOUND = 9, // epistrefetai apo ton server otan to Remote ID pou zitithike apo to connect den vrethike
-                  MSG_NO_INTERNET_CONNECTION = 10,
-                  MSG_NO_PROXY_CONNECTION = 11,
-                  MSG_REMOTE_COMPUTER_DISCONNECTED = 12,
-                  MSG_LOCAL_PASSWORD_GENERATED = 13,
-                  MSG_BAN_IP_WRONG_ID = 14, // synolika 5 bytes
-                  MSG_WARNING_BAN_IP_WRONG_ID = 15, // synolika 2 bytes
-                  MSG_CONNECT_PASSWORD_NOT_CORRECT = 16,
-                  MSG_BAN_IP_WRONG_PWD = 17, // synolika 1 byte
-                  MSG_WARNING_BAN_IP_WRONG_PWD = 18, // synolika 2 byte
-                  MSG_ERROR_CANNOT_CONNECT_SAME_ID = 19, // synolika 2 byte
-                  MSG_ERROR_APP_VERSION_NOT_ACCEPTED = 20, // (mono command)
-                  MSG_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = 21, // (mono command)
-                  MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT = 22 //O server enimerwse oti gia tin syndesi pou epixeirithike, o client exei dilwmeni p2p upnp porta, kai stelnei tis plirofories
+                  MSG_MOUSE_CURSOR = 8,
+                  MSG_KEYBOARD = 9,
+                  MSG_CONNECT_ID_NOT_FOUND = 10, // epistrefetai apo ton server otan to Remote ID pou zitithike apo to connect den vrethike
+                  MSG_NO_INTERNET_CONNECTION = 11,
+                  MSG_NO_PROXY_CONNECTION = 12,
+                  MSG_REMOTE_COMPUTER_DISCONNECTED = 13,
+                  MSG_LOCAL_PASSWORD_GENERATED = 14,
+                  MSG_BAN_IP_WRONG_ID = 15, // synolika 5 bytes
+                  MSG_WARNING_BAN_IP_WRONG_ID = 16, // synolika 2 bytes
+                  MSG_CONNECT_PASSWORD_NOT_CORRECT = 17,
+                  MSG_BAN_IP_WRONG_PWD = 18, // synolika 1 byte
+                  MSG_WARNING_BAN_IP_WRONG_PWD = 19, // synolika 2 byte
+                  MSG_ERROR_CANNOT_CONNECT_SAME_ID = 20, // synolika 2 byte
+                  MSG_ERROR_APP_VERSION_NOT_ACCEPTED = 21, // (mono command)
+                  MSG_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = 22, // (mono command)
+                  MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT = 23 //O server enimerwse oti gia tin syndesi pou epixeirithike, o client exei dilwmeni p2p upnp porta, kai stelnei tis plirofories
                  };
 
     //public variables
@@ -127,6 +128,7 @@ public:
 
     void sendKeyboard(int portableVKey, int portableModifiers, int keyEvent);
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
+    void sendMouseCursorType(Qt::CursorShape cursorShape);
     void sendUPnPPort(int port); //stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
     void setConnectionState(connectionState state);
     connectionState getConnectionState();
@@ -135,7 +137,6 @@ public:
     void RequestScreenshot();
     void RequestScreenshotDiff();
     static void resetWrongPasswordIPProtection(in_addr_t clientIP);
-
 
 signals:
     void sig_messageReceived(const clientServerProtocol *clientserver_protocol, const int msgType, const std::vector<char> &vdata = std::vector<char>());
