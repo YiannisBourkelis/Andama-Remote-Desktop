@@ -1000,7 +1000,7 @@ int main(int argc, char *argv[]) {
                 error("ERROR on accept");
 
             std::cout << getTime() << " " << std::this_thread::get_id() <<
-                         " New client accepted. Kalw dostuff while loop se neo thread." << std::endl;
+                         " New client accepted. Kalw dostuff while loop se neo thread. Client port:" << cli_addr.sin_port << std::endl;
 
             //thetw to recv timeout
             int setsockopt_recv_timeout_ret = 0;
