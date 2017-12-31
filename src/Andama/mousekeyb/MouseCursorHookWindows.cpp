@@ -1,6 +1,9 @@
 #include "MouseCursorHook.h"
 #include <map>
 
+//https://msdn.microsoft.com/en-us/library/windows/desktop/ms648391%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+//http://doc.qt.io/archives/qt-4.8/qt.html#CursorShape-enum
+
 #ifdef _WIN32
 
 static std::map<HCURSOR, Qt::CursorShape> _sysMouseCursorsMap;
@@ -35,10 +38,10 @@ MouseCursorHook::MouseCursorHook()
         _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZEWE, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
                             = Qt::SizeHorCursor;
 
-        _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
+        _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
                             = Qt::SizeBDiagCursor;
 
-        _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZENESW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
+        _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZENWSE, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
                             = Qt::SizeFDiagCursor;
 
         _sysMouseCursorsMap [(HCURSOR)LoadImage(0, IDC_SIZEALL, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED)]
