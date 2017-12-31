@@ -116,9 +116,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
     {
         QKeyEvent *ke = static_cast<QKeyEvent*>(e);
 
-        qDebug("key:%i, modifiers:%i, nativeVirtualKey:%i, event:%s",ke->key(),ke->modifiers(),ke->nativeVirtualKey(),
-               e->type() == QEvent::KeyPress ? "KeyPress" :
-               e->type() == QEvent::KeyRelease ? "KeyRelease" : "unknown");
+        std::cout << "key:" << ke->key()
+                  << ", modifiers:" << ke->modifiers()
+                  << ", nativeVirtualKey:" << ke->nativeVirtualKey()
+                  << ", event:" << (e->type() == QEvent::KeyPress ? "KeyPress" :
+                                    e->type() == QEvent::KeyRelease ? "KeyRelease" : "unknown")
+                  << std::endl;
 
         //QApplication::beep();
 
@@ -360,7 +363,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //upnp
     //upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
 
-    qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
+    std::cout << "-------------||||  GUI THREAD ||| Thread id inside MainWindow: " << QThread::currentThreadId() << std::endl;
 
     ui->lblDesktop->setMouseTracking((true));
     ui->lblDesktop->installEventFilter(this);

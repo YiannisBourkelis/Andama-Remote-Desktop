@@ -889,7 +889,6 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
             displayErrno("----------> EXCEPTION dostuff loop");
 
             cleanup(myID, socketfd);
-
             return;
         }
         catch ( ... ) {

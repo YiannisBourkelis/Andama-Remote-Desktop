@@ -75,6 +75,7 @@ void clientserver::cleanup(const SOCKET socketfd)
 void clientserver::cleanup(const int socketfd)
 #endif
 {
+    static_cast<void>(socketfd);
     /*
     try
     {
@@ -706,7 +707,7 @@ bool clientserver::proccesCommand(const std::array<char, 1> &command){
 
     else
     {
-        qDebug ("---->> TO COMMAND DEN VRETHIKE : %s", command);
+        qDebug ("---->> TO COMMAND DEN VRETHIKE : %s", &command[0]);
         return false;
     }
 
