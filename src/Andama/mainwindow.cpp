@@ -942,7 +942,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
                return;
            }
 
-           Bench("xronos emfanisis screenshot diff stin othoni");
+           //Bench("xronos emfanisis screenshot diff stin othoni");
 
 
            openssl_aes myaes(EVP_aes_256_cbc());
@@ -998,7 +998,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
            ui->lblDesktop->setPixmap(qp);
 
-           std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
+           //std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
        if (msgType == protocol_supervisor.protocol.MSG_MOUSE_CURSOR)
