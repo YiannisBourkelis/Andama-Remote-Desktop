@@ -164,6 +164,16 @@ void clientSocket::connectToServer()
         return;
      }
 
+    struct sockaddr_in local_address;
+    socklen_t addr_size = sizeof(local_address);
+    int ddd = protocol->activeSocket;
+    getsockname(ddd, (struct sockaddr *) &local_address, &addr_size);
+    char str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(local_address.sin_addr), str, INET_ADDRSTRLEN);
+    localPort = local_address.sin_port;
+    std::cout << "client local port after proxy connect:" << localPort << ", IP:" << str << std::endl;
+
+
     qDebug("Remote Cotrol BETA - (c) 2015 Yiannis Bourkelis \n\n");
     _displayEndianness();
 

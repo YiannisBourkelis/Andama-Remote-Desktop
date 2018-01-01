@@ -441,9 +441,9 @@ void createConnectCommandData(std::vector<char> &all_data, const std::vector<cha
  * - todo: flood protect. megisto orio ana client:1GB/hour. megisto orio ana ip:10GB/hour.
  */
 #ifdef WIN32
-void dostuff(const SOCKET socketfd, const unsigned long clientIP) {
+void dostuff(const SOCKET socketfd, const sockaddr_in client_sockaddr_in) {
 #else
-void dostuff(const int socketfd, const in_addr_t clientIP) {
+void dostuff(const int socketfd, const sockaddr_in client_sockaddr_in) {
 #endif
     //std::cout << getTime() << " " << std::this_thread::get_id() <<
     //             " Eisodos sto dostuff loop. Socket:%i" << socketfd  << std::endl;
@@ -467,11 +467,38 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
     try
     {
         //molis syndethei o client, o server apostelei to
-        //megisto protocol version poy ypostirizei.
-        std::vector<char> server_protocol(2);
-        server_protocol[0] = '1';
-        server_protocol[1] = '0';
-        _sendmsgPlain(socketfd,CMD_PROTOCOL,server_protocol);
+        //megisto protocol version poy ypostirizei, tin port kai tin ip tou client
+        // | 1 byte CMD_PROTOCOL | 4 byte msg size |
+        // | 2 bytes protocol version |
+        // | 2 bytes client endpoint port |
+        // | 1 byte remote client ip length | x bytes client ip |
+        // gia IPv4 ta bytes pou apaitountai gia olo to paketo einai synolika 9 (xwris ta prwta 5)
+        // TODO: tin port kai ip tou client tin epistrefw wste argotera na ylopoiisw TCP hole punching
+
+        // | 2 bytes protocol version |
+        std::vector<char> server_protocol(9);
+        server_protocol[0] = ('1');
+        server_protocol[1] = ('0');
+
+        // | 2 bytes client port |
+        //kataxwrw to upnp port tou remote client
+        std::vector<char> buffPort(2);
+        intToBytes(client_sockaddr_in.sin_port, buffPort);
+        server_protocol[2] = buffPort[0];
+        server_protocol[3] = buffPort[1];
+
+        //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
+        // 4 bytes length - hard coded.
+        std::vector<char> buffLenIP(1);
+        intToBytes(4, buffLenIP);
+        server_protocol[4] = buffLenIP[0];
+
+        //i IPv4 tou remote client
+        std::vector<char> buffIP(4);
+        ulongToBytes(client_sockaddr_in.sin_addr.s_addr, buffIP);
+        server_protocol.insert(server_protocol.begin() + 5, buffIP.begin(), buffIP.end());
+
+        _sendmsg(socketfd, CMD_PROTOCOL, server_protocol);
     }
     catch (std::exception ex)
     {
@@ -558,7 +585,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
                 //dimiourgw id kai ton kataxwrw sto dictionary map
                 //Edw kataxwreitai kai o neos client sto array (an den yparxei idi apo prin)
-                myID = getClientID(socketfd, cachedID, clientIP);
+                myID = getClientID(socketfd, cachedID, client_sockaddr_in.sin_addr.s_addr);
                 myIDv.insert(myIDv.end(),myID.begin(),myID.end());//to id
 
                 std::vector<char> buffsendID; //to synoliko minima pou tha stalei
@@ -596,9 +623,9 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
                 //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
                 struct sockaddr_in sa;
-                sa.sin_addr.s_addr = clientIP;
+                //sa.sin_addr.s_addr = client_sockaddr_in.sin_addr.s_addr;
                 char str[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+                inet_ntop(AF_INET, &(client_sockaddr_in.sin_addr), str, INET_ADDRSTRLEN);
                 std::cout << "Client IP:" << str  << std::endl;
 
             } // CMD_PROTOCOL
@@ -634,7 +661,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 _receive(socketfd,remote_client_idbuff); //<-----------to remote client id pou zitithike kai to remote password
 
                 //ean exei ginei idi ban stin IP den kanw tipota allo
-                if(isBannedForWrongIDs(socketfd,clientIP)){
+                if(isBannedForWrongIDs(socketfd,client_sockaddr_in.sin_addr.s_addr)){
                     continue;
                 }
 
@@ -728,7 +755,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     const std::vector<char> vpassword(remote_client_idbuff.begin() + 3 + iIDSize + 1, remote_client_idbuff.begin() + 3 + iIDSize + 1 + ipwdSize);
 
                     std::vector<char> connect_data;
-                    createConnectCommandData(connect_data,myIDv,vpassword,clientIP,os);
+                    createConnectCommandData(connect_data,myIDv,vpassword,client_sockaddr_in.sin_addr.s_addr,os);
 
 
                     //stelnw sto remote clientid pou zitithike request gia syndesi
@@ -741,7 +768,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     //to remote id pou zitithike den vrethike
                     //opote enimerwnw to id protection
                     //gia to gegonos oti o client anazitise id pou den yparxei (id sniffing protection)
-                    add_wrong_ID(socketfd,clientIP);
+                    add_wrong_ID(socketfd,client_sockaddr_in.sin_addr.s_addr);
                 }
 
             } // CMD_CONNECT
@@ -1046,7 +1073,8 @@ int main(int argc, char *argv[]) {
             }
 
             //diaxeirizomai ton neo client se neo thread.
-            std::thread(dostuff, newsockfd, cli_addr.sin_addr.s_addr).detach();
+            //std::thread(dostuff, newsockfd, cli_addr.sin_addr.s_addr).detach();
+            std::thread(dostuff, newsockfd, cli_addr).detach();
         } catch ( std::exception& ex) {
             std::cout << "Accept loop exception: " << ex.what() << std::endl;
         }

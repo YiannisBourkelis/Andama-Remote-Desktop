@@ -364,7 +364,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     //upnp
-    //upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
+    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
 
     std::cout << "-------------||||  GUI THREAD ||| Thread id inside MainWindow: " << QThread::currentThreadId() << std::endl;
 
@@ -659,7 +659,6 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
 
             tbllogmodel.addLogData(tr("Application ID received from proxy. Ready to connect and accept connections!"));
-
         }
        else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
             ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.password));

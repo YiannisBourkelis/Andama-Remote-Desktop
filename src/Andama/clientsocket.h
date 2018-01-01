@@ -70,6 +70,7 @@ public:
     int serverPort = PROXY_PORT_NUMBER;
     std::string serverHostName = PROXY_HOST_NAME;
     bool stopThreadFlag = false;
+    int localPort = 0; //otan syndeetai ston proxy, pernei tin local port pou dinei aftomata to systhma
 
     //public methods
     void messageArrived(std::array<char,1> message);
