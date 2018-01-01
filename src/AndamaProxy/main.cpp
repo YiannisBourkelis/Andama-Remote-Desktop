@@ -476,7 +476,8 @@ void dostuff(const int socketfd, const sockaddr_in client_sockaddr_in) {
         // TODO: tin port kai ip tou client tin epistrefw wste argotera na ylopoiisw TCP hole punching
 
         // | 2 bytes protocol version |
-        std::vector<char> server_protocol(9);
+        std::vector<char> server_protocol;
+        server_protocol.reserve(9);
         server_protocol[0] = ('1');
         server_protocol[1] = ('0');
 

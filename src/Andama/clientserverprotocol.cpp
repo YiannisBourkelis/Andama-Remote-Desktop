@@ -44,14 +44,15 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
 
     if(command == CMD_PROTOCOL)
     {
-        //std::string ww ("yian");
-        //cachedID.insert(cachedID.begin(),ww.begin(),ww.end());
-
-        //o server stelnei tin version toy protocol pou ypostirizei
-        //sti morfi "P<major><minor>" opou major,minor apo ena byte.
-        //synolo command 3 bytes
-        std::vector<char> protocolbuff(2);
-        _receivePlain(activeSocket, protocolbuff);
+        //molis syndethei o client, o server apostelei to
+        //megisto protocol version poy ypostirizei, tin port kai tin ip tou client
+        // | 1 byte CMD_PROTOCOL | 4 byte msg size |
+        // | 2 bytes protocol version sti morfi <major><minor> opou major,minor apo ena byte. |
+        // | 2 bytes client endpoint port |
+        // | 1 byte remote client ip length | x bytes client ip |
+        // gia IPv4 ta bytes pou apaitountai gia olo to paketo einai synolika 9 (xwris ta prwta 5)
+        std::vector<char> protocolbuff;
+        _receive(activeSocket, protocolbuff);
         qDebug("Server protocol: v%s.%s", &protocolbuff[0], &protocolbuff[1]);
 
         //otan o server mou stelnei to protocol pou ypostirizei
