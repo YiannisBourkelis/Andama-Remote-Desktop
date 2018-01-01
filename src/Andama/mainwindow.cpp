@@ -556,7 +556,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (p2pclient.isClientConnected){
         p2pclient.sendDisconnectFromRemoteComputer();
         p2pclient.isClientConnected=false;
-        p2pclient.quit();
+        //p2pclient.quit();
 
         setDefaultGUI();
 

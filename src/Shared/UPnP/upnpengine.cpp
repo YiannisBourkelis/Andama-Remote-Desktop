@@ -167,6 +167,7 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
                                       portmapping_device);
 
             std::cout << "\r\naddPortMapping result: " << (addPortMappingResp.statusCode == 200) << std::endl;
+            upnpRemotePort = (addPortMappingResp.remotePort > 0 ? addPortMappingResp.remotePort : upnpRemotePort);
             emit sig_addPortMappingResponse(addPortMappingResp);
         }
     }

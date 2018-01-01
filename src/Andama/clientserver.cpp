@@ -209,7 +209,7 @@ void clientserver::sendDisconnectFromRemoteComputer()
      closesocket(this->getActiveSocket());
 #else
      shutdown(this->getActiveSocket(), 2);
-     //close(this->getActiveSocket());
+     close(this->getActiveSocket());
 #endif
 
 }

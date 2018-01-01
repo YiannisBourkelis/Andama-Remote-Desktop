@@ -38,8 +38,10 @@ class UPnPEngine : public QObject
 public:
     explicit UPnPEngine(QObject *parent = 0);
 
+    //public variables
     std::atomic<bool> stopAddPortMappingAsyncThread {false};
     std::thread AddPortMappingPeriodicallyAsyncThread;
+    unsigned int upnpRemotePort = 0; //krataei tin telefetaia porta poy anixtike
 
     //public methods
     void AddPortMappingAsync();
