@@ -3,6 +3,7 @@
 #ifdef Q_OS_LINUX
 
 protocolSupervisor* MouseCursorHook::protocSupervisor;
+P2PServer* MouseCursorHook::p2pServer;
 
 MouseCursorHook::MouseCursorHook()
 {
