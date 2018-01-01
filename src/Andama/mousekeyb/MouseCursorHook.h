@@ -21,7 +21,7 @@ public:
 
     //public static variables
     static protocolSupervisor* protocSupervisor;
-    P2PServer * p2pServer;
+    static P2PServer* p2pServer;
 
     //public methods
     void setMouseCursorHook();

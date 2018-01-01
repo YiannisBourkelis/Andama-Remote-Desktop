@@ -3,6 +3,7 @@
 #ifdef Q_OS_MAC
 protocolSupervisor* MouseCursorHook::protocSupervisor;
 
+
 MouseCursorHook::MouseCursorHook()
 {
 }

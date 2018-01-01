@@ -10,6 +10,7 @@ static std::map<HCURSOR, Qt::CursorShape> _sysMouseCursorsMap;
 static Qt::CursorShape currentCursorShape = Qt::ArrowCursor;
 
 protocolSupervisor* MouseCursorHook::protocSupervisor;
+P2PServer* MouseCursorHook::p2pServer;
 
 MouseCursorHook::MouseCursorHook()
 {
@@ -77,12 +78,10 @@ static LRESULT CALLBACK WinEventCallback2(_In_ int nCode,
                 currentCursorShape =  found_cursor->second;
                 std::cout << "Cursor shape:" << found_cursor->second << std::endl;
                 connectionState connState = MouseCursorHook::protocSupervisor->protocol.getConnectionState();
-                if (connState == connectionState::connectedWithOtherAsServer){
-                    if (p2pServer->hasConnectedClientThreadsRunning()) {
-                        p2pServer.sendMouseCursorType(found_cursor->second);
-                    } else {
-                        MouseCursorHook::protocSupervisor->protocol.sendMouseCursorType(found_cursor->second);
-                    }
+                if (MouseCursorHook::p2pServer->hasConnectedClientThreadsRunning()) {
+                    MouseCursorHook::p2pServer->sendMouseCursorType(found_cursor->second);
+                } else if (connState == connectionState::connectedWithOtherAsServer) {
+                    MouseCursorHook::protocSupervisor->protocol.sendMouseCursorType(found_cursor->second);
                 }
             }
         }//system cursor shape
