@@ -193,7 +193,7 @@ windows:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 # 3)    make
 # this should compile openssl on linux
 linux:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
-linux:LIBS=-ldl make
+linux:LIBS=-ldl
 linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 #***************************************************************
 
