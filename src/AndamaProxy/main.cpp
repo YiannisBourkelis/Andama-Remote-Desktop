@@ -478,26 +478,26 @@ void dostuff(const int socketfd, const sockaddr_in client_sockaddr_in) {
         // | 2 bytes protocol version |
         std::vector<char> server_protocol;
         server_protocol.reserve(9);
-        server_protocol[0] = ('1');
-        server_protocol[1] = ('0');
+        server_protocol.push_back('1');
+        server_protocol.push_back('0');
 
         // | 2 bytes client port |
         //kataxwrw to upnp port tou remote client
         std::vector<char> buffPort(2);
         intToBytes(client_sockaddr_in.sin_port, buffPort);
-        server_protocol[2] = buffPort[0];
-        server_protocol[3] = buffPort[1];
+        server_protocol.push_back(buffPort[0]);
+        server_protocol.push_back(buffPort[1]);
 
         //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
         // 4 bytes length - hard coded.
         std::vector<char> buffLenIP(1);
         intToBytes(4, buffLenIP);
-        server_protocol[4] = buffLenIP[0];
+        server_protocol.push_back(buffLenIP[0]);
 
         //i IPv4 tou remote client
         std::vector<char> buffIP(4);
         ulongToBytes(client_sockaddr_in.sin_addr.s_addr, buffIP);
-        server_protocol.insert(server_protocol.begin() + 5, buffIP.begin(), buffIP.end());
+        server_protocol.insert(server_protocol.end(), buffIP.begin(), buffIP.end());
 
         _sendmsg(socketfd, CMD_PROTOCOL, server_protocol);
     }
