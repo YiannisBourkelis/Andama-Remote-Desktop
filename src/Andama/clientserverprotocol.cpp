@@ -466,7 +466,7 @@ void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, i
     _sendmsgPlain(activeSocket, CMD_MOUSE, msg);
 }
 
-//stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
+//stelnei ston server to mouse cursor type
 void clientServerProtocol::sendMouseCursorType(Qt::CursorShape cursorShape)
 {
     //2 bytes gia to mouse cursor type

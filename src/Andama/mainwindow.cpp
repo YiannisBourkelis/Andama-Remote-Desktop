@@ -359,6 +359,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(!mouseCursorHook.isRunning()){
         mouseCursorHook.protocSupervisor = &protocol_supervisor;
+        mouseCursorHook.p2pServer = &p2pserver;
         mouseCursorHook.start();
         //mouseCursorHook.setMouseCursorHook();
     }

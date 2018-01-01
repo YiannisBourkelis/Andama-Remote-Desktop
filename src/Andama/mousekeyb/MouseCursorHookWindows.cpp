@@ -78,7 +78,11 @@ static LRESULT CALLBACK WinEventCallback2(_In_ int nCode,
                 std::cout << "Cursor shape:" << found_cursor->second << std::endl;
                 connectionState connState = MouseCursorHook::protocSupervisor->protocol.getConnectionState();
                 if (connState == connectionState::connectedWithOtherAsServer){
-                    MouseCursorHook::protocSupervisor->protocol.sendMouseCursorType(found_cursor->second);
+                    if (p2pServer->hasConnectedClientThreadsRunning()) {
+                        p2pServer.sendMouseCursorType(found_cursor->second);
+                    } else {
+                        MouseCursorHook::protocSupervisor->protocol.sendMouseCursorType(found_cursor->second);
+                    }
                 }
             }
         }//system cursor shape

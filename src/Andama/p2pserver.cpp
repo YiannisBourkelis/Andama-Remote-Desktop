@@ -63,6 +63,20 @@ void P2PServer::sendDisconnectFromRemoteComputer(int socket)
 
 }
 
+//stelnei ston server to mouse cursor type
+void P2PServer::sendMouseCursorType(Qt::CursorShape cursorShape)
+{
+    //2 bytes gia to mouse cursor type
+    std::vector<char> msg(2);
+
+    std::vector<char> _msg_bytes(2);
+    intToBytes(cursorShape, _msg_bytes);
+    msg[0] = _msg_bytes[0];
+    msg[1] = _msg_bytes[1];
+
+    _sendmsg(activeClientSocket, CMD_MOUSE_CURSOR, _msg_bytes);
+}
+
 
 void P2PServer::start_p2pserver()
 {

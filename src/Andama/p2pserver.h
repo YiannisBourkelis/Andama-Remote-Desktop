@@ -71,6 +71,7 @@ public:
     std::string password;
 
     bool hasConnectedClientThreadsRunning();
+    void sendMouseCursorType(Qt::CursorShape cursorShape);
 
 private:
     std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket

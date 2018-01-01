@@ -670,6 +670,17 @@ bool clientserver::proccesCommand(const std::array<char, 1> &command){
         emit sig_messageReceived(NULL, MSG_MOUSE, mouse_data_buff);
     }// send mouse
 
+    else if(command == CMD_MOUSE_CURSOR)
+    {
+        // | 1 byte command | 4 byte msg size |
+        // | 2 byte cursor type |
+        // argotera mporw edw na stelnw to cursor image px | 4 bytes msg size | cursor image data |
+        std::vector<char> mouse_data_buff;
+        _receive(this->getActiveSocket(), mouse_data_buff);
+
+        emit sig_messageReceived(NULL, MSG_MOUSE_CURSOR, mouse_data_buff);
+    }// send mouse
+
     else if(command == CMD_KEYBOARD)
     {
         std::vector<char> keyboard_data_buff(6);

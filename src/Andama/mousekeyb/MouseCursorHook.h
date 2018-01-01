@@ -5,6 +5,7 @@
 #include <QThread>
 #include <atomic>
 #include "../../Andama/protocolsupervisor.h"
+#include "../../Andama/p2pserver.h"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -20,6 +21,7 @@ public:
 
     //public static variables
     static protocolSupervisor* protocSupervisor;
+    P2PServer * p2pServer;
 
     //public methods
     void setMouseCursorHook();
