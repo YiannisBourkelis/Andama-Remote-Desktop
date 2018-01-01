@@ -660,7 +660,13 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
 
             tbllogmodel.addLogData(tr("Application ID received from proxy. Ready to connect and accept connections!"));
-        }
+
+            //stelnw kai to tyxwn remote upnp port giati otan ginetai disconnect xanetai
+            //apostoli ston proxy tou UPnP port pou mporei na xrisimopoiithei gia P2P syndeseis
+            if (upnpengine.upnpRemotePort > 0 && protocol_supervisor.protocol.getConnectionState() != connectionState::disconnected) {
+                protocol_supervisor.protocol.sendUPnPPort(upnpengine.upnpRemotePort);
+            }
+       }
        else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
             ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.password));
             p2pserver.password = protocol_supervisor.protocol.password;
@@ -759,7 +765,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            tbllogmodel.addLogData(str_remote_client);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
            ui->lblStatus->setText(str_remote_client + ".");
-           ui->btnConnectToRemoteClient->setEnabled(false);
+           //ui->btnConnectToRemoteClient->setEnabled(false);
            lastMainWindowPosition = this->pos();
            this->showMinimized();
        }
