@@ -67,7 +67,9 @@ LIBS += -lws2_32
 #release:QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:\"level=\'asInvoker\' uiAccess=\'true\'\"
 #LINK=/SUBSYSTEM:WINDOWS,5.01
 
-linux:LIBS += -lXtst -lX11 -ldl
+linux:LIBS += -lXtst -lX11
+#for raspbian linux us the LIBS with the -ldl if build fails
+#linux:LIBS += -lXtst -lX11 -ldl
 windows:LIBS += -luser32
 windows:LIBS += -lgdi32
 
@@ -192,8 +194,8 @@ windows:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
 # 2)    make clean
 # 3)    make
 # this should compile openssl on linux
-linux:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
-linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+linux:LIBS += -L$$PWD/../OpenSSL-1.1.0g -lcrypto
+linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include
 #***************************************************************
 
 DISTFILES += \
