@@ -158,7 +158,7 @@ OTHER_FILES +=
 
 
 #on mac you should set DYLD_LIBRARY_PATH for the OSXObjectiveCBridge build folder like: DYLD_LIBRARY_PATH = /Users/your user name/Projects/AndamaRemoteDesktop/Builds/OSXObjectiveCBridge/Debug  (on Projects > Run > Run Environment)
-macx: LIBS += -L$$PWD/../../../../Builds/OSXObjectiveCBridge/Release/ -lOSXObjectiveCBridge
+macx: LIBS += -L$$PWD/../OSXObjectiveCBridge/OSXReleaseBuild/ -lOSXObjectiveCBridge
 INCLUDEPATH += $$PWD/../OSXObjectiveCBridge
 DEPENDPATH += $$PWD/../OSXObjectiveCBridge
 
