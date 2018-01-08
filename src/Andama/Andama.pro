@@ -5,7 +5,7 @@
 #-------------------------------------------------
 # * ***********************************************************************
 # * Andama
-# * (C) 2014 by Yiannis Bourkelis (hello@andama.org)
+# * (C) 2014-2018 by Yiannis Bourkelis (hello@andama.org)
 # *
 # * This file is part of Andama.
 # *
@@ -27,7 +27,7 @@
 
 include(mousekeyb/mousekeyb.pri)
 
-QT         += core gui quick
+        QT += core gui quick
 windows:QT += winextras
 #linux:QMAKE_CXXFLAGS += -g -O0 #an thelw na kanw debugging se linux, kataxwrei etsi debug symbols
 
@@ -41,7 +41,7 @@ linux:CONFIG += static
 #linux
 
 # disable all the deprecated APIs in Qt <= 5.7
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
+        DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
 windows:DEFINES += NOMINMAX
 
 mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
@@ -68,7 +68,7 @@ LIBS += -lws2_32
 #LINK=/SUBSYSTEM:WINDOWS,5.01
 
 linux:LIBS += -lXtst -lX11
-#for raspbian linux us the LIBS with the -ldl if build fails
+#for raspbian linux use the LIBS with the -ldl if build fails
 #linux:LIBS += -lXtst -lX11 -ldl
 windows:LIBS += -luser32
 windows:LIBS += -lgdi32

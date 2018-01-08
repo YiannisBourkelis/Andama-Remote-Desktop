@@ -49,6 +49,16 @@ UPnPDiscovery::UPnPDiscovery()
 
 }
 
+void UPnPDiscovery::stopThread()
+{
+    _stopThread = true;
+#ifdef WIN32
+    shutdown(udpSocket, SD_BOTH);
+#else
+    shutdown(udpSocket, SHUT_RDWR);
+#endif
+}
+
 
 std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searchTarget, const char *localIPv4)
 {
@@ -59,12 +69,6 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
     struct ip_mreq group;
 
     std::vector<std::string> devices; // devices found
-
-#ifdef WIN32
-    SOCKET udpSocket;
-#else
-    int udpSocket;
-#endif
 
 #ifdef WIN32
     // Initialize Winsock
@@ -144,7 +148,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
                        sizeof(iTimeout) );
 #else
     struct timeval tv;
-    tv.tv_sec = 2;  // 90 Secs Timeout
+    tv.tv_sec = 2;  // 2 Secs Timeout
     tv.tv_usec = 0;  // Not init'ing this can cause strange errors
     setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
@@ -154,7 +158,7 @@ std::vector<std::string> UPnPDiscovery::discoverDevices(const std::string &searc
     socklen_t slen = sizeof(si_other);
 
 
-    while(true){
+    while(true && !_stopThread){
 
         if (recvfrom(udpSocket, discovery_response_buffer, 1024, 0, (struct sockaddr *) &si_other, &slen) < 0) {
             #ifdef WIN32

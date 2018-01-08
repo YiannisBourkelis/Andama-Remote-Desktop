@@ -30,7 +30,25 @@ class UPnPDiscovery
 public:
     UPnPDiscovery();
 
+    //public variables
+
+    //public methods
     std::vector<std::string> discoverDevices(const std::string &searchTarget, const char * localIPv4);//searchTarget can be: ssdp:all, upnp:rootdevice, etc
+
+    void stopThread();
+
+private:
+    //private variables
+    bool _stopThread = false;
+
+#ifdef WIN32
+    SOCKET udpSocket;
+#else
+    int udpSocket;
+#endif
+
+
+
 };
 
 #endif // UPNPDISCOVERY_H

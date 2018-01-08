@@ -34,6 +34,17 @@ UPnPEngine::UPnPEngine(QObject *parent) : QObject(parent)
 
 }
 
+void UPnPEngine::stopThread()
+{
+    _stopThread = true;
+    _upnpDiscovery.stopThread();
+}
+
+bool UPnPEngine::StopThreadPending()
+{
+    return _stopThread;
+}
+
 void UPnPEngine::AddPortMappingPeriodicallyAsync(const std::string &NewRemoteHost,
                                                  const int NewExternalPort,
                                                  const std::string &NewProtocol,
@@ -70,7 +81,7 @@ void UPnPEngine::AddPortMappingPeriodically(const std::string &NewRemoteHost,
     const std::chrono::milliseconds sleep_dura(5);
     std::chrono::high_resolution_clock::time_point _lastAddNewPortMappingTimePoint;
 
-    while (true && !stopAddPortMappingAsyncThread){
+    while (true && !_stopThread){
         const std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
         const std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(curr_time - _lastAddNewPortMappingTimePoint);
 
@@ -78,7 +89,9 @@ void UPnPEngine::AddPortMappingPeriodically(const std::string &NewRemoteHost,
         {
             std::cout << "will call AddPortMapping from AddPortMappingPeriodically\r\n" << std::endl;
             int addport_retries = 0;
-             while (addport_retries < 10 && AddPortMapping(NewRemoteHost,NewExternalPort + addport_retries, NewProtocol,
+             while (addport_retries < 10 &&
+                    _stopThread != true  &&
+                    AddPortMapping(NewRemoteHost,NewExternalPort + addport_retries, NewProtocol,
                                    NewInternalPort,NewInternalClient,NewEnabled,
                                    NewPortMappingDescription,NewLeaseDuration).statusCode != 200){
                  addport_retries++;
@@ -92,12 +105,6 @@ void UPnPEngine::AddPortMappingPeriodically(const std::string &NewRemoteHost,
 
     std::cout << "AddPortMappingAsyncThread exiting...\r\n" << std::endl;
 }
-
-void UPnPEngine::waitForAllAddPortMappingPendingRequests()
-{
-    while(addPortMappingPendingRequests > 0){std::this_thread::sleep_for(std::chrono::milliseconds(1));};
-}
-
 
 void UPnPEngine::AddPortMappingAsync()
 {
@@ -118,12 +125,11 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
 
     try
     {
-        addPortMappingPendingRequests++;
-        Finally finally([&]{addPortMappingPendingRequests--;});
-
+        if (_stopThread) return addPortMappingResp;
         std::cout << "1. lamvanw ta network interfaces" << std::endl;
         auto future_getNetworkInterface = std::async(std::launch::async , &UPnPEngine::getNetworkInterface,this);
 
+        if (_stopThread) return addPortMappingResp;
         std::cout << "2. lamvanw tin topiki IP tou ypologisti pou me kalei (default) h" << std::endl;
         // tin IP pou orise o xristis
         QHostAddress locan_lan_ip;
@@ -134,19 +140,21 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
         }
         std::cout << "local_lan-wifi_ip: " << locan_lan_ip.toString().toStdString() << std::endl;
 
-        std::cout << "2. lamvanw ti lista me ta diathesima devices" << std::endl;
-        UPnPDiscovery upnpdiscovery;
-        auto future_getDeviceLocationXmlUrl = std::async(std::launch::async ,&UPnPDiscovery::discoverDevices,&upnpdiscovery,"upnp:rootdevice",locan_lan_ip.toString().toStdString().c_str());
+        if (_stopThread) return addPortMappingResp;
+        std::cout << "2. lamvanw ti lista me ta diathesima devices" << std::endl; 
+        auto future_getDeviceLocationXmlUrl = std::async(std::launch::async ,&UPnPDiscovery::discoverDevices,&_upnpDiscovery,"upnp:rootdevice",locan_lan_ip.toString().toStdString().c_str());
 
+        if (_stopThread) return addPortMappingResp;
         std::cout << "4. lamvanw ti lista me ta diathesima devices" << std::endl;
         const std::vector<std::string> devicesFound = future_getDeviceLocationXmlUrl.get();
-
         //std::cout << "deviceLocationXmlUrl.host: " << deviceLocationXmlUrl.host().toStdString() << std::endl;
         //std::cout << "deviceLocationXmlUrl: " << deviceLocationXmlUrl.toString().toStdString() << std::endl;
 
+        if (_stopThread) return addPortMappingResp;
         std::cout << "5. lamvanw ta device responses" << std::endl;
         const std::vector<DeviceResponse> unique_devices = getDeviceResponses(devicesFound);
 
+        if (_stopThread) return addPortMappingResp;
         std::cout << "6. lamvanw ti lista me ta devices poy ypostirizoyn addportmapping. sinithws einai ena, alla mporei na einai kai parapanw" << std::endl;
         //symfwna kai me afto to thread: (UPnP code needs cleanup and improved handling #432) https://github.com/syncthing/syncthing/issues/432
         //kai afto: (AddPortMapping with WANPPPConnection and/or WANIPConnection) http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=538
@@ -154,6 +162,8 @@ AddPortMappingResponse UPnPEngine::AddPortMapping(const std::string &NewRemoteHo
 
         std::cout << "7. kataxwrw to portmapping AddPortMapping" << std::endl;
         for (const DeviceResponse &portmapping_device : portmapping_devices){
+            if (_stopThread) return addPortMappingResp;
+
             UPnPAddPortMapping addportmapping;
             addPortMappingResp = addportmapping.AddPortMapping(
                                       NewRemoteHost, // ""
@@ -208,6 +218,7 @@ std::vector<DeviceResponse> UPnPEngine::getPortMappingCapableDevices(const std::
     std::vector<DeviceResponse> portmapping_devices;
 
     for(const DeviceResponse &devres : devices){
+        if (_stopThread) return portmapping_devices;
         const std::string devcaps = GETRequest(devres.descriptionUrl);
 
         std::cout << " devres.descriptionUrl " << devres.descriptionUrl.toString().toStdString() << std::endl;

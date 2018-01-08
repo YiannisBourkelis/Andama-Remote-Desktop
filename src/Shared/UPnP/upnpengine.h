@@ -39,7 +39,7 @@ public:
     explicit UPnPEngine(QObject *parent = 0);
 
     //public variables
-    std::atomic<bool> stopAddPortMappingAsyncThread {false};
+    std::atomic<bool> _stopThread {false};
     std::thread AddPortMappingPeriodicallyAsyncThread;
     unsigned int upnpRemotePort = 0; //krataei tin telefetaia porta poy anixtike
 
@@ -74,14 +74,16 @@ public:
                         const std::string &NewPortMappingDescription,
                         const int NewLeaseDuration);
 
-    void waitForAllAddPortMappingPendingRequests();
     std::string GETRequest(const QUrl &url);
+    void stopThread();
+    bool StopThreadPending();
 
 private:
-    std::atomic<int> addPortMappingPendingRequests {0};
-
-    UPnPDiscovery upnpDiscovery;
+    //variables
+    UPnPDiscovery _upnpDiscovery;
     QHostAddress getNetworkInterface();
+
+    //methods
     std::vector<DeviceResponse> getDeviceResponses(const std::vector<std::string>& devices);
     std::vector<DeviceResponse> getPortMappingCapableDevices(const std::vector<DeviceResponse> &devices);
 

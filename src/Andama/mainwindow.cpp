@@ -398,6 +398,8 @@ void MainWindow::slot_protocol_finished_or_terminated()
 
 void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes)
 {
+    if (upnpengine.StopThreadPending()) return;//xeiazetai giati otan termatizetai to upnpthread, mporei na kalesei to sendUPnPPort kai na min termatisei i efarmogi swsta
+
     ui->lblP2PPort->setVisible(addPortMappingRes.statusCode == 200);
     if (addPortMappingRes.statusCode == 200){
         QString s;
@@ -603,8 +605,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     // threads cleanup
     keepAlive.stopThread = true;
 
-    upnpengine.stopAddPortMappingAsyncThread = true;
-    //upnpengine.waitForAllAddPortMappingPendingRequests(); //TODO: den termatizei to thread opws prepei, apla den emfanizetai error...Tha prepei na parw referense tou thread kai na perimenw mexri na stamatisei
+    upnpengine.stopThread();
 
     p2pserver.stopThread();
 
