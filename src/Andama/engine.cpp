@@ -185,7 +185,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
         QByteArray qbytes;
         QByteArray image_bytes_uncompressed;
         switch(msgType){
-        case clientserver::MSG_ID:
+        case MSG_ID:
             statusErrorLevel= STATUS_NOERROR;
             strID = std::string(vdata.begin(),vdata.end());
             id = QString::fromStdString(strID);
@@ -193,74 +193,74 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             statusText="Ready!";
             emit idChanged();
             break;
-        case clientserver::MSG_LOCAL_PASSWORD_GENERATED:
+        case MSG_LOCAL_PASSWORD_GENERATED:
             password = QString::fromStdString(protocol_supervisor.protocol.password);
             emit passwordChanged();
             qDebug() << "Password: " << password;
             break;
-        case clientserver::MSG_CONNECTION_ACCEPTED:
+        case MSG_CONNECTION_ACCEPTED:
             statusErrorLevel = STATUS_NOERROR;
             statusText="Remote computer accepted the request. Requesting remote desktop image...";
             protocol_supervisor.protocol.RequestScreenshot();
             break;
-        case clientserver::MSG_CONNECT_ID_NOT_FOUND:
+        case MSG_CONNECT_ID_NOT_FOUND:
             statusErrorLevel = STATUS_NOERROR;
             remoteErrorIdText="Remote ID not found";
             statusText="Ready!";
             break;
-        case clientserver::MSG_CONNECT_PASSWORD_NOT_CORRECT:
+        case MSG_CONNECT_PASSWORD_NOT_CORRECT:
             statusErrorLevel = STATUS_NOERROR;
             remoteErrorPasswordText="The password is not correct";
             statusText="Ready!";
             break;
-        case clientserver::MSG_BAN_IP_WRONG_PWD:
+        case MSG_BAN_IP_WRONG_PWD:
             statusErrorLevel = STATUS_ERROR;
             remoteErrorPasswordText="";
             statusText="Connection rejected because of multiple wrong password attempts";
             break;
-        case clientserver::MSG_WARNING_BAN_IP_WRONG_PWD:
+        case MSG_WARNING_BAN_IP_WRONG_PWD:
             statusErrorLevel = STATUS_WARNING;
             remoteErrorPasswordText="The password is not correct";
             statusText="The password is not correct. Remaining tries: !";
             break;
-        case clientserver::MSG_ERROR_APP_VERSION_NOT_ACCEPTED:
+        case MSG_ERROR_APP_VERSION_NOT_ACCEPTED:
             statusErrorLevel = STATUS_ERROR;
             remoteErrorPasswordText="";
             statusText="Upgrade required";
             break;
-        case clientserver::MSG_REMOTE_CLIENT_ACCEPTED:
+        case MSG_REMOTE_CLIENT_ACCEPTED:
             statusErrorLevel = STATUS_NOERROR;
             statusText="Remote client accepted.";
             //deactivate button
             break;
-        case clientserver::MSG_NO_INTERNET_CONNECTION:
+        case MSG_NO_INTERNET_CONNECTION:
             //deactivate remote panel
             statusErrorLevel = STATUS_ERROR;
             statusText="Error connecting. Please make sure you have an internet connection and try again.";
             break;
-        case clientserver::MSG_NO_PROXY_CONNECTION:
+        case MSG_NO_PROXY_CONNECTION:
             statusErrorLevel = STATUS_ERROR;
             statusText="Error connecting with proxy server. Please make sure you have an internet connection and try again.";
             break;
-        case clientserver::MSG_REMOTE_COMPUTER_DISCONNECTED:
+        case MSG_REMOTE_COMPUTER_DISCONNECTED:
             statusErrorLevel = STATUS_NOERROR;
             statusText="Remote computer disconnected. Ready!";
             break;
-        case clientserver::MSG_WARNING_BAN_IP_WRONG_ID:
+        case MSG_WARNING_BAN_IP_WRONG_ID:
             statusErrorLevel = STATUS_WARNING;
             statusText="Warning! Your IP will be banned because of multiple wrong ID attempts. Remaining tries: ";
             break;
-        case clientserver::MSG_BAN_IP_WRONG_ID:
+        case MSG_BAN_IP_WRONG_ID:
             statusErrorLevel = STATUS_ERROR;
             statusText="Connection rejected because of multiple wrong ID attempts. Please try again after ";
             break;
-        case clientserver::MSG_ERROR_CANNOT_CONNECT_SAME_ID:
+        case MSG_ERROR_CANNOT_CONNECT_SAME_ID:
             statusErrorLevel = STATUS_NOERROR;
             remoteErrorIdText="Cannot connect to the same ID";
             statusText= "Ready!";
             break;
-        case clientserver::MSG_SCREENSHOT_DIFF_REQUEST:
-        case clientserver::MSG_SCREENSHOT_REQUEST:
+        case MSG_SCREENSHOT_DIFF_REQUEST:
+        case MSG_SCREENSHOT_REQUEST:
             statusErrorLevel = STATUS_NOERROR;
             statusText="Ready!";
             //screenshotWrk.setScreenshot(qimg,msgType);
@@ -418,7 +418,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             screenshotWrk.setScreenshot(qimg,msgType);
             //std::cout << "MainWindow::mymessageReceived > To screenshot tethike sto screenshotWrk" << std::endl;
             break;
-        case clientserver::MSG_SCREENSHOT:
+        case MSG_SCREENSHOT:
             qDebug("Screenshot received. Setting image in control! Total bytes: %lu", vdata.size());
 #ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
             screenshotProvider->setFrame(vdata);
@@ -429,7 +429,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             notifyNewFrame();
 
             break;
-        case clientserver::MSG_SCREENSHOT_DIFF:
+        case MSG_SCREENSHOT_DIFF:
 #ifndef ANDAMA_SERVICE_MODE //AndamaService service/daemon does not use qml related code
             if ( screenshotProvider->updateFrame(vdata))
                 notifyNewFrame();

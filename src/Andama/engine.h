@@ -78,27 +78,6 @@ public:
 
     void start();
 
-
-    enum Status{
-        DISCONNECTED,
-        CONNECTED_WITH_PROXY,
-                  MSG_CONNECTION_ACCEPTED,
-                  MSG_REMOTE_CLIENT_ACCEPTED,
-
-                  MSG_NO_INTERNET_CONNECTION,
-                  MSG_NO_PROXY_CONNECTION,
-                  MSG_REMOTE_COMPUTER_DISCONNECTED,
-
-                  MSG_BAN_IP_WRONG_ID,
-                  MSG_WARNING_BAN_IP_WRONG_ID,
-                  MSG_CONNECT_PASSWORD_NOT_CORRECT,
-                  MSG_BAN_IP_WRONG_PWD,
-                  MSG_WARNING_BAN_IP_WRONG_PWD,
-                  MSG_ERROR_CANNOT_CONNECT_SAME_ID,
-                  MSG_ERROR_APP_VERSION_NOT_ACCEPTED,
-                  MSG_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED,
-                 };
-
 signals:
     void idChanged();
     void passwordChanged();

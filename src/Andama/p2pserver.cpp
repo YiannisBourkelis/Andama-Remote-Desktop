@@ -440,7 +440,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                         _sendmsg(socketfd, CMD_ACCEPT, std::vector<char>());//>-------------stelnw sto server oti egine accept tou Andama request, stelnontas to remote id
                         //std::vector<char> emtpyv;
                         //emit sig_messageReceived(this, MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff);
-                        emit sig_messageReceived(NULL, 2, remote_client_idbuff);
+                        emit sig_messageReceived(NULL, MSG_REMOTE_CLIENT_ACCEPTED, remote_client_idbuff);
                     } else {
                         //to password pou stalthike einai lathos
                         //lamvanw apo to vector tin ip tou client
@@ -590,7 +590,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 std::vector<char> emptyv;
                 //std::vector<char> cdata;
-                emit sig_messageReceived(NULL, 5, emptyv);
+                emit sig_messageReceived(NULL, MSG_SCREENSHOT_REQUEST, emptyv);
             } // CMD_REQUEST_SREENSHOT
 
             else if(cmdbuffer == CMD_REQUEST_SCREENSHOT_DIFF)
@@ -602,7 +602,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 //qDebug ("4. CMD_REQUEST_SCREENSHOT_DIFF ID: %s. Lipsi aitimatos apostolis screenshot diff. Will emit signal from protocol to ui. Bytes recv: %i",rid.c_str(),bytes_received);
                 //std::vector<char> cdata;
-                emit sig_messageReceived(NULL, 6, screenshot_diff_id_data_buff);
+                emit sig_messageReceived(NULL, MSG_SCREENSHOT_DIFF_REQUEST, screenshot_diff_id_data_buff);
             } // CMD_REQUEST_SCREENSHOT_DIFF
 
             //proothisi mouse
@@ -612,7 +612,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
                 _receivePlain(socketfd, mouse_data_buff);
 
                 //std::vector<char> cdata;
-                emit sig_messageReceived(NULL, 7, mouse_data_buff);
+                emit sig_messageReceived(NULL, MSG_MOUSE, mouse_data_buff);
             }
 
             //proothisi keyboard
@@ -623,7 +623,7 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 //std::vector<char> cdata;
                 //emit sig_messageReceived(NULL, MSG_KEYBOARD,keyboard_data_buff);
-                emit sig_messageReceived(NULL, 8, keyboard_data_buff);
+                emit sig_messageReceived(NULL, MSG_KEYBOARD, keyboard_data_buff);
             } // CMD_KEYBOARD
 
             //hearbeat. Ean den lifthei sto xrono tou socket timeout
