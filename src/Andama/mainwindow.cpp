@@ -364,9 +364,6 @@ MainWindow::MainWindow(QWidget *parent) :
         //mouseCursorHook.setMouseCursorHook();
     }
 
-    //upnp
-    upnpengine.AddPortMappingPeriodicallyAsync("",17332,"TCP",17332,"",1,"AndamaRemoteDesktop",(12 * 60 * 60 /*12 wres*/),(10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
-
     std::cout << "-------------||||  GUI THREAD ||| Thread id inside MainWindow: " << QThread::currentThreadId() << std::endl;
 
     ui->lblDesktop->setMouseTracking((true));
@@ -1010,7 +1007,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            //std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
-       if (msgType == protocol_supervisor.protocol.MSG_MOUSE_CURSOR)
+       else if (msgType == protocol_supervisor.protocol.MSG_MOUSE_CURSOR)
        {
            int _cursor = bytesToInt(vdata);
            Qt::CursorShape _cursorShape = static_cast<Qt::CursorShape>(_cursor);
@@ -1054,7 +1051,11 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            p2pclient.remoteIpAddress = str;
            p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
            p2pclient.start();
-       }
+       } //MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT
+       else if (msgType == protocol_supervisor.protocol.MSG_P2P_SERVER_BIND_PORT_OK){
+           //molis o p2p server kanei bind se ena local port, tote prospathoume na aniksoume kai tin upnp port.
+           upnpengine.AddPortMappingPeriodicallyAsync("", p2pserver.PORT_NUMBER, "TCP", p2pserver.PORT_NUMBER, "", 1, "AndamaRemoteDesktop", (12 * 60 * 60 /*12 wres*/), (10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
+       } //MSG_P2P_SERVER_BIND_PORT_OK
     }
     catch (std::exception &ex)
     {

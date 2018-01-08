@@ -123,24 +123,22 @@ void P2PServer::start_p2pserver()
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(PORT_NUMBER);
 
-    //Xreiazetai wste se periptwsi crash na ginetai reuse to socket pou einai se state CLOSE_WAIT
-    //mporw na to vrw se macos me: netstat -anp tcp | grep port_number
-    int reuse = 1;
-    if (setsockopt(listensocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
-
-#ifdef SO_REUSEPORT
-    if (setsockopt(listensocket, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0)
-        perror("setsockopt(SO_REUSEPORT) failed");
-#endif
-
-    if (bind(listensocket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
-        // >>>>>>>>>>> error("ERROR on binding");
-        std::cout << "p2pserver ERROR on binding" << std::endl;
-        return;
+    //mesa se loop, prospathw na kanw bind stin port number pou exei oristei
+    //kai dokimaze mexri tin MAX_PORT_NUMBER.
+    //otan ginei bind stelnw message wste na ginei dokimi anoigmatos upnp portas.
+    for (; PORT_NUMBER <= MAX_PORT_NUMBER; PORT_NUMBER++) {
+        serv_addr.sin_port = htons(PORT_NUMBER);
+        if (bind(listensocket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+            // >>>>>>>>>>> error("ERROR on binding");
+            std::cout << "p2pserver ERROR on binding on port:" << PORT_NUMBER << std::endl;
+        } else {
+            //bind ok
+            emit sig_messageReceived(NULL, MSG_P2P_SERVER_BIND_PORT_OK);
+            break;
+        }
     }
+    if (PORT_NUMBER >= MAX_PORT_NUMBER) return; //den mporese na ginei bind
 
     listen(listensocket, SOMAXCONN);
     std::cout << "Listenning for connections on port: " << PORT_NUMBER << std::endl;

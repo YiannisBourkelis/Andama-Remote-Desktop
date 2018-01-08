@@ -91,8 +91,10 @@ public:
                   MSG_ERROR_CANNOT_CONNECT_SAME_ID = 20, // synolika 2 byte
                   MSG_ERROR_APP_VERSION_NOT_ACCEPTED = 21, // (mono command)
                   MSG_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = 22, // (mono command)
-                  MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT = 23 //O server enimerwse oti gia tin syndesi pou epixeirithike, o client exei dilwmeni p2p upnp porta, kai stelnei tis plirofories
-                 };
+                  MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT = 23, //O server enimerwse oti gia tin syndesi pou epixeirithike, o client exei dilwmeni p2p upnp porta, kai stelnei tis plirofories
+                  MSG_P2P_SERVER_BIND_PORT_OK = 24 //otan o p2p server kanei bind tin port, stelnei to message afto wste na ksekinisei to upnpengine
+                };
+
 
     //public variables
     std::vector<char> myID;

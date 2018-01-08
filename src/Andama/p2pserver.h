@@ -47,8 +47,8 @@ class P2PServer : public QThread
 
 public:
 
-    //server listening port
-    int PORT_NUMBER = 17332;
+    int PORT_NUMBER = 17332; //server listening port
+    const int MAX_PORT_NUMBER = PORT_NUMBER + 1000; //i maximum server bind port pou tha ginei dokimi
 
     P2PServer();
     void setRemoteComputerOS(OS os);
