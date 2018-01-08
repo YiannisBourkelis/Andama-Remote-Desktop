@@ -616,13 +616,21 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (mouseCursorHook.isRunning())
     mouseCursorHook.unhookMouseCursorHook();
 
+    std::cout << "waiting keepAlive thread to terminate..." << std::endl;
     keepAlive.wait();
+
+    std::cout << "waiting screenshotWrk thread to terminate..." << std::endl;
     screenshotWrk.wait();
+
+    std::cout << "waiting p2pserver thread to terminate..." << std::endl;
     p2pserver.wait();
+
+    std::cout << "waiting protocol_supervisor thread to terminate..." << std::endl;
     protocol_supervisor.wait();
     //TODO: to mouseCursorHook thread den ginetai terminate swsta
    // mouseCursorHook.wait();
 
+    std::cout << "waiting upnpengine thread to terminate..." << std::endl;
     if (upnpengine.AddPortMappingPeriodicallyAsyncThread.joinable()) upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
 }
 

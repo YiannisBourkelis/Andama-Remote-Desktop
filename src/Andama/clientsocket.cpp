@@ -64,8 +64,10 @@ void clientSocket::stopThread()
     stopThreadFlag = true;
 #ifdef WIN32
     shutdown(protocol->activeSocket, SD_BOTH);
+    closesocket(protocol->activeSocket); // to close xrezetai gia tin periptwsi pou exei pesei o proxy server kai exei blockarei sto ::connect
 #else
     shutdown(protocol->activeSocket, SHUT_RDWR);
+    close(protocol->activeSocket); // to close xrezetai gia tin periptwsi pou exei pesei o proxy server kai exei blockarei sto ::connect
 #endif
 }
 
