@@ -467,10 +467,8 @@ void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *clien
             //apokryptografisi
             openssl_aes myaes(EVP_aes_256_cbc());
             openssl_aes::secure_string unencr_text;
-            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
             openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
-            myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+            myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getRemotePasswordHash().data(), protocol_supervisor.protocol.getRemotePasswordDoubleMD5().data(), cip_text, unencr_text);
             std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
 
             int _portableVKey       = bytesToInt(vect_unencrypted,0,4);
@@ -674,8 +672,8 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
             }
        }
        else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
-            ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.password));
-            p2pserver.password = protocol_supervisor.protocol.password;
+            ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.getLocalPlainPassword()));
+            p2pserver.setPassword(protocol_supervisor.protocol.getLocalPlainPassword());
        }
        else if (msgType == protocol_supervisor.protocol.MSG_CONNECTION_ACCEPTED){
            qDebug("O apomakrismenos ypologistis apodexthike ti syndesi!");
@@ -879,10 +877,8 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
           openssl_aes myaes(EVP_aes_256_cbc());
           openssl_aes::secure_string unencr_text;
-          openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-          openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
           openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
-          myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+          myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getRemotePasswordHash().data(), protocol_supervisor.protocol.getRemotePasswordDoubleMD5().data(), cip_text, unencr_text);
           std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()),vect_unencrypted.size());
 
@@ -953,10 +949,8 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
 
            openssl_aes myaes(EVP_aes_256_cbc());
            openssl_aes::secure_string unencr_text;
-           openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-           openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
            openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
-           myaes.aes_256_cbc_decrypt(key, iv, cip_text, unencr_text);
+           myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getRemotePasswordHash().data(), protocol_supervisor.protocol.getRemotePasswordDoubleMD5().data(), cip_text, unencr_text);
            std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
 
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
@@ -1089,18 +1083,21 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
         std::string strRemoteID=ui->txtRemotePCID->text().toStdString();
         std::vector<char> vectRemoteID = std::vector<char>(strRemoteID.begin(),strRemoteID.end());
 
-        std::string strPassword = ui->txtRemotePassword->text().toStdString();
-        std::vector<char> vectRemotePassword = std::vector<char>(strPassword.begin(), strPassword.end());
+        std::string strRemotePassword = ui->txtRemotePassword->text().toStdString();
+        protocol_supervisor.protocol.setRemotePassword(strRemotePassword);
+        std::vector<char> vectRemotePasswordDoubleHash = std::vector<char>(protocol_supervisor.protocol.getRemotePasswordDoubleHash().begin(), protocol_supervisor.protocol.getRemotePasswordDoubleHash().end());
+
 
         if (ui->txtRemotePCID->text().contains(":")){
             tbllogmodel.addLogData(tr("Connecting to the remote computer directly..."));
             lastMainWindowPosition = this->pos();
             p2pclient.remotePort=ui->txtRemotePCID->text().split(":")[1].toInt();
             p2pclient.remoteIpAddress = ui->txtRemotePCID->text().split(":")[0].toStdString();
-            p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
+            p2pclient.setRemotePassword(strRemotePassword);
+            p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());
             p2pclient.start();
         }else{
-            protocol_supervisor.protocol.Connect(vectRemoteID, vectRemotePassword);
+            protocol_supervisor.protocol.Connect(vectRemoteID, vectRemotePasswordDoubleHash);
         }
     } else {
         //den exei kataxwrithei remote id h remote password

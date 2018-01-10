@@ -7,6 +7,7 @@
 #include "../Shared/AndamaHeaders/shared_constants.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
 #include "../Shared/General/finally.h"
+#include <QCryptographicHash>
 
 #ifndef WIN32
 #include <sys/ioctl.h> //gia non blocking sockets
@@ -41,6 +42,41 @@ void P2PServer::stopThread()
     shutdown(listensocket, SHUT_RDWR);
     close(listensocket);
 #endif
+}
+
+//TODO: H logiki epanalamvanetai aftousia se 3 merh. Isws kalytera na mpei se helpes class
+void P2PServer::setPassword(std::string password)
+{
+    m_password = password;
+
+    QByteArray passByteArr(password.c_str());
+
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
+    m_passwordHash256 = std::move(passHash256Vector);
+
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    std::vector<openssl_aes::byte> passDoubleHash256Vector(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
+    m_passwordDoubleHash256 = std::move(passDoubleHash256Vector);
+
+    QByteArray passDoubleMD5QbyteArr = QCryptographicHash::hash(passDoubleHash256QbyteArr, QCryptographicHash::Md5);
+    std::vector<openssl_aes::byte> passMD5Vector(passDoubleMD5QbyteArr.begin(), passDoubleMD5QbyteArr.end());
+    m_localPasswordDoubleMD5 = std::move(passMD5Vector);
+}
+
+const std::vector<openssl_aes::byte> &P2PServer::getLocalPasswordHash() const
+{
+    return m_passwordHash256;
+}
+
+const std::vector<openssl_aes::byte> &P2PServer::getLocalPasswordDoubleHash() const
+{
+    return m_passwordDoubleHash256;
+}
+
+const std::vector<openssl_aes::byte> &P2PServer::getLocalPasswordDoubleMD5() const
+{
+    return m_localPasswordDoubleMD5;
 }
 
 void P2PServer::run(void)
@@ -428,7 +464,8 @@ void P2PServer::accept_client_messages(const int socketfd, const in_addr_t clien
 
                 //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
                 std::string passwdQuestion(vpassword.begin(), vpassword.end());
-                if (passwdQuestion == this->password){
+                std::string doubleHashPassString(this->getLocalPasswordDoubleHash().begin(), this->getLocalPasswordDoubleHash().end());
+                if (passwdQuestion == doubleHashPassString){
                         //to password pou stalthike einai swsto
                         std::cout << "Client connection accepted. Remote Client ID: "<< remote_client_idbuff.data() << std::endl;
 

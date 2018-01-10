@@ -194,7 +194,7 @@ void Engine::mymessageReceived(const int msgType,const std::vector<char>& vdata)
             emit idChanged();
             break;
         case MSG_LOCAL_PASSWORD_GENERATED:
-            password = QString::fromStdString(protocol_supervisor.protocol.password);
+            password = QString::fromStdString(protocol_supervisor.protocol.getLocalPlainPassword());
             emit passwordChanged();
             qDebug() << "Password: " << password;
             break;

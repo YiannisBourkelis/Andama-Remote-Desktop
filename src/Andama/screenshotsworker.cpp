@@ -237,38 +237,27 @@ void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
-        //if (p2pServer->isP2PCientConnected)
         if (p2pServer->hasConnectedClientThreadsRunning())
         {
             Bench bench("sendScreenshot-_sendmsg");
             openssl_aes::secure_string ctext;
             openssl_aes myaes(EVP_aes_256_cbc());
-            openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-            openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
             openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
-            myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
+            myaes.aes_256_cbc_encrypt(p2pServer->getLocalPasswordHash().data(), p2pServer->getLocalPasswordDoubleMD5().data(), ptext, ctext);
             std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
             _sendmsg(p2pServer->activeClientSocket,cmd,vect_ciptext);
-            //_sendmsg(p2pServer->activeClientSocket,cmd,vimgbytes);
         }else{
-                openssl_aes::secure_string ctext;
-                {
-                    Bench bench("sendScreenshot-data encryption time");
-                    openssl_aes myaes(EVP_aes_256_cbc());
-                    openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-                    openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-                    openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
-                    myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
-                }
-                std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
-                _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vect_ciptext);
-
-            //_sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vimgbytes);
+            openssl_aes::secure_string ctext;
+            {
+                Bench bench("sendScreenshot-data encryption time");
+                openssl_aes myaes(EVP_aes_256_cbc());
+                openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
+                myaes.aes_256_cbc_encrypt(p2pServer->getLocalPasswordHash().data(), p2pServer->getLocalPasswordDoubleMD5().data(), ptext, ctext);
+            }
+            std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+            _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vect_ciptext);
         }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
-
-        //vimgbytes.clear();
-        //vimgbytes.swap(vimgbytes);
     }
     catch (std::exception& ex)
     {

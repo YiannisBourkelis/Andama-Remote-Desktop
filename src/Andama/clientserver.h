@@ -100,8 +100,6 @@ static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
     void setRemoteComputerOS(OS os);
     OS getRemoteComputerOS();
 
-    std::string password;
-
 #ifdef WIN32
     void setActiveSocket(const SOCKET socket);
     SOCKET getActiveSocket();
@@ -116,8 +114,16 @@ static bool isIPBannedForWrongPasswords(in_addr_t clientIP, int socketfd);
     void sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation);
     void sendKeyboard(int portableVKey, int portableModifiers, int keyEvent);
 
-    static void setRemotePassword(std::string password);
+    void setRemotePassword(std::string password);
 
+    const std::string &getRemotePlainPassword() const;
+    const std::vector<openssl_aes::byte> &getRemotePasswordHash() const;
+    const std::string &getRemotePasswordDoubleHash() const;
+    void setLocalPassword(std::string plain_password);
+    const std::string &getLocalPlainPassword() const;
+    const std::vector<openssl_aes::byte> &getLocalPasswordHash() const;
+    const std::string &getLocalPasswordDoubleHash() const;
+    const std::vector<openssl_aes::byte> &getRemotePasswordDoubleMD5() const;
 signals:
     void sig_messageReceived(const clientServerProtocol *client, const int msgType,const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
@@ -131,6 +137,15 @@ private:
 #else
     int _activeSocket;
 #endif
+
+    std::string m_localPlainPassword;
+    std::vector<openssl_aes::byte> m_localPasswordHash256;
+    std::string m_localPasswordDoubleHash256;
+    std::string m_remotePlainPassword;
+    std::vector<openssl_aes::byte> m_remotePasswordHash256;
+    std::string m_remotePasswordDoubleHash256;
+    std::vector<openssl_aes::byte> m_remotePasswordDoubleMD5;
+
 
     std::atomic<long> diffRequestCounter;
 

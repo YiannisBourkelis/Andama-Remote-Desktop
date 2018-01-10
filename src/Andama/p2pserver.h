@@ -37,6 +37,7 @@
 
 #include "clientserver.h" //TODO: isws den xreiazetai
 #include "clientserverprotocol.h"
+#include "../Shared/Cryptography/openssl_aes.h";
 
 
 using namespace helperfuncs;
@@ -54,6 +55,10 @@ public:
     void setRemoteComputerOS(OS os);
     void setConnectionState(connectionState state);
     void stopThread();
+    void setPassword(std::string password);
+    const std::vector<openssl_aes::byte> &getLocalPasswordHash() const;
+    const std::vector<openssl_aes::byte> &getLocalPasswordDoubleHash() const;
+    const std::vector<openssl_aes::byte> &getLocalPasswordDoubleMD5() const;
 
     #ifdef WIN32
     void accept_client_messages(const SOCKET socketfd, const unsigned long clientIP);
@@ -68,15 +73,18 @@ public:
     void start_p2pserver();
 
     bool isP2PCientConnected;
-    std::string password;
 
     bool hasConnectedClientThreadsRunning();
     void sendMouseCursorType(Qt::CursorShape cursorShape);
-
 private:
+    //variables
     std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
     OS _remoteComputerOS;
     bool _stopThread = false;
+    std::string m_password;
+    std::vector<openssl_aes::byte> m_passwordHash256;
+    std::vector<openssl_aes::byte> m_passwordDoubleHash256;
+    std::vector<openssl_aes::byte> m_localPasswordDoubleMD5;
 
 #ifdef WIN32
     SOCKET listensocket = INVALID_SOCKET;

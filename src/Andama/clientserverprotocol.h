@@ -29,6 +29,7 @@
 #include "../Shared/AndamaHeaders/shared_enums.h"
 #include "../Shared/AndamaHeaders/socket_functions.h"
 #include "../Shared/AndamaHeaders/shared_constants.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 #ifdef WIN32
 //#define NOMINMAX
@@ -98,8 +99,6 @@ public:
 
     //public variables
     std::vector<char> myID;
-    std::string password; // to topiko password
-
 
     //public static variables
 
@@ -140,6 +139,15 @@ public:
     void RequestScreenshotDiff();
     static void resetWrongPasswordIPProtection(in_addr_t clientIP);
 
+    void setLocalPassword(std::string plain_password);
+    const std::string &getLocalPlainPassword() const;
+    const std::vector<openssl_aes::byte> &getLocalPasswordHash() const;
+    const std::string &getLocalPasswordDoubleHash() const;
+    const std::string &getRemotePasswordDoubleHash() const;
+    const std::vector<openssl_aes::byte> &getRemotePasswordHash() const;
+    const std::string &getRemotePlainPassword() const;
+    void setRemotePassword(std::string plain_password);
+    const std::vector<openssl_aes::byte> &getRemotePasswordDoubleMD5() const;
 signals:
     void sig_messageReceived(const clientServerProtocol *clientserver_protocol, const int msgType, const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
@@ -151,6 +159,13 @@ private:
     std::mutex connection_state_mutex;
     //protocolSupervisor _protocolSupervisor;
     std::vector<char> cachedID; //apothikevei to cachedID pou stalthike apo ton server
+    std::string m_localPlainPassword;
+    std::vector<openssl_aes::byte> m_localPasswordHash256;
+    std::string m_localPasswordDoubleHash256;
+    std::string m_remotePlainPassword;
+    std::vector<openssl_aes::byte> m_remotePasswordHash256;
+    std::string m_remotePasswordDoubleHash256;
+    std::vector<openssl_aes::byte> m_remotePasswordDoubleMD5;
 
     //random password generator
     //random ID generator

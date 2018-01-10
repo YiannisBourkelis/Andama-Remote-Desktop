@@ -21,14 +21,12 @@
 
 #include "clientserverprotocol.h"
 #include "../Shared/Cryptography/openssl_aes.h"
+#include <QCryptographicHash>
 
 
 static std::mutex protect_password_mutex;
 static std::map<in_addr_t,PasswordProtection> protect_password;//krataei tis ip pou exoun kanei apopeira syndesis me password pou einai lathos
 static std::mutex sendmutex;
-static std::string remotepassword;
-
-
 
 clientServerProtocol::clientServerProtocol()
 {
@@ -91,8 +89,8 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
     {
         //isClientConnected = true;
         //emit sig_messageReceived(this, MSG_CONNECTION_ACCEPTED, std::vector<char>());
-        qDebug() << ">>>>>>>>>>>>>>  CMD_P2P_PROTOCOL_OK:" << QString(remotepassword.c_str());
-        std::vector<char> pp = std::vector<char>(remotepassword.begin(), remotepassword.end());
+        qDebug() << ">>>>>>>>>>>>>>  CMD_P2P_PROTOCOL_OK:" << QString(getRemotePlainPassword().c_str());
+        std::vector<char> pp = std::vector<char>(getRemotePasswordDoubleHash().begin(), getRemotePasswordDoubleHash().end());
         ConnectP2P(pp);
     }
 
@@ -119,8 +117,8 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
         setConnectionState(connectionState::connectedWithProxy);
         emit sig_messageReceived(this, MSG_ID, myID);
 
-        if (password.size() == 0){ //efoson den exei dimiourgithei password, to dimiourgw
-            password = generateRandomPassword(PASSWORD_LENGTH);
+        if (getLocalPlainPassword().size() == 0){ //efoson den exei dimiourgithei password, to dimiourgw
+            setLocalPassword(generateRandomPassword(PASSWORD_LENGTH));
             emit sig_messageReceived(this, MSG_LOCAL_PASSWORD_GENERATED);
         }
     } // CMD_ID
@@ -164,7 +162,7 @@ void clientServerProtocol::proccessMessage(const std::array<char, 1> &command)
 
             //elegxw ean to password pou stalthike einai to idio me to password pou exei o client edw
             std::string passwdQuestion(vpassword.begin(), vpassword.end());
-            if (passwdQuestion == this->password){
+            if (passwdQuestion == this->getLocalPasswordDoubleHash()){
 //#ifdef Q_OS_MAC
 //        disableAppNap();
 //#endif
@@ -411,15 +409,11 @@ void clientServerProtocol::sendKeyboard(int portableVKey, int portableModifiers,
 
     openssl_aes::secure_string ctext;
     openssl_aes myaes(EVP_aes_256_cbc());
-    openssl_aes::byte key[openssl_aes::KEY_SIZE_256_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
-    openssl_aes::byte iv[openssl_aes::BLOCK_SIZE_128_BITS] = {1,2,3,4,5,6,7,8,   1,2,3,4,5,6,7,8};
     openssl_aes::secure_string ptext (msg.begin(),msg.end());
-    myaes.aes_256_cbc_encrypt(key, iv, ptext, ctext);
+    myaes.aes_256_cbc_encrypt(getRemotePasswordHash().data(), getRemotePasswordDoubleMD5().data(), ptext, ctext);
     std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
 
     _sendmsg(activeSocket, CMD_KEYBOARD, vect_ciptext);
-
-    //_sendmsgPlain(activeSocket, CMD_KEYBOARD, msg);
 }
 
 void clientServerProtocol::sendMouse(int x, int y, int button, int mouseEvent, int wheelDelta, int wheelDeltaSign, int wheelOrientation)
@@ -713,3 +707,74 @@ void clientServerProtocol::createConnectP2PCommandData(std::vector<char> &all_da
     all_data.insert(all_data.end(), pwdSize[0]); // size tou PWD
     all_data.insert(all_data.end(), remoteComputerPassword.begin(), remoteComputerPassword.end()); // to PWD
 }
+
+void clientServerProtocol::setLocalPassword(std::string plain_password)
+{
+    m_localPlainPassword = plain_password;
+
+    QByteArray passByteArr(plain_password.c_str());
+
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
+    m_localPasswordHash256 = std::move(passHash256Vector);
+
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    std::string passDoubleHash256String(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
+    m_localPasswordDoubleHash256 = std::move(passDoubleHash256String);
+}
+
+const std::string &clientServerProtocol::getLocalPlainPassword() const
+{
+    return m_localPlainPassword;
+}
+
+const std::vector<openssl_aes::byte> &clientServerProtocol::getLocalPasswordHash() const
+{
+    return m_localPasswordHash256;
+}
+
+const std::string &clientServerProtocol::getLocalPasswordDoubleHash() const
+{
+    return m_localPasswordDoubleHash256;
+}
+
+//TODO: H logiki epanalamvanetai aftousia se 3 merh. Isws kalytera na mpei se helpes class
+void clientServerProtocol::setRemotePassword(std::string plain_password)
+{
+    m_remotePlainPassword = plain_password;
+
+    QByteArray passByteArr(plain_password.c_str());
+
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
+    m_remotePasswordHash256 = passHash256Vector;
+
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    std::string passDoubleHash256String(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
+    m_remotePasswordDoubleHash256 = passDoubleHash256String;
+
+    QByteArray passDoubleMD5QbyteArr = QCryptographicHash::hash(passDoubleHash256QbyteArr, QCryptographicHash::Md5);
+    std::vector<openssl_aes::byte> passMD5Vector(passDoubleMD5QbyteArr.begin(), passDoubleMD5QbyteArr.end());
+    m_remotePasswordDoubleMD5 = std::move(passMD5Vector);
+}
+
+const std::string &clientServerProtocol::getRemotePlainPassword() const
+{
+    return m_remotePlainPassword;
+}
+
+const std::vector<openssl_aes::byte> &clientServerProtocol::getRemotePasswordHash() const
+{
+    return m_remotePasswordHash256;
+}
+
+const std::string & clientServerProtocol::getRemotePasswordDoubleHash() const
+{
+    return m_remotePasswordDoubleHash256;
+}
+
+const std::vector<openssl_aes::byte> &clientServerProtocol::getRemotePasswordDoubleMD5() const
+{
+    return m_remotePasswordDoubleMD5;
+}
+
