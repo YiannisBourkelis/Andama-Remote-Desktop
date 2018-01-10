@@ -477,6 +477,8 @@ void clientServerProtocol::sendMouseCursorType(Qt::CursorShape cursorShape)
 //stelnei ston server tin porta poy o client akouei gia eiserxomenes P2P syndeseis
 void clientServerProtocol::sendUPnPPort(int port)
 {
+    std::cout << "Will send upnp p2p port to proxy server:" << port << std::endl;
+
     //2 bytes  > port number 0-65535
     std::vector<char> msg(2);
 
