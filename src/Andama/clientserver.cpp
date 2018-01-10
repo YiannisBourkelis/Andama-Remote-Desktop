@@ -110,11 +110,11 @@ void clientserver::setLocalPassword(std::string plain_password)
 
     QByteArray passByteArr(plain_password.c_str());
 
-    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha256);
     std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
     m_localPasswordHash256 = std::move(passHash256Vector);
 
-    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha256);
     std::string passDoubleHash256String(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
     m_localPasswordDoubleHash256 = std::move(passDoubleHash256String);
 }
@@ -141,11 +141,11 @@ void clientserver::setRemotePassword(std::string plain_password)
 
     QByteArray passByteArr(plain_password.c_str());
 
-    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha256);
     std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
     m_remotePasswordHash256 = std::move(passHash256Vector);
 
-    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha256);
     std::string passDoubleHash256String(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
     m_remotePasswordDoubleHash256 = std::move(passDoubleHash256String);
 

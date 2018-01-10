@@ -51,11 +51,11 @@ void P2PServer::setPassword(std::string password)
 
     QByteArray passByteArr(password.c_str());
 
-    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha3_256);
+    QByteArray passHash256QbyteArr = QCryptographicHash::hash(passByteArr, QCryptographicHash::Sha256);
     std::vector<openssl_aes::byte> passHash256Vector(passHash256QbyteArr.begin(), passHash256QbyteArr.end());
     m_passwordHash256 = std::move(passHash256Vector);
 
-    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha3_256);
+    QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha256);
     std::vector<openssl_aes::byte> passDoubleHash256Vector(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
     m_passwordDoubleHash256 = std::move(passDoubleHash256Vector);
 
