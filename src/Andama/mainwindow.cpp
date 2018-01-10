@@ -1044,6 +1044,7 @@ void MainWindow::mymessageReceived(const clientServerProtocol *client, const int
            p2pclient.remotePort=remoteUPnP;
            p2pclient.remoteIpAddress = str;
            p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
+           p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());//TODO: nomizw pleonasmos.
            p2pclient.start();
        } //MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT
        else if (msgType == protocol_supervisor.protocol.MSG_P2P_SERVER_BIND_PORT_OK){
@@ -1094,7 +1095,7 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
             p2pclient.remotePort=ui->txtRemotePCID->text().split(":")[1].toInt();
             p2pclient.remoteIpAddress = ui->txtRemotePCID->text().split(":")[0].toStdString();
             p2pclient.setRemotePassword(strRemotePassword);
-            p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());
+            p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());//TODO: nomizw pleonasmos.
             p2pclient.start();
         }else{
             protocol_supervisor.protocol.Connect(vectRemoteID, vectRemotePasswordDoubleHash);
