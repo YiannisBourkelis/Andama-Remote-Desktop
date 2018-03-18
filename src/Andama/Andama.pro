@@ -200,3 +200,15 @@ linux:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include
 
 DISTFILES += \
     main.qml
+
+# TRANSLATION GUIDE
+# http://www.andama.org/translation-guide
+#
+# When a translation is complete e.g. we have a new Andama_it.ts file, we should create
+# a .qm file for the translation by running:
+# /Users/yiannis/Qt.3.0.2/5.10.0/clang_64/bin/lrelease Andama_it.ts  Andama.pro
+# (We should open a terminal window inside the folder where Andama.pro recides)
+# Then we should import the generated Andama_it.qm file inside the Resources/resources.qrc/ from
+# Qt Creator, by right clicking on "/" (Resources folder), > Add existing files.
+# Then we rebuild the project.
+# To test the translation we can uncomment the related line inside the void loadTranslator(QApplication *a,  QTranslator *translator)
