@@ -132,6 +132,7 @@ void loadTranslator(QApplication *a,  QTranslator *translator)
         //krataw mono ti glwssa. p.x. apo el_GR krataw mono to el
         lang.truncate(lang_code_idx);
     }
+    //lang = "es";
     QString lang_file = QString(":/Andama_%1.qm").arg(lang);
     translator->load(lang_file);
 
