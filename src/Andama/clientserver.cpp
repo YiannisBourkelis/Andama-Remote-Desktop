@@ -117,6 +117,10 @@ void clientserver::setLocalPassword(std::string plain_password)
     QByteArray passDoubleHash256QbyteArr = QCryptographicHash::hash(passHash256QbyteArr, QCryptographicHash::Sha256);
     std::string passDoubleHash256String(passDoubleHash256QbyteArr.begin(), passDoubleHash256QbyteArr.end());
     m_localPasswordDoubleHash256 = std::move(passDoubleHash256String);
+
+    QByteArray passDoubleMD5QbyteArr = QCryptographicHash::hash(passDoubleHash256QbyteArr, QCryptographicHash::Md5);
+    std::vector<openssl_aes::byte> passMD5Vector(passDoubleMD5QbyteArr.begin(), passDoubleMD5QbyteArr.end());
+    m_localPasswordDoubleMD5 = std::move(passMD5Vector);
 }
 
 const std::string &clientserver::getLocalPlainPassword() const
@@ -132,6 +136,11 @@ const std::vector<openssl_aes::byte> &clientserver::getLocalPasswordHash() const
 const std::string &clientserver::getLocalPasswordDoubleHash() const
 {
     return m_localPasswordDoubleHash256;
+}
+
+const std::vector<openssl_aes::byte> &clientserver::getLocalPasswordDoubleMD5() const
+{
+    return m_localPasswordDoubleMD5;
 }
 
 //TODO: H logiki epanalamvanetai aftousia se 3 merh. Isws kalytera na mpei se helpes class

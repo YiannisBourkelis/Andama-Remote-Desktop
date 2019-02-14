@@ -148,6 +148,7 @@ public:
     const std::string &getRemotePlainPassword() const;
     void setRemotePassword(std::string plain_password);
     const std::vector<openssl_aes::byte> &getRemotePasswordDoubleMD5() const;
+    const std::vector<openssl_aes::byte> &getLocalPasswordDoubleMD5() const;
 signals:
     void sig_messageReceived(const clientServerProtocol *clientserver_protocol, const int msgType, const std::vector<char> &vdata = std::vector<char>());
     void sig_exception(QString ex);
@@ -166,6 +167,7 @@ private:
     std::vector<openssl_aes::byte> m_remotePasswordHash256;
     std::string m_remotePasswordDoubleHash256;
     std::vector<openssl_aes::byte> m_remotePasswordDoubleMD5;
+    std::vector<openssl_aes::byte> m_localPasswordDoubleMD5;
 
     //random password generator
     //random ID generator
