@@ -468,9 +468,7 @@ void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *clien
             openssl_aes myaes(EVP_aes_256_cbc());
             openssl_aes::secure_string unencr_text;
             openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
-            auto remotePasswordHash = protocol_supervisor.protocol.getLocalPasswordHash().data();
-            auto remotePasswordDoubleMD5 = protocol_supervisor.protocol.getLocalPasswordDoubleMD5().data();
-            myaes.aes_256_cbc_decrypt(remotePasswordHash, remotePasswordDoubleMD5, cip_text, unencr_text);
+            myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getLocalPasswordHash().data(), protocol_supervisor.protocol.getLocalPasswordDoubleMD5().data(), cip_text, unencr_text);
             std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
 
             int _portableVKey       = bytesToInt(vect_unencrypted,0,4);
