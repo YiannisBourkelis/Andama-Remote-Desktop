@@ -142,7 +142,7 @@ void MouseCursorHook::unhookMouseCursorHook()
         UnhookWindowsHookEx(_mouseHook);
 
     BOOL pres;
-    pres = PostThreadMessage(_threadid, WM_QUIT, 0, 0);
+    pres = PostThreadMessage(_mythreadid, WM_QUIT, 0, 0);
     std::cout << "PostThreadMessage:" << pres << " LastError:" << GetLastError() << std::endl;
 
    // _stopThread = true;
