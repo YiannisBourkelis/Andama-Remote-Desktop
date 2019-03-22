@@ -11,5 +11,6 @@
         <file>Andama_el.qm</file>
         <file>Andama_it.qm</file>
         <file>Andama_es.qm</file>
+        <file>Andama_ru.qm</file>
     </qresource>
 </RCC>
