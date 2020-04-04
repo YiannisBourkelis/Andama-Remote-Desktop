@@ -37,7 +37,7 @@
 
 #include "clientserver.h" //TODO: isws den xreiazetai
 #include "clientserverprotocol.h"
-#include "../Shared/Cryptography/openssl_aes.h";
+#include "../Shared/Cryptography/openssl_aes.h"
 
 
 using namespace helperfuncs;

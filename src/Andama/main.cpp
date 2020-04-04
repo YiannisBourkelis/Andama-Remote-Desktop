@@ -125,7 +125,7 @@ BOOL SetWinSta0Desktop(TCHAR *szDesktopName)
 //fortwnei to arxeio me tis metafraseis
 void loadTranslator(QApplication *a,  QTranslator *translator)
 {
-    //QString lang = "it_es"; //test a translation
+    //QString lang = "el-GR"; //test a translation
     QString lang = QLocale::system().name();
     int lang_code_idx = QLocale::system().name().indexOf("_");
     if (lang_code_idx > -1){

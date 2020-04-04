@@ -44,7 +44,7 @@ linux:CONFIG += static
         DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050700
 windows:DEFINES += NOMINMAX
 
-mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8 #xreiazetai gia na ypostirizetai to std::async kai std::future
+mac:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9 #xreiazetai gia na ypostirizetai to std::async kai std::future
 mac:QMAKE_LFLAGS += -F /System/Library/Frameworks/CoreFoundation.framework/
 mac:LIBS += -framework CoreFoundation
 mac:LIBS += -framework ApplicationServices

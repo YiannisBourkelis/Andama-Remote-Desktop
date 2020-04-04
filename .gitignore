@@ -719,3 +719,4 @@ ASALocalRun/
 
 .localhistory/
 *.user
+src/OSXObjectiveCBridge/OSXObjectiveCBridge.pro.user
