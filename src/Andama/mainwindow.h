@@ -23,7 +23,9 @@
 
 #include "ui_mainwindow.h"
 #include "screenshotsworker.h"
-#include "clientserver.h"
+//#include "clientserver.h"
+//#include "clientserverprotocol.h"
+#include "protocolsupervisor.h"
 #include <QMainWindow>
 #include <QString>
 #include "qdebug.h"
@@ -44,7 +46,11 @@
 #include <iostream>
 #include "About.h"
 #include <QDesktopServices>
+#include "p2pserver.h"
 //#include <appnapcontroller.h>
+#include "../Shared/UPnP/upnpengine.h"
+#include "tbllogmodel.h"
+#include "mousekeyb/MouseCursorHook.h"
 
 #ifdef Q_OS_MAC
 #include <IOKit/pwr_mgt/IOPMLib.h> //gia na ksypnaei to monitor
@@ -67,19 +73,25 @@ public:
     void connectToServer();
     ~MainWindow();
     bool eventFilter(QObject *watched, QEvent *e);
-    clientserver protocol;
+    //clientServerProtocol protocol;
+    protocolSupervisor protocol_supervisor;
+    clientserver p2pclient;
+    P2PServer p2pserver;
     QImage lastScreenshot;
     screenshotsWorker screenshotWrk;
     keepalive keepAlive;
     About about;
+    tblLogModel tbllogmodel;
+
 
 private slots:
-    void mymessageRecieved(const int msgType, const std::vector<char>& vdata);
-    void non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata);
+    void mymessageReceived(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata);
+    void non_UI_thread_messageReceived(const clientServerProtocol *client,const int msgType, const std::vector<char>& vdata);
     void protocol_exception(QString ex);
     void on_btnConnectToRemoteClient_clicked();
     void on_actionAbout_triggered();
     void slot_protocol_finished_or_terminated();
+    void slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes);
 
     void on_connectWidget_customContextMenuRequested(const QPoint &pos);
 
@@ -89,6 +101,9 @@ private:
     QPoint lastMainWindowPosition;
     void setDefaultGUI();
     bool firstRun;
+    UPnPEngine upnpengine;
+    MouseCursorHook mouseCursorHook;
+
 
 protected:
     void closeEvent(QCloseEvent *event);

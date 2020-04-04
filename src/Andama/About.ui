@@ -89,7 +89,7 @@
         <string notr="true">color: white;</string>
        </property>
        <property name="text">
-        <string>Copyright (c) 2015 Yiannis Bourkelis</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright &amp;copy; 2017 Yiannis Bourkelis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>

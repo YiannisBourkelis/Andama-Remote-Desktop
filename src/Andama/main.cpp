@@ -19,10 +19,21 @@
  * ***********************************************************************/
 
 #include "mainwindow.h"
+#include "engine.h"
 #include "qapplication.h"
+#include "screenshotprovider.h"
+#include <QGuiApplication>
 #include <QtDebug>
 #include <QFile>
 #include <QTextStream>
+//#include <QMessageBox>
+#include <QTranslator> //xreiazetai gia tis metafraseis
+
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QtQml>
+#endif //ANDAMA_SERVICE_MODE
 
 //http://www.qtcentre.org/threads/19534-redirect-qDebug()-to-file
 
@@ -36,6 +47,12 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         txt = QString("Debug: %1 (%2:%3, %4)").arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
         fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
         break;
+#if QT_VERSION >= 0x050500
+    case QtInfoMsg:
+        txt = QString("Info: %1 (%2:%3, %4)").arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+        fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+#endif
     case QtWarningMsg:
         txt = QString("Warning: %1 (%2:%3, %4)").arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
         fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
@@ -58,13 +75,114 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     */
 }
 
+
+/*
+ * http://www.itgo.me/a/7231831138432713549/c++-how-to-switch-a-process-between-default-desktop-and-winlogon-desktop
+ * https://blogs.msdn.microsoft.com/winsdk/2009/07/14/launching-an-interactive-process-from-windows-service-in-windows-vista-and-later/
+ *
+void ShowLastErrorMessage(DWORD errCode, LPTSTR errTitle)
+{
+    LPTSTR errorText = NULL;
+    FormatMessage(
+    FORMAT_MESSAGE_FROM_SYSTEM |
+    FORMAT_MESSAGE_ALLOCATE_BUFFER |
+    FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL,
+    errCode,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    (LPTSTR)&errorText,
+    0,
+    NULL);
+    if ( NULL != errorText )
+    {
+    WCHAR msg[512] = {0};
+    wsprintf(msg, TEXT("%s:\nError Code: %u\n%s\n"), errTitle, errCode, errorText);
+    LocalFree(errorText);
+    errorText = NULL;
+    OutputDebugString(msg);
+    }
+}
+
+
+
+BOOL SetWinSta0Desktop(TCHAR *szDesktopName)
+{
+    BOOL bSuccess = FALSE;
+    HWINSTA hWinSta0 = OpenWindowStation(TEXT("WinSta0"), FALSE, MAXIMUM_ALLOWED);
+    if (NULL == hWinSta0) { ShowLastErrorMessage(GetLastError(), TEXT("OpenWindowStation")); }
+    bSuccess = SetProcessWindowStation(hWinSta0);
+    if (!bSuccess) { ShowLastErrorMessage(GetLastError(), TEXT("SetProcessWindowStation")); }
+    HDESK hDesk = OpenDesktop(szDesktopName, 0, FALSE, MAXIMUM_ALLOWED);
+    if (NULL == hDesk) { ShowLastErrorMessage(GetLastError(), TEXT("OpenDesktop")); }
+    bSuccess = SetThreadDesktop(hDesk);
+    if (!bSuccess) { ShowLastErrorMessage(GetLastError(), TEXT("SetThreadDesktop")); }
+    if (hDesk != NULL) { CloseDesktop(hDesk); }
+    if (hWinSta0 != NULL) { CloseWindowStation(hWinSta0); }
+    return bSuccess;
+}
+*/
+
+//fortwnei to arxeio me tis metafraseis
+void loadTranslator(QApplication *a,  QTranslator *translator)
+{
+    //QString lang = "el-GR"; //test a translation
+    QString lang = QLocale::system().name();
+    int lang_code_idx = QLocale::system().name().indexOf("_");
+    if (lang_code_idx > -1){
+        //krataw mono ti glwssa. p.x. apo el_GR krataw mono to el
+        lang.truncate(lang_code_idx);
+    }
+    //lang = "ru";
+    QString lang_file = QString(":/Andama_%1.qm").arg(lang);
+    translator->load(lang_file);
+
+    a->installTranslator(translator);
+}
+
 int main(int argc, char *argv[])
 {
+    //SetWinSta0Desktop(TEXT("winlogon"));
+
     QApplication a(argc, argv);
-    qInstallMessageHandler(myMessageOutput);
 
-    MainWindow w;
-    w.show();
+    //fortwsi metafrasis annaloga me ti glwssa tou systimatos
+    //Prepei o orismos tis translator na vrisketai sto scope tis main giati alliws den ginetai metafrasi
+    QTranslator translator;
+    loadTranslator(&a,&translator);
 
-    return a.exec();
+    bool useQML = false;
+    if (!useQML)
+    {
+        qInstallMessageHandler(myMessageOutput);
+
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use widgets related code
+
+        MainWindow w;
+        w.show();
+#endif //ANDAMA_SERVICE_MODE
+        //QString locale = QLocale::system().name();
+
+        //QMessageBox::information(&w,"Language",lang);
+        return a.exec();
+    }
+    else{
+
+#ifndef ANDAMA_SERVICE_MODE //a service/daemon does not use qml related code
+
+        ScreenshotProvider screenProvider;
+        Engine andamaEngine(&screenProvider);
+
+        QQmlApplicationEngine engine;
+
+
+        qmlRegisterType<clientserver>("engine.andama.com",1,0,"Engine"); //register type to get enum
+        engine.rootContext()->setContextProperty("engine", &andamaEngine);
+        engine.addImageProvider(QLatin1String("remotescreen"), &screenProvider);
+        engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+        andamaEngine.start();
+#endif //ANDAMA_SERVICE_MODE
+
+        return a.exec();
+    }
 }

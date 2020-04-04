@@ -26,6 +26,7 @@
 
 void Keyboard::keyPress(int key, int modifiers)
 {
+    static_cast<void>(modifiers);
     CGEventRef event = CGEventCreateKeyboardEvent(NULL, key, true);
     CGEventPost(kCGHIDEventTap, event);
     CFRelease(event);
@@ -33,6 +34,7 @@ void Keyboard::keyPress(int key, int modifiers)
 
 void Keyboard::keyRelease(int key, int modifiers)
 {
+    static_cast<void>(modifiers);
     CGEventRef event = CGEventCreateKeyboardEvent(NULL, key, false);
     CGEventPost(kCGHIDEventTap, event);
     CFRelease(event);
@@ -769,6 +771,7 @@ int Keyboard::convertPortableKeyToLocal(portableVKey portableKey)
         return -1; // den vrethike annalogo key
 }
 
+/*
 //https://qt.gitorious.org/qt/qt/source/61570cd378e1b5a257ad90efcdac4098cb85262c:src/gui/kernel/qkeymapper_win.cpp
 // Key translation ---------------------------------------------------------------------[ start ] --
 // Meaning of values:
@@ -1036,6 +1039,7 @@ static const uint KeyTbl[] = { // Keyboard mapping table
     Qt::Key_Clear,      // 254   0xFE   VK_OEM_CLEAR        | Clear key
     0
 };
+*/
 
 
 #endif

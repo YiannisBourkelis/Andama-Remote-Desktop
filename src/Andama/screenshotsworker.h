@@ -23,7 +23,8 @@
 
 #include "helperfuncs.h"
 #include <QThread>
-#include "clientserver.h"
+//#include "clientserver.h"
+#include "protocolsupervisor.h"
 #include <QImage>
 #include <atomic>
 #include <QMutexLocker>
@@ -35,15 +36,19 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <qpaintengine.h>
+#include "p2pserver.h"
+//#include "imageconfig.h"
 
 class screenshotsWorker: public QThread
 {
         Q_OBJECT
 public:
     screenshotsWorker();
-    void setScreenshot(QImage newScreenshot, const int msg);
-    clientserver * protocol;
+    void setScreenshot(const QImage &newScreenshot, const int msg);
+    protocolSupervisor * protocol_supervisor;
+    P2PServer * p2pServer;
     std::atomic<int> imageQuality;
+    std::atomic<bool> stopThread {false};
 
 protected:
     void run(void);
@@ -56,7 +61,7 @@ private:
     //std::recursive_mutex pendingScreenshot_mutex;
     std::mutex pendingScreenshot_mutex;
     std::atomic<bool> isDirty;
-    void sendScreenshot(QImage outimg, int x, int y);
+    void sendScreenshot(const QImage &outimg, int x, int y);
     void prepareAndSendScreenshotDiff();
 };
 

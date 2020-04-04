@@ -19,6 +19,11 @@
  * ***********************************************************************/
 
 // The C10K problem: http://www.kegel.com/c10k.html
+// SOCKETS - SERVER & CLIENT - 2017 http://www.bogotobogo.com/cplusplus/sockets_server_client.php
+
+//Peer-to-Peer Communication Across Network Address Translators
+//http://www.bford.info/pub/net/p2pnat/index.html
+
 #ifdef WIN32
 #define NOMINMAX
 #include <stdio.h>
@@ -41,7 +46,6 @@
 #include <string.h>
 #include <sstream>
 #include <map>
-#include <thread>
 #include <mutex>
 #include <vector>
 #include <atomic>
@@ -50,6 +54,16 @@
 #include <array>
 #include <random>
 #include <chrono>
+
+#include "../Shared/AndamaHeaders/exception_helper.h"
+#include "../Shared/AndamaHeaders/shared_constants.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/AndamaHeaders/shared_enums.h"
+#include "../Shared/AndamaHeaders/socket_functions.h"
+
+
+#include "clientinfo.h"
+#include "ipprotection.h"
 
 /* Elegxoi prin ginei deploy
  * --------------------------
@@ -61,9 +75,6 @@
  * - WRONG_ID_BAN_DURATION      = 7200 (id sniffing protection)
  */
 
-//server listening port
-const int PORT_NUMBER = 8099;
-
 //to evros tou client id pou dimiourgeitai tyxaia
 //gia kathe client
 const unsigned long int MIN_ID = 100000; // default 100000000
@@ -74,37 +85,6 @@ const int  MAX_WRONG_ID_TRIES         = 10;  //10; //default: diplasio apo to MA
 const int  MAX_WRONG_ID_TRIES_WARNING = 5;  //5;
 const long WRONG_ID_BAN_DURATION      = 7200; //7200 - 2 HOURs
 
-//ta commands pou anagnwrizei o proxy
-const std::array<char,1> CMD_PROTOCOL = {{'P'}};
-const std::array<char,1> CMD_CONNECT = {{'C'}};
-const std::array<char,1> CMD_CONNECT_ID_NOT_FOUND = {{'c'}}; // stelnetai apo ton server otan den vrethei to id pou zitithike apo CMD_CONNECT
-//const std::array<char,1> CMD_QUIT = {{'Q'}};
-const std::array<char,1> CMD_ACCEPT = {{'A'}};
-const std::array<char,1> CMD_ID = {{'I'}};
-const std::array<char,1> CMD_SCREENSHOT = {{'S'}};
-const std::array<char,1> CMD_SCREENSHOT_DIFF = {{'s'}};
-const std::array<char,1> CMD_REQUEST_SCREENSHOT = {{'R'}};
-const std::array<char,1> CMD_REQUEST_SCREENSHOT_DIFF = {{'r'}};
-const std::array<char,1> CMD_MOUSE = {{'M'}}; // mouse
-const std::array<char,1> CMD_KEYBOARD = {{'K'}}; // KEYBOARD
-const std::array<char,1> CMD_DISCONNECT_FROM_REMOTE_COMPUTER = {{'D'}}; // disconnect from computer
-const std::array<char,1> CMD_HEART_BEAT = {{'H'}};
-const std::array<char,1> CMD_BAN_IP_WRONG_ID = {{'B'}}; // synolika 5 bytes
-const std::array<char,1> CMD_WARNING_BAN_IP_WRONG_ID= {{'W'}}; // synolika 2 bytes
-const std::array<char,1> CMD_CONNECT_PASSWORD_NOT_CORRECT= {{'p'}}; // synolika 1 byte
-const std::array<char,1> CMD_BAN_IP_WRONG_PWD = {{'b'}}; //synolika ena byte (mono to command)
-const std::array<char,1> CMD_WARNING_BAN_IP_WRONG_PWD= {{'w'}}; // synolika 2 bytes
-const std::array<char,1> CMD_ERROR_APP_VERSION_NOT_ACCEPTED = {{'V'}}; // epistrefei to URL pros ti selida pou tha katevasei o xristis tin neoteri ekdosi tis efarmogis
-//const std::array<char,1> CMD_ERROR_PROTOCOL_VERSION_NOT_ACCEPTED = {{'v'}}; // (mono command)
-
-
-//enums
-//prosdiorizei ean o client syndeetai ston host mesw tou proxy
-//h apeftheias (peer-to-peer)
-enum connectMessageType {
-    proxy = 0,
-    direct = 1
-};
 
 //random ID generator
 std::random_device rd;
@@ -117,30 +97,7 @@ void error(const char *msg) {
     exit(1);
 }
 
-//gia kathei client pou syndeetai ston server
-//kataxaritai sto clients map ena instance tis klasis me plirofories gia ton client
-class ClientInfo
-{
-public:
-    int sockfd = -1; //to socket epikoinwnias me ton client
-    int remote_socket = -1; //to socket epikoinwnias me ton remote client an ginei accept
-    std::string remote_id = ""; //to id to remote client ean exei ginei accept
-    std::vector<char> cachedID; //to cachedID pou xrisiopoieitai gia na diatirei o client to idio ID se periptwsi aposyndesis
-};
-
-//kathe fora pou ena client zita na syndethei se id
-//pou den yparxei, ena instance aftis tis klasis kataxwreitai
-//sto protect_id map.
-//Me tin voitheia tis ginetai tracking ean to idio ip kanei id sniffing
-class IPProtection
-{
-public:
-    std::chrono::high_resolution_clock::time_point lastWrongIDTime; //i stigmi pou egine i teleftaia lathos apopeira
-    int wrongIDCounter = 0;//to plithos twn lathos apopeirwn
-};
-
 std::mutex clients_mutex;//sygxronismos clients map
-std::mutex send_mutex; //sygxronismos sockets.TODO (xreiazetai sygxronismos wste se kamia periptwsi na mi ginetai apo diaforetika thread lipsi i apostoli sto idio socket
 std::mutex protect_id_mutex;//sygxronismos proteck_id map
 std::map<std::string, ClientInfo> clients;//krataei plirofories gia ton kathe client poy einai syndedemenos sto server
 std::map<unsigned long,IPProtection> protect_id;//krataei tis ip pou exoun kanei apopeira syndesis se id pou den yparxei
@@ -151,31 +108,6 @@ std::string cachedID_Charset = "1234567890abcdefghjgklmnopqrstuvwxyzABCDEFGHIJKL
 std::random_device rd_cachedID;
 std::mt19937 mt_cachedID = std::mt19937(rd_cachedID());
 std::uniform_int_distribution<unsigned int> distribution_cachedID = std::uniform_int_distribution<unsigned int>(0, cachedID_Charset.length() - 1);
-
-
-//console logging
-std::string getTime()
-{
-#ifdef WIN32
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    std::string ret;
-    ret.insert(ret.begin(),st.wYear);
-    return ret;
-#else
-    struct timeval tv;
-    time_t nowtime;
-    struct tm *nowtm;
-    char tmbuf[64], buf[64];
-
-    gettimeofday(&tv, NULL);
-    nowtime = tv.tv_sec;
-    nowtm = localtime(&nowtime);
-    strftime(tmbuf, sizeof tmbuf, "[%Y-%m-%d %H:%M:%S", nowtm);
-    snprintf(buf, sizeof buf, "%s.%06lu]", tmbuf, tv.tv_usec);
-    return std::string(buf);
-#endif
-}
 
 std::vector<char> generateRandomCachedID(int length)
 {
@@ -192,9 +124,9 @@ std::vector<char> generateRandomCachedID(int length)
 
 //dimiourgei kai epistrefei ena tyxaio kai monadiko clientid
 #ifdef WIN32
-std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID) {
+std::string getClientID(const SOCKET socketfd, std::vector<char> cachedID, const unsigned long clientIP) {
 #else
-std::string getClientID(const int socketfd, std::vector<char> cachedID) {
+std::string getClientID(const int socketfd, std::vector<char> cachedID, const in_addr_t clientIP) {
 #endif
     std::lock_guard<std::mutex> lock(clients_mutex);
     while(true)
@@ -215,7 +147,11 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
                     ci.remote_socket = 0;
                     ci.sockfd = socketfd;
                     ci.cachedID = cachedID;
+                    ci.ip = clientIP;
+
                     clients[cachedIDs.at(cachedID)] = ci;
+
+                    std::cout << "[1] client IP:" << ci.ip << std::endl;
 
                     return cachedIDs.at(cachedID);
                 }
@@ -237,6 +173,9 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
             ci.remote_socket = 0;
             ci.sockfd = socketfd;
             ci.cachedID = generateRandomCachedID(64);
+            ci.ip = clientIP;
+            std::cout << "[2] client IP:" << ci.ip << std::endl;
+
             clients[tmpIDstream.str()] = ci;
 
             //prostheto to neo cachedID sto map
@@ -245,18 +184,6 @@ std::string getClientID(const int socketfd, std::vector<char> cachedID) {
             return tmpIDstream.str();
         }
     }
-}
-
-//emfanizei to teleftaio sfalma pou proklithike
-void displayErrno(std::string source)
-{
-#ifdef WIN32
-    std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
-                 "###### [source: " << source <<  "]  displayErrno: " << strerror(WSAGetLastError()) << std::endl;
-#else
-    std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
-                 "###### [source: " << source <<  "]  displayErrno: " << strerror(errno) << std::endl;
-#endif
 }
 
 //diaxeirisi unhundled exceptions
@@ -282,51 +209,6 @@ void onTerminate() noexcept
     std::exit( EXIT_FAILURE );
 }
 
-//metatropi (serialization) enos int se vector<char> wste na ginetai
-//dynati i metafora tou sto socket.
-//to buffer pernaei byref kai analoga me tin arxikopoiisi pou tou exei ginei
-//diladei ean exei length 1,2 h 4 bytes ginetai i analogi metatropi
-void intToBytes(const int value, std::vector<char> &buffer)
-{
-    if(buffer.size() == 4){
-        buffer[0] = (value >> 24) & 0xff;
-        buffer[1] = (value >> 16) & 0xff;
-        buffer[2] = (value >> 8)  & 0xff;
-        buffer[3] = value & 0xff;
-    }
-    else if(buffer.size() == 2){
-        buffer[0] = (value >> 8)  & 0xff;
-        buffer[1] = value & 0xff;
-    }
-    else if(buffer.size() == 1){
-        buffer[0] = value & 0xff;
-    }
-}
-
-//lamvanei ena vector<char> pou periexei arithmo pou egine
-//serialize me to intToBytes kai epistrefei ton arxiko arithmo.
-//epitrepetai na exei megethos 1,2 h 4 bytes.
-int bytesToInt(const std::vector<char> &buffer)
-{
-    if (buffer.size() == 4){
-        return
-            (((unsigned char)buffer[0]) << 24) +
-            (((unsigned char)buffer[1]) << 16) +
-            (((unsigned char)buffer[2]) << 8) +
-              (unsigned char)buffer[3];
-    }
-    if (buffer.size() == 2){
-        return
-            (((unsigned char)buffer[0]) << 8) +
-              (unsigned char)buffer[1];
-    }
-    else if (buffer.size() == 1){
-        return
-              (unsigned char)buffer[0];
-    }
-    return 0;
-}
-
 //ean symvei kapoio sfalma sto thread pou diaxeirizetai to client connection
 //i ginei timeout, edw katharizoume kapoia resources pou xrisimopoiountai
 #ifdef WIN32
@@ -346,242 +228,6 @@ void cleanup(const std::string id, const int socketfd) noexcept
     #else
     close(socketfd);
     #endif
-}
-
-//apostelei to command(1byte) kai to mynima efoson yparxei
-#ifdef WIN32
-int _sendmsgPlain(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>())
-#else
-int _sendmsgPlain(const int socketfd, const std::array<char, 1> &command, const std::vector<char> &message = std::vector<char>())
-#endif
-{
-    std::vector<char> msg(1);
-    msg[0]=command[0];
-
-    if (message.size() > 0){
-        msg.insert(msg.begin()+1, message.begin(),message.end());
-    }
-
-    std::size_t total = 0;        // how many bytes we've sent
-    { // lock_guard scope
-        std::lock_guard<std::mutex> lock(send_mutex);
-
-        //prepei na vevaiwthooume oti stalthike olo to mynhma
-        size_t bytesleft = msg.size(); // how many we have left to send
-        int n;
-        while (total < msg.size()){
-            n = send(socketfd,msg.data()+total,bytesleft,0);
-            if (n < 0){
-                break;
-            }
-            else if (n == 0)
-            {
-                std::cout << "-----> send returned 0 bytes. Expected: " << msg.size() <<
-                             "  [ int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message) ]" << std::endl;
-                displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-                return 0;
-            }
-            total+=n;
-            bytesleft-=n;
-        }
-    } // lock_guard scope
-
-    if (total != msg.size()){
-        std::cout << "----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected. Command: %s" << command[0] << std::endl;
-        displayErrno("int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message)");
-        throw std::runtime_error(std::string("----> throw EXCEPTION IN int clientserver::_sendmsgPlain(int socketfd, const std::array<char, 1> &command,const std::vector<char> &message). Bytes send not equal to bytes expected."));
-    }
-    return total;
-}
-
-
-/* apostelei:
- * - to command (1 byte)
- * - ypologizei me 4 byte to megethos tou mynimatos
- * - to mynima
- * - Veltiwseis pou tha mporousan na ginoun:
- * a)anti na antigrafw to message sto msg, na kataxwrw to msg stin arxi tou message
- */
-#ifdef WIN32
-int _sendmsg(const SOCKET socketfd, const std::array<char, 1> &command, const std::vector<char> &message)
-#else
-int _sendmsg(const int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)
-#endif
-{
-    //std::cout << "clientserver::sendmsg called" << std::endl;
-
-    std::vector<char> msg(5);
-    int len = message.size();
-
-    //std::cout << "16. Message len: " << len << std::endl;
-
-    std::vector<char> lenb(4);
-    intToBytes(len,lenb);
-
-    msg[0]=command[0];
-    msg[1]=lenb[0];
-    msg[2]=lenb[1];
-    msg[3]=lenb[2];
-    msg[4]=lenb[3];
-
-    msg.insert(msg.begin()+5, message.begin(),message.end());
-
-    std::size_t total = 0;        // how many bytes we've sent
-    { // lock_guard scope
-        //std::cout << "17. Will lock send socket (sendmutex)" << std::endl;
-        std::lock_guard<std::mutex> lock (send_mutex);
-        //send_mutex.lock();
-        //std::cout << "18. Will send Command: " << &msg.at(0) <<  ". Total bytes: " << msg.size() << std::endl;
-
-        //prepei na vevaiwthooume oti stalthike olo to mynhma
-        size_t bytesleft = msg.size(); // how many we have left to send
-        int n;
-        while (total < msg.size()){
-            n = send(socketfd,msg.data()+total,bytesleft,0);
-            if (n < 0){
-                break;
-            }
-            else if (n == 0)
-            {
-                std::cout << "-----> send returned 0 bytes. Expected: " << msg.size() <<
-                             "  [ int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message) ]" << std::endl;
-                displayErrno("int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)");
-                return 0;
-            }
-            total+=n;
-            bytesleft-=n;
-        }
-
-        //std::cout << "19. Command: " << &msg[0] << " send. Total bytes returned from socket: " << total << std::endl;
-    } // lock_guard scope
-    //std::cout << "############ 19. send socket unlocked (sendmutex). END" << std::endl;
-
-    if (total != msg.size()){
-        std::cout << "----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected. Command: %s" << command[0] << std::endl;
-        throw std::runtime_error(std::string("----> throw EXCEPTION IN size_t int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message). Bytes send not equal to bytes expected."));
-    }
-    return total;
-}
-
-//lamvanei bytes isa me to length tou charbuffer pou pernaei byref
-#ifdef WIN32
-int _receivePlain(const SOCKET socketfd, std::vector<char> &charbuffer)
-#else
-int _receivePlain(const int socketfd, std::vector<char> &charbuffer)
-#endif
-{
-    size_t bytes_cnt_payload=0;
-
-    while(bytes_cnt_payload < charbuffer.size())
-    {
-        int bytes_rcv_payload = recv(socketfd,charbuffer.data() + bytes_cnt_payload,charbuffer.size() - bytes_cnt_payload, 0);
-
-        if (bytes_rcv_payload == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [int _receivePlain(int socketfd, std::vector<char> &charbuffer)]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv_payload == -1){
-            displayErrno("int _receivePlain(int socketfd, std::vector<char> &charbuffer)");
-            return -1;
-        }
-
-        bytes_cnt_payload += bytes_rcv_payload;
-    }
-
-    if (bytes_cnt_payload != charbuffer.size()){
-        std::cout << "----> EXCEPTION IN recieve func int _receivePlain(int socketfd, std::vector<char> &charbuffer). Bytes recieved not equal to bytes expected. Expected: " << charbuffer.size() << " recieved: " << bytes_cnt_payload << std::endl;
-        displayErrno("int clientserver::_sendmsg(int socketfd,    const std::array<char, 1> &command, const std::vector<char> &message)");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected.\n"));
-    }
-
-    return bytes_cnt_payload;
-}
-
-/* kanei de-serialize ta prwta 4 bytes tou minimatos
- * pou perigrafoun to megethos tou mynimatos pou akolouthei
- * kai sti synexei lamvanoun to mynima.
- * Afto to mynima to fortwnei sto charbuffer byref
- */
-#ifdef WIN32
-int _receive(const SOCKET socketfd, std::vector<char> &charbuffer)
-#else
-int _receive(const int socketfd, std::vector<char> &charbuffer)
-#endif
-{
-    //-----------
-    //prwto meros: lamvano to synolo twn bytes poy anamenontai
-    //sto payload
-    size_t bytes_needed = 4;
-    std::vector<char> len_bytes(4);
-    size_t bytes_cnt=0;
-
-    while(bytes_cnt < bytes_needed)
-    {
-        int bytes_rcv = recv(socketfd, len_bytes.data() + bytes_cnt, bytes_needed - bytes_cnt, 0);
-
-        if (bytes_rcv == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [first while loop]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv == -1){
-            displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - first while loop");
-            return -1;
-        }
-
-        bytes_cnt += bytes_rcv;
-    }
-
-    if (bytes_needed != bytes_cnt){
-        std::cout << "----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed << " recieved: " << bytes_cnt << std::endl;
-        displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - first while loop");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload length). Bytes recieved not equal to bytes expected."));
-    }
-
-    //-----------
-
-    //deftero meros: lamvanw to payload
-    //std::cout << "_recieve will call bytesToInt to compute required msg size" << std::endl;
-    size_t bytes_needed_payload = bytesToInt(len_bytes);
-    //std::cout << "_recieve required msg size: " << bytes_needed_payload << " >> charbuffer.max_size():" << charbuffer.max_size() << " Will resize charbuffer..." << std::endl;
-    //SIMANTIKO!!! An syndethw me telnet kai kataxwrisw P010 o server krasarei se linux giati
-    //apo oti katalavainw den mporei na kanei resize to charbuffer se ena poly megalo arithmo.
-    //Gi afto kanw ton elegxo parakatw pou tha prostatevei kai ton server se periptwsi pou kapoios paei na
-    //steilei p.x. panw apo 20mb dedomenwn gia na tou dimiourgisei provlima.
-    if (bytes_needed_payload < 20971520){ //maximum peripou 20 MB gia prostasia
-        charbuffer.resize(bytes_needed_payload);
-    }
-    else {
-        std::cout << "Error on _receive: cannot receive more than 20971520 bytes at once" << std::endl;
-        throw std::runtime_error("_receive > cannot receive more than 20971520 bytes at once");
-    }
-    size_t bytes_cnt_payload = 0;
-
-    while(bytes_cnt_payload < bytes_needed_payload)
-    {
-        int bytes_rcv_payload = recv(socketfd,charbuffer.data() + bytes_cnt_payload,bytes_needed_payload - bytes_cnt_payload, 0);
-
-        if (bytes_rcv_payload == 0){
-            std::cout << std::this_thread::get_id() << " " <<
-                       "####  int recieve: recv return 0 bytes. [second while loop]. Returning from function." << std::endl;
-            return 0;
-        }
-        else if (bytes_rcv_payload == -1){
-            displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - second while loop");
-            return -1;
-        }
-
-        bytes_cnt_payload += bytes_rcv_payload;
-    }
-
-    if (bytes_cnt_payload != bytes_needed_payload){
-        std::cout << "----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected. Expected: " << bytes_needed_payload << " recieved: " << bytes_cnt_payload << std::endl;
-        displayErrno("int _receive(int socketfd, std::vector<char> &charbuffer) - second while loop");
-        throw std::runtime_error(std::string("----> EXCEPTION IN recieve func (payload). Bytes recieved not equal to bytes expected."));
-    }
-
-    return bytes_cnt_payload + bytes_cnt;
 }
 
 //epistrefei to socket tou remote computer poy einai syndedemeno ston client me to id eisodou
@@ -792,12 +438,12 @@ void createConnectCommandData(std::vector<char> &all_data, const std::vector<cha
  * PROFYLAKSEIS
  * - todo: apo tin idia ip mporoun na syndethoun to megisto 50 clients
  * - todo: i idia ip mporei na steilei to megisto 10 request pros client id pou den yparxei. meta ginetai ban gia 2 wres. (nomizw to ylopoiisa afto)
- * - todo: flood protect. megisto orio ana client:1GB/hour. megisto orio ana ip:10GB/hour
+ * - todo: flood protect. megisto orio ana client:1GB/hour. megisto orio ana ip:10GB/hour.
  */
 #ifdef WIN32
-void dostuff(const SOCKET socketfd, const unsigned long clientIP) {
+void dostuff(const SOCKET socketfd, const sockaddr_in client_sockaddr_in) {
 #else
-void dostuff(const int socketfd, const in_addr_t clientIP) {
+void dostuff(const int socketfd, const sockaddr_in client_sockaddr_in) {
 #endif
     //std::cout << getTime() << " " << std::this_thread::get_id() <<
     //             " Eisodos sto dostuff loop. Socket:%i" << socketfd  << std::endl;
@@ -821,11 +467,39 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
     try
     {
         //molis syndethei o client, o server apostelei to
-        //megisto protocol version poy ypostirizei.
-        std::vector<char> server_protocol(2);
-        server_protocol[0] = '1';
-        server_protocol[1] = '0';
-        _sendmsgPlain(socketfd,CMD_PROTOCOL,server_protocol);
+        //megisto protocol version poy ypostirizei, tin port kai tin ip tou client
+        // | 1 byte CMD_PROTOCOL | 4 byte msg size |
+        // | 2 bytes protocol version |
+        // | 2 bytes client endpoint port |
+        // | 1 byte remote client ip length | x bytes client ip |
+        // gia IPv4 ta bytes pou apaitountai gia olo to paketo einai synolika 9 (xwris ta prwta 5)
+        // TODO: tin port kai ip tou client tin epistrefw wste argotera na ylopoiisw TCP hole punching
+
+        // | 2 bytes protocol version |
+        std::vector<char> server_protocol;
+        server_protocol.reserve(9);
+        server_protocol.push_back('1');
+        server_protocol.push_back('0');
+
+        // | 2 bytes client port |
+        //kataxwrw to upnp port tou remote client
+        std::vector<char> buffPort(2);
+        intToBytes(client_sockaddr_in.sin_port, buffPort);
+        server_protocol.push_back(buffPort[0]);
+        server_protocol.push_back(buffPort[1]);
+
+        //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
+        // 4 bytes length - hard coded.
+        std::vector<char> buffLenIP(1);
+        intToBytes(4, buffLenIP);
+        server_protocol.push_back(buffLenIP[0]);
+
+        //i IPv4 tou remote client
+        std::vector<char> buffIP(4);
+        ulongToBytes(client_sockaddr_in.sin_addr.s_addr, buffIP);
+        server_protocol.insert(server_protocol.end(), buffIP.begin(), buffIP.end());
+
+        _sendmsg(socketfd, CMD_PROTOCOL, server_protocol);
     }
     catch (std::exception ex)
     {
@@ -846,7 +520,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
 
             // Kyrio simeio. Lamvanw to command (1 byte)
             cmd_bytes_recv = recv(socketfd, &cmdbuffer[0], 1, 0);
-            //std::cout << "DOSTUFF BYTES RECIEVED: " << cmd_bytes_recv << std::endl;
+            //std::cout << "DOSTUFF BYTES RECEIVED: " << cmd_bytes_recv << std::endl;
 
             if (cmd_bytes_recv == 0){
                 std::cout << getTime() << " " << std::this_thread::get_id() << " " <<
@@ -880,13 +554,13 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::vector<char> client_protocolbuff;
                 _receive(socketfd, client_protocolbuff); //<-----------------------------
                 std::cout << "examining client protocol" << std::endl;
-                std::string vapp_maj(client_protocolbuff.begin(),    client_protocolbuff.begin()+1);
-                std::string vapp_min(client_protocolbuff.begin() +1, client_protocolbuff.begin()+2);
-                std::string vapp_rev(client_protocolbuff.begin() +2, client_protocolbuff.begin()+3);
+                const std::string vapp_maj(client_protocolbuff.begin(),    client_protocolbuff.begin()+1);
+                const std::string vapp_min(client_protocolbuff.begin() +1, client_protocolbuff.begin()+2);
+                const std::string vapp_rev(client_protocolbuff.begin() +2, client_protocolbuff.begin()+3);
 
-                std::string vprot_maj(client_protocolbuff.begin()+3, client_protocolbuff.begin()+4);
-                std::string vprot_min(client_protocolbuff.begin()+4, client_protocolbuff.begin()+5);
-                std::string vprot_rev(client_protocolbuff.begin()+5, client_protocolbuff.begin()+6);
+                const std::string vprot_maj(client_protocolbuff.begin()+3, client_protocolbuff.begin()+4);
+                const std::string vprot_min(client_protocolbuff.begin()+4, client_protocolbuff.begin()+5);
+                const std::string vprot_rev(client_protocolbuff.begin()+5, client_protocolbuff.begin()+6);
                 std::cout << "examining client protocol. app version and protocol version ok" << std::endl;
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //             " Client protocol: v" << v_maj << "." << v_min << std::endl;
@@ -897,21 +571,22 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 if (vapp_maj != "0" || vapp_min != "1"){
                     //mi apodekto version efarmogis.
                     //enimerwnw ton xristi na kanei update
-                    std::string app_update_url = "http://forum.andama.org";
-                    std::vector<char> vapp_update_url(app_update_url.begin(),app_update_url.end());
+                    const std::string app_update_url = "http://forum.andama.org";
+                    const std::vector<char> vapp_update_url(app_update_url.begin(),app_update_url.end());
                     _sendmsg(socketfd, CMD_ERROR_APP_VERSION_NOT_ACCEPTED,vapp_update_url);
                     return;
                 }
 
                 //
-                std::vector<char> cachedIDSize(client_protocolbuff.begin() + 6,client_protocolbuff.begin() + 7);
-                int icachedIDSize = bytesToInt(cachedIDSize);
+                const std::vector<char> cachedIDSize(client_protocolbuff.begin() + 6,client_protocolbuff.begin() + 7);
+                const int icachedIDSize = bytesToInt(cachedIDSize);
                 //efou gnwrizoume to length tou id, lamvanoume to id sto vector
-                std::vector<char> cachedID(client_protocolbuff.begin() + 7,client_protocolbuff.begin() + 7 + icachedIDSize);
+                const std::vector<char> cachedID(client_protocolbuff.begin() + 7,client_protocolbuff.begin() + 7 + icachedIDSize);
 
 
                 //dimiourgw id kai ton kataxwrw sto dictionary map
-                myID = getClientID(socketfd, cachedID);
+                //Edw kataxwreitai kai o neos client sto array (an den yparxei idi apo prin)
+                myID = getClientID(socketfd, cachedID, client_sockaddr_in.sin_addr.s_addr);
                 myIDv.insert(myIDv.end(),myID.begin(),myID.end());//to id
 
                 std::vector<char> buffsendID; //to synoliko minima pou tha stalei
@@ -946,6 +621,14 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                              " CMD_PROTOCOL >  Client ID created and sent to client." << std::endl;
 
+                //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+                //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+                struct sockaddr_in sa;
+                //sa.sin_addr.s_addr = client_sockaddr_in.sin_addr.s_addr;
+                char str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &(client_sockaddr_in.sin_addr), str, INET_ADDRSTRLEN);
+                std::cout << "Client IP:" << str  << std::endl;
+
             } // CMD_PROTOCOL
 
             //proothisi arxikou screenshot ston paralipti
@@ -965,7 +648,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 _receive(socketfd,screenshot_diff_data_buff);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
-                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_recieved << std::endl;
+                //             " 6.1. CMD_SCREENSHOT_DIFF > lifthike. Bytes: " << bytes_received << std::endl;
 
                 _sendmsg(getRemoteComputerSocket(myID), CMD_SCREENSHOT_DIFF,
                         screenshot_diff_data_buff);//>--------------
@@ -979,22 +662,24 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 _receive(socketfd,remote_client_idbuff); //<-----------to remote client id pou zitithike kai to remote password
 
                 //ean exei ginei idi ban stin IP den kanw tipota allo
-                if(isBannedForWrongIDs(socketfd,clientIP)){
+                if(isBannedForWrongIDs(socketfd,client_sockaddr_in.sin_addr.s_addr)){
                     continue;
                 }
 
-                //agnoow to 1o byte kathws einai to msgtype
+                //evresi tou tropou syndesis poy zitithike (msgtype) sto prwto byte
+                const std::vector<char> connConnectionType(remote_client_idbuff.begin(), remote_client_idbuff.begin() + 1);
+                const connectMessageType connType = static_cast<connectMessageType>(bytesToInt(connConnectionType));
 
 
                 //to 2o byte einai to os
-                std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
-                int os = bytesToInt(connRemoteComputerOS);
+                const std::vector<char> connRemoteComputerOS(remote_client_idbuff.begin() + 1, remote_client_idbuff.begin() + 2);
+                const int os = bytesToInt(connRemoteComputerOS);
 
                 //lamvanw to 3o byte poy mas deixnei to size tou ID
-                std::vector<char> idSize(remote_client_idbuff.begin() + 2,remote_client_idbuff.begin() + 3);
-                int iIDSize = bytesToInt(idSize);
+                const std::vector<char> idSize(remote_client_idbuff.begin() + 2,remote_client_idbuff.begin() + 3);
+                const int iIDSize = bytesToInt(idSize);
                 //efou gnwrizoume to length tou id, lamvanoume to id sto vector
-                std::vector<char> vremoteID(remote_client_idbuff.begin() + 3,remote_client_idbuff.begin() + 3 + iIDSize);
+                const std::vector<char> vremoteID(remote_client_idbuff.begin() + 3,remote_client_idbuff.begin() + 3 + iIDSize);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //             " CMD_CONNECT > Zitithike syndesi pros client me ID: " << &remote_client_idbuff[0] << std::endl;
@@ -1002,21 +687,76 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::lock_guard<std::mutex> lock (clients_mutex);
 
                 //anazitisi ean to remote client id einai kataxwrimeno sto dictionary
-                std::string sid(vremoteID.begin(),vremoteID.end());
-                std::map<std::string, ClientInfo>::iterator found_client =
+                const std::string sid(vremoteID.begin(),vremoteID.end());
+                const std::map<std::string, ClientInfo>::const_iterator found_client =
                         clients.find(sid);
                 if (found_client != clients.end()) {
                     //to remote id pou zitithike vrethike.
 
+                    //ean exei zitithei proxy h p2p connection elegxw ean yparxei anoixti port
+                    //kataxwrimeni gia ton apomakrismeno ypologisti gia ton opoio zitithike syndesi
+                    if(connType == connectMessageType::proxy_or_p2p){
+                        std::cout << "proxy_or_p2p2" << std::endl;
+                        const unsigned short remote_computer_p2p_port = (*found_client).second.port;
+                        std::cout << "Remote computer p2p port: " << remote_computer_p2p_port << std::endl;
+                        if (remote_computer_p2p_port > 0){
+                            //yparxei kataxwrimeni anoixti port ston apomakrysmeno ypologisti poy zitithike syndesi
+                            //opote enimerwnw ton client wste na dokimasei na syndethei se aftin apeftheias
+
+                            //i morfi tou minimatos pou stelnetai ston client einai:
+                            // | 1 byte command | 4 bytes message length | +
+                            // | 1 bytes remote client ID length | x bytes remote client ID | +
+                            // | 2 bytes UPnP port |
+                            // | 1 byte remote client ip length | x bytes remote ip |
+                            std::vector<char> buffsend_remote_p2p_client_id_and_port;
+
+                            //kataxwrw to megethos tou remote client ID kai to ID
+                            std::vector<char> buffLenID(1);
+                            intToBytes(sid.length(),buffLenID);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenID.begin(),buffLenID.end());
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), sid.begin(),sid.end());
+
+                            //kataxwrw to upnp port tou remote client
+                            std::vector<char> buffUpnpPort(2);
+                            intToBytes(remote_computer_p2p_port, buffUpnpPort);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffUpnpPort.begin(), buffUpnpPort.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffUpmpPort:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            //TODO: afti tin stigmi ypostirizetai mono IPv4. Na to dw gia IPv6 sto mellom
+                            // 4 bytes length - hard coded.
+                            std::vector<char> buffLenIP(1);
+                            intToBytes(4, buffLenIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffLenIP.begin(), buffLenIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffLenIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            //i IPv4 tou remote client
+                            std::vector<char> buffIP(4);
+                            ulongToBytes(clients[sid].ip, buffIP);
+                            buffsend_remote_p2p_client_id_and_port.insert(buffsend_remote_p2p_client_id_and_port.end(), buffIP.begin(), buffIP.end());
+                            std::cout << "buffsend_remote_p2p_client_id_and_port size with buffIP:" << buffsend_remote_p2p_client_id_and_port.size() << std::endl;
+
+                            std::cout << "Remote computer with id:" << sid << " has UPnP port:" << remote_computer_p2p_port << " and IP:" <<  clients[sid].ip << std::endl;
+
+
+                            //apostelw to mynima ston client wste aftos me ti seira tou na epixeirisei
+                            //p2p syndesi me ton allon client
+                            _sendmsg(socketfd, CMD_P2P_REMOTE_CLIENT_UPNP_PORT, buffsend_remote_p2p_client_id_and_port);
+                            continue;
+                        }
+
+                    }else {
+                        std::cout << "proxy" << std::endl;
+                    }
+
                     //lamvanw to size tou password
-                    std::vector<char> pwdSize(remote_client_idbuff.begin() + 3 + iIDSize, remote_client_idbuff.begin() + 3 + iIDSize + 1);
-                    int ipwdSize = bytesToInt(pwdSize);
+                    const std::vector<char> pwdSize(remote_client_idbuff.begin() + 3 + iIDSize, remote_client_idbuff.begin() + 3 + iIDSize + 1);
+                    const int ipwdSize = bytesToInt(pwdSize);
 
                     //lamvanw to password apo to vector poy ellava prin
-                    std::vector<char> vpassword(remote_client_idbuff.begin() + 3 + iIDSize + 1, remote_client_idbuff.begin() + 3 + iIDSize + 1 + ipwdSize);
+                    const std::vector<char> vpassword(remote_client_idbuff.begin() + 3 + iIDSize + 1, remote_client_idbuff.begin() + 3 + iIDSize + 1 + ipwdSize);
 
                     std::vector<char> connect_data;
-                    createConnectCommandData(connect_data,myIDv,vpassword,clientIP,os);
+                    createConnectCommandData(connect_data,myIDv,vpassword,client_sockaddr_in.sin_addr.s_addr,os);
 
 
                     //stelnw sto remote clientid pou zitithike request gia syndesi
@@ -1029,7 +769,7 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                     //to remote id pou zitithike den vrethike
                     //opote enimerwnw to id protection
                     //gia to gegonos oti o client anazitise id pou den yparxei (id sniffing protection)
-                    add_wrong_ID(socketfd,clientIP);
+                    add_wrong_ID(socketfd,client_sockaddr_in.sin_addr.s_addr);
                 }
 
             } // CMD_CONNECT
@@ -1059,8 +799,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::lock_guard<std::mutex> lock (clients_mutex);
 
                 //anazitisi ean to remote id pou egine accept yparxei sto dictionary
-                std::string sid(accepted_client_id_buff.begin(),accepted_client_id_buff.end());
-                std::map<std::string, ClientInfo>::iterator found_client =
+                const std::string sid(accepted_client_id_buff.begin(),accepted_client_id_buff.end());
+                const std::map<std::string, ClientInfo>::const_iterator found_client =
                         clients.find(sid);
                 if (found_client != clients.end()) {
                     { // lock_guard scope
@@ -1105,9 +845,8 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 std::vector<char> screenshot_diff_id_data_buff;
                 _receive(socketfd, screenshot_diff_id_data_buff);
 
-                std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
-
-                std::string remoteID = getRemoteComputerID(myID);
+                //const std::string rid(screenshot_diff_id_data_buff.begin(),screenshot_diff_id_data_buff.end());
+                //std::string remoteID = getRemoteComputerID(myID);
 
                 //std::cout << getTime() << " " << std::this_thread::get_id() << " " << myID <<
                 //            " 4. CMD_REQUEST_SCREENSHOT_DIFF ID: " << rid << ". Tha ginei proothisi pros: " << remoteID << std::endl;
@@ -1130,15 +869,27 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 }
             } // CMD_MOUSE
 
+            //proothisi mouse cursor type
+            else if(cmdbuffer == CMD_MOUSE_CURSOR && handshakeCompleted)
+            {
+                std::vector<char> mouse_data_buff;
+                _receive(socketfd, mouse_data_buff);
+
+                _sendmsg(getRemoteComputerSocket(myID), CMD_MOUSE_CURSOR, mouse_data_buff);
+            } // CMD_MOUSE_CURSOR
+
             //proothisi keyboard
             else if(cmdbuffer == CMD_KEYBOARD && handshakeCompleted)
             {
-                std::vector<char> keyboard_data_buff(6);
-                _receivePlain(socketfd, keyboard_data_buff);
+                std::vector<char> keyboard_data_buff;
+                _receive(socketfd, keyboard_data_buff);
+                //std::vector<char> keyboard_data_buff(6);
+                //_receivePlain(socketfd, keyboard_data_buff);
                 int remso = getRemoteComputerSocket(myID);
                 if (remso > 0)
                 {
-                    _sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
+                     _sendmsg(remso, CMD_KEYBOARD, keyboard_data_buff);
+                    //_sendmsgPlain(remso, CMD_KEYBOARD,keyboard_data_buff);//>--------------
                 }
             } // CMD_KEYBOARD
 
@@ -1150,6 +901,16 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
                 //std::cout << "------- >>> HeartBeat\n";
             }
 
+            //o client esteile oti exei anoixto UPnP port kai mporei na dextei
+            //apeftheias P2P connections, opote kataxwrw to port sto info tou
+            else if (cmdbuffer == CMD_P2P_CLIENT_UPNP_PORT){
+                std::lock_guard<std::mutex> lock (clients_mutex);
+                //to CMD_P2P_CLIENT_UPNP_PORT exei 2 bytes gia to port number 0-65535
+                std::vector<char> upnpport_buff;
+                _receive(socketfd,upnpport_buff);
+                clients[myID].port = bytesToInt(upnpport_buff);
+                std::cout << "upnp port for client with id:" << myID << " is:" << clients[myID].port << std::endl;
+            }
 
             else {
                 std::cout << "----> AGNWSTO COMMAND!! :" << &cmdbuffer[0] << std::endl;
@@ -1165,7 +926,6 @@ void dostuff(const int socketfd, const in_addr_t clientIP) {
             displayErrno("----------> EXCEPTION dostuff loop");
 
             cleanup(myID, socketfd);
-
             return;
         }
         catch ( ... ) {
@@ -1239,13 +999,24 @@ int main(int argc, char *argv[]) {
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(PORT_NUMBER);
+    serv_addr.sin_port = htons(PROXY_PORT_NUMBER);
+
+    //Xreiazetai wste se periptwsi crash na ginetai reuse to socket pou einai se state CLOSE_WAIT
+    //mporw na to vrw se macos me: netstat -anp tcp | grep port_number
+    int reuse = 1;
+    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
+#ifdef SO_REUSEPORT
+    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEPORT) failed");
+#endif
 
     if (bind(socketfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
         error("ERROR on binding");
 
-    listen(socketfd, 5);
-    std::cout << "Listenning for connections on port: " << PORT_NUMBER << std::endl;
+    listen(socketfd, SOMAXCONN);
+    std::cout << "Listenning for connections on port: " << PROXY_PORT_NUMBER << std::endl;
 
     clilen = sizeof(cli_addr);
 
@@ -1257,32 +1028,54 @@ int main(int argc, char *argv[]) {
                 error("ERROR on accept");
 
             std::cout << getTime() << " " << std::this_thread::get_id() <<
-                         " New client accepted. Kalw dostuff while loop se neo thread." << std::endl;
+                         " New client accepted. Kalw dostuff while loop se neo thread. Client port:" << cli_addr.sin_port << std::endl;
 
             //thetw to recv timeout
+            int setsockopt_recv_timeout_ret = 0;
 #ifdef WIN32
             int iTimeout = 90000;
-            setsockopt(newsockfd,
-                               SOL_SOCKET,
-                               SO_RCVTIMEO,
-                               (const char *)&iTimeout,
-                               sizeof(iTimeout) );
+            setsockopt_recv_timeout_ret = setsockopt(newsockfd,
+                                                       SOL_SOCKET,
+                                                       SO_RCVTIMEO,
+                                                       (const char *)&iTimeout,
+                                                       sizeof(iTimeout) );
 #else
             struct timeval tv;
             tv.tv_sec = 90;  /* 90 Secs Timeout */
             tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-            setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+            setsockopt_recv_timeout_ret = setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 #endif
+            if (setsockopt_recv_timeout_ret < 0){
+                perror("setsockopt for recv timeout failed for new client");
+                #ifdef WIN32
+                closesocket(newsockfd);
+                #else
+                close(newsockfd);
+                #endif
+                continue;
+            }
+
             //SIMANTIKO: kanw disable to nagle algorithm. meiwnei to latency.
             int flag = 1;
-            setsockopt(newsockfd,                    /* socket affected */
+            int setsockopt_nagle_ret = 0;
+            setsockopt_nagle_ret = setsockopt(newsockfd,                    /* socket affected */
                                     IPPROTO_TCP,     /* set option at TCP level */
                                     TCP_NODELAY,     /* name of option */
                                     (char *) &flag,  /* the cast is historical cruft */
                                     sizeof(int));    /* length of option value */
+            if (setsockopt_nagle_ret < 0){
+                perror("setsockopt to disable nagle algorithm failed for new client");
+                #ifdef WIN32
+                closesocket(newsockfd);
+                #else
+                close(newsockfd);
+                #endif
+                continue;
+            }
 
             //diaxeirizomai ton neo client se neo thread.
-            std::thread(dostuff, newsockfd, cli_addr.sin_addr.s_addr).detach();
+            //std::thread(dostuff, newsockfd, cli_addr.sin_addr.s_addr).detach();
+            std::thread(dostuff, newsockfd, cli_addr).detach();
         } catch ( std::exception& ex) {
             std::cout << "Accept loop exception: " << ex.what() << std::endl;
         }

@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       -= gui
+CONFIG += static
 
 TARGET = OSXObjectiveCBridge
 TEMPLATE = lib

@@ -51,7 +51,7 @@ enum portableVKey
     PVK_D = 0x044,
     PVK_E = 0x045,
     PVK_F = 0x046,
-    PVK_G =	0x047,
+    PVK_G = 0x047,
     PVK_H = 0x048,
     PVK_I = 0x049,
     PVK_J = 0x04A,
@@ -155,28 +155,47 @@ enum portableVKey
     PVK_VOLUME_DOWN  = 0xAE,
     PVK_VOLUME_UP    = 0xAF,
 
-    PVK_QUOTE = 0xDE, //VK_OEM_7
-    PVK_BACKSLASH =    0xDC, //0xE2, // VK_OEM_102
-    PVK_COMMA =     0xBC, //VK_OEM_COMMA
-    PVK_PERIOD =     0xBE, //VK_OEM_PERIOD
-    PVK_BACK = 0x08,
+    PVK_QUOTE        = 0xDE, //VK_OEM_7
+    PVK_BACKSLASH    = 0xDC, //0xE2, // VK_OEM_102
+    PVK_COMMA        = 0xBC, //VK_OEM_COMMA
+    PVK_PERIOD       = 0xBE, //VK_OEM_PERIOD
+    PVK_BACK         = 0x08,
 
-    PVK_SHIFT = 0x10,
-    PVK_CONTROL = 0x11,
-    PVK_ALT = 0x12,
+    PVK_SHIFT        = 0x10,
+    PVK_CONTROL      = 0x11,
+    PVK_ALT          = 0x12,
 
     PVK_LEFT_BRACKET = 0xDB,
     PVK_RIGHT_BRACKET = 0xDD,
-    PVK_EQUAL = 0xBB,
-    PVK_SEMICOLON = 0xBA,
-    PVK_MINUS = 0xBD,
-    PVK_SLASH = 0xBF,
-    PVK_GRAVE = 0xC0,
-    PVK_LWIN = 0x5B, //mono apo windows, map se control ston mac
-    PVK_RWIN = 0x5C //mono apo windows, map se control ston mac
+    PVK_EQUAL        = 0xBB,
+    PVK_SEMICOLON    = 0xBA,
+    PVK_MINUS        = 0xBD,
+    PVK_SLASH        = 0xBF,
+    PVK_GRAVE        = 0xC0,
+    PVK_LWIN         = 0x5B, //mono apo windows, map se control ston mac
+    PVK_RWIN         = 0x5C, //mono apo windows, map se control ston mac
 
-
-
+    //TODO: begin: check possible mappings of these 18 linux specific special keys to other platforms
+    //TODO: test these linux special keys when an ubuntu client connects to a windows/osx host
+    PVK_TILDE        = 0xFF00,
+    PVK_UNDERSCORE   = 0xFF01,
+    PVK_BAR          = 0xFF02,
+    PVK_AMPERSAND    = 0xFF03,
+    PVK_EXCLAMATION  = 0xFF04,
+    PVK_PERCENT      = 0xFF05,
+    PVK_APOSTROPHE   = 0xFF06,
+    PVK_AT           = 0xFF07,
+    PVK_COLON        = 0xFF08,
+    PVK_DOLLAR       = 0xFF09,
+    PVK_QUESTION     = 0xFF0A,
+    PVK_LEFT_BRACE   = 0xFF0B,
+    PVK_RIGHT_BRACE  = 0xFF0C,
+    PVK_LEFT_PAREN   = 0xFF0D,
+    PVK_RIGHT_PAREN  = 0xFF0E,
+    PVK_LESS_THAN    = 0xFF0F,
+    PVK_GREATER_THAN = 0xFF10,
+    PVK_NUMBER       = 0xFF11
+    //TODO: end: check possible mappings of these 18 linux specific special keys to other platforms
 };
 
 class Keyboard {

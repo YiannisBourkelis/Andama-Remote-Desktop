@@ -43,7 +43,7 @@ About::About(QWidget *parent) :
 
     ui->lblAppName->setText(QGuiApplication::applicationName());
     QString version(APP_VERSION);
-    ui->lblVersion->setText("Version " + version + " Alpha");
+    ui->lblVersion->setText(tr("Version %1").arg(version) + " Alpha");
 }
 
 About::~About()

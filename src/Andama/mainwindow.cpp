@@ -20,9 +20,19 @@
  *
  * ***********************************************************************/
 
+#ifdef WIN32
+#define NOMINMAX
+#endif
+
 #include "mainwindow.h"
 #include "osxobjectivecbridge.h"
 #include "chrono"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/General/bench.h"
+#include "tbllogsortfilterproxymodel.h"
+#include "tbllogdata.h"
+//#include "imageconfig.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 //xcode-select --install
 //https://bugreports.qt-project.org/browse/QTCREATORBUG-13077?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel
@@ -31,19 +41,6 @@ static auto last = std::chrono::steady_clock::now();
 
 bool MainWindow::eventFilter(QObject *watched, QEvent* e)
 {
-    /*
-    objcappnap::printsomething();
-    auto start = std::chrono::steady_clock::now();
-    //std::cout <<  std::chrono::duration<double, std::milli>(start - last).count() << std::endl;
-    if (std::chrono::duration<double, std::milli>(start - last).count() > 5000){
-        objcappnap::disableAppNap();
-        auto end = std::chrono::steady_clock::now();
-        auto diff = end - start;
-        std::cout << std::chrono::duration<double, std::nano>(diff).count() << std::endl;
-        last = start;
-    }
-    */
-
     if (watched == ui->lblDesktop &&
             (e->type() == QEvent::MouseMove
              || e->type() == QEvent::MouseButtonPress
@@ -56,19 +53,35 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
         double x = (double)ke->pos().x() / (double)xscale;
         double y = (double)ke->pos().y() / (double)yscale;
 
-        protocol.sendMouse(nearbyint(x),
-                           nearbyint(y),
-                           ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+        if (p2pclient.isClientConnected){
+            p2pclient.sendMouse(nearbyint(x),
+                               nearbyint(y),
+                               ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
 
-                           e->type() == QEvent::MouseMove           ? 1:
-                           e->type() == QEvent::MouseButtonPress    ? 2:
-                           e->type() == QEvent::MouseButtonRelease  ? 3:
-                           e->type() == QEvent::MouseButtonDblClick ? 4: 0,
+                               e->type() == QEvent::MouseMove           ? 1:
+                               e->type() == QEvent::MouseButtonPress    ? 2:
+                               e->type() == QEvent::MouseButtonRelease  ? 3:
+                               e->type() == QEvent::MouseButtonDblClick ? 4: 0,
 
-                           0,
-                           0,
-                           0);
-        //return true;
+                               0,
+                               0,
+                               0);
+            //return true;
+        }else{
+            protocol_supervisor.protocol.sendMouse(nearbyint(x),
+                               nearbyint(y),
+                               ke->button(), //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+
+                               e->type() == QEvent::MouseMove           ? 1:
+                               e->type() == QEvent::MouseButtonPress    ? 2:
+                               e->type() == QEvent::MouseButtonRelease  ? 3:
+                               e->type() == QEvent::MouseButtonDblClick ? 4: 0,
+
+                               0,
+                               0,
+                               0);
+            //return true;
+        }
 
     }
 
@@ -77,13 +90,23 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
 
        qDebug("wheel:%i, direction:%i",qe->delta(),qe->orientation() == Qt::Orientation::Horizontal ? 1:2);
 
-       protocol.sendMouse(0,
-                          0,
-                          0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
-                          5,
-                          nearbyint(abs(qe->delta() / 10)),
-                          qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
-                          qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       if (p2pclient.isClientConnected){
+           p2pclient.sendMouse(0,
+                              0,
+                              0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+                              5,
+                              nearbyint(abs(qe->delta() / 10)),
+                              qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
+                              qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       }else{
+           protocol_supervisor.protocol.sendMouse(0,
+                              0,
+                              0, //0 no btn, 1 left, 2 right, 4 mid, 8 xbt1, 0x00000010 xbtn2, http://qt-project.org/doc/qt-4.8/qt.html#MouseButton-enum
+                              5,
+                              nearbyint(abs(qe->delta() / 10)),
+                              qe->delta() < 0 ? 1 : 2,  // 1 arnitikos, 2 thetikos
+                              qe->orientation() == Qt::Orientation::Vertical ? 1 : 2); // 1 vertical, 2 horizontal
+       }
     }
 
     else if (watched == ui->lblDesktop &&
@@ -92,33 +115,33 @@ bool MainWindow::eventFilter(QObject *watched, QEvent* e)
     {
         QKeyEvent *ke = static_cast<QKeyEvent*>(e);
 
-        qDebug("key:%i, modifiers:%i, nativeVirtualKey:%i, event:%s",ke->key(),ke->modifiers(),ke->nativeVirtualKey(),
-               e->type() == QEvent::KeyPress ? "KeyPress" :
-               e->type() == QEvent::KeyRelease ? "KeyRelease" : "unknown");
+        std::cout << "key:" << ke->key()
+                  << ", modifiers:" << ke->modifiers()
+                  << ", nativeVirtualKey:" << ke->nativeVirtualKey()
+                  << ", event:" << (e->type() == QEvent::KeyPress ? "KeyPress" :
+                                    e->type() == QEvent::KeyRelease ? "KeyRelease" : "unknown")
+                  << std::endl;
 
         //QApplication::beep();
 
         //sta windows to ke->nativeVirtualKey() epistrefei panta kapoio key
         //enw sto mac, gia shift,cmd,alt,ctrl,CAPS to ke->nativeVirtualKey() epistrefei 0
 
-#ifdef Q_OS_LINUX
-        portableVKey natPKey;
-        if (ke->nativeVirtualKey() >= 0x30 && ke->nativeVirtualKey() <= 0x5A){
-           natPKey = Keyboard::getPortableVKey(ke->nativeVirtualKey(), ke->key());
-        } else {
-           natPKey = Keyboard::getPortableVKey(ke->key(), ke->nativeVirtualKey());
-        }
-#else
         portableVKey natPKey = Keyboard::getPortableVKey(ke->nativeVirtualKey(),ke->key());
-#endif
 
         portableKeyboardModifier modPKey =  Keyboard::getPortableModifier(ke->key());
 
         if (natPKey != -1 || modPKey != portableKeyboardModifier::NoModifier){
-            protocol.sendKeyboard(natPKey, modPKey,
-
-                                  e->type() == QEvent::KeyPress   ? 1 :
-                                  e->type() == QEvent::KeyRelease ? 2 : 0);
+            if (p2pclient.isClientConnected)
+            {
+                p2pclient.sendKeyboard(natPKey, modPKey,
+                                      e->type() == QEvent::KeyPress   ? 1 :
+                                      e->type() == QEvent::KeyRelease ? 2 : 0);
+            }else{
+               protocol_supervisor.protocol.sendKeyboard(natPKey, modPKey,
+                                      e->type() == QEvent::KeyPress   ? 1 :
+                                      e->type() == QEvent::KeyRelease ? 2 : 0);
+            }
         }
 
     }
@@ -142,7 +165,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     qRegisterMetaType<MyArray>("MyArray");
-
+    qRegisterMetaType<clientserver *>("myClientServer");
+    qRegisterMetaType<AddPortMappingResponse>("AddPortMappingResponse");
     //printsomething();
 
     firstRun = true; //flag pou deixnei oti i efarmogi trexei gia prwti fora.
@@ -151,11 +175,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->remoteConnectProgressBar->setHidden(true);
     ui->lblDesktop->setHidden(true);
+    ui->lblP2PPort->setHidden(true);
 
     ui->lblLocalHead->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalDesc->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalID->setAttribute(Qt::WA_TranslucentBackground);
     ui->lblLocalPassword->setAttribute(Qt::WA_TranslucentBackground);
+    ui->lblP2PPort->setAttribute(Qt::WA_TranslucentBackground);
 
     QFont txtLocalPasswordFont = ui->txtLocalPassword->font();
     txtLocalPasswordFont.setLetterSpacing(QFont::SpacingType::AbsoluteSpacing,3);
@@ -174,7 +200,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lblFont.setPointSize(lblFont.pointSize() * 0.9);
 
     QFont lblSmallFont = ui->lblLocalDesc->font();
-    lblSmallFont.setPointSize(lblSmallFont.pointSize() * 0.9);
+    lblSmallFont.setPointSize(lblSmallFont.pointSize() * 0.8);
 
     QFont lblBigFont = ui->lblLocalHead->font();
     lblBigFont.setPointSize(lblBigFont.pointSize() * 0.9);
@@ -183,7 +209,7 @@ MainWindow::MainWindow(QWidget *parent) :
     txtFont.setPointSize(txtFont.pointSize() * 0.9);
 
     QFont buttonFont = ui->btnConnectToRemoteClient->font();
-    buttonFont.setPointSize(buttonFont.pointSize() * 0.9);
+    buttonFont.setPointSize(buttonFont.pointSize() * 0.8);
     ui->btnConnectToRemoteClient->setFont(buttonFont);
 
 
@@ -193,6 +219,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lblLocalPassword->setFont((lblFont));
     ui->lblID->setFont(txtFont);
     ui->txtLocalPassword->setFont(txtFont);
+    ui->lblP2PPort->setFont(lblSmallFont);
 
     ui->lblRemoteHead->setFont(lblBigFont);
     ui->lblRemoteDesc->setFont(lblSmallFont);
@@ -203,48 +230,141 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->txtRemotePCID->setFont(txtFont);
     ui->txtRemotePassword->setFont(txtFont);
 
+    ui->tblLog->setFont(lblSmallFont);
+
     ui->lblStatus->setFont(lblFont);
 #endif
 
 
-    //w=*ui;
-
-    //cst.clsrv.setMessageRecievedCallback(mymessageRecieved);
-    //this->connect(&cst,SIGNAL(sig_messageRecieved(int, std::vector<char>,std::vector<char>)),this,SLOT(mymessageRecieved(int, std::vector<char>,std::vector<char>)));
-    this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+    // ======== proxy protocol ============
+    this->connect(&protocol_supervisor.protocol,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(mymessageRecieved(const int, const std::vector<char>&)),
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
-                  SIGNAL(sig_messageRecieved(const int, const std::vector<char>&)),
+    this->connect(&protocol_supervisor.protocol,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   this,
-                  SLOT(non_UI_thread_messageRecieved(const int, const std::vector<char>&)),
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
                   Qt::ConnectionType::DirectConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor.protocol,
                   SIGNAL(sig_exception(QString)),
                   this,
                   SLOT(protocol_exception(QString)),
                   Qt::ConnectionType::AutoConnection);
 
-    this->connect(&protocol,
+    this->connect(&protocol_supervisor,
                   SIGNAL(finished()),
                   this,
                   SLOT(slot_protocol_finished_or_terminated()),
                   Qt::ConnectionType::AutoConnection);
+   // ======== end proxy protocol ============
 
-    //cst.start();
-    screenshotWrk.protocol = &protocol;
-    screenshotWrk.imageQuality=80;
+    // ======== p2p client protocol ============
+    this->connect(&p2pclient,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&p2pclient,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
+
+    this->connect(&p2pclient,
+                  SIGNAL(sig_exception(QString)),
+                  this,
+                  SLOT(protocol_exception(QString)),
+                  Qt::ConnectionType::AutoConnection);
+
+    /*
+    this->connect(&p2pclient,
+                  SIGNAL(finished()),
+                  this,
+                  SLOT(slot_protocol_finished_or_terminated()),
+                  Qt::ConnectionType::AutoConnection);
+                  */
+   // ======== end p2p client protocol ============
+
+    // ======== client socket  ============
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
+
+    this->connect(&protocol_supervisor.clientsocket,
+                  SIGNAL(sig_exception(QString)),
+                  this,
+                  SLOT(protocol_exception(QString)),
+                  Qt::ConnectionType::AutoConnection);
+    // ======== client socket  ============
+
+    // ======== upnp ======================
+    this->connect(&upnpengine,
+                  SIGNAL(sig_addPortMappingResponse(AddPortMappingResponse)),
+                  this,
+                  SLOT(slot_addPortMappingResponse(AddPortMappingResponse)),
+                  Qt::ConnectionType::AutoConnection);
+
+    // ======== upnp ======================
+
+    this->connect(&p2pserver,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(mymessageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::AutoConnection);
+
+    this->connect(&p2pserver,
+                  SIGNAL(sig_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  this,
+                  SLOT(non_UI_thread_messageReceived(const clientServerProtocol*, const int, const std::vector<char>&)),
+                  Qt::ConnectionType::DirectConnection);
+
+
+    ui->tblLog->setModel(&tbllogmodel);
+    ui->tblLog->verticalHeader()->hide();
+    ui->tblLog->horizontalHeader()->setStretchLastSection(true);
+    ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tblLog->horizontalHeader()->hide();
+    //ui->tblLog->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    //ui->tblLog->horizontalHeader()->setResizeContentsPrecision(0);
+    //ui->tblLog->resizeColumnToContents(0); //de doulevei
+    ui->tblLog->setColumnWidth(0,150);
+    ui->tblLog->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tblLog->horizontalHeader()->setStyleSheet("::section {background-color: lightblue };"); //lightblue
+
+    screenshotWrk.protocol_supervisor = &protocol_supervisor;
+    screenshotWrk.p2pServer = &p2pserver;
+    screenshotWrk.imageQuality=70; //default JPG 80; --kai to 30 einai ok ws low quality kai exei to 1/3 se megethos peripou
     screenshotWrk.start();
 
-    keepAlive.protocol = &protocol;
+    keepAlive.protocol_supervisor = &protocol_supervisor;
     keepAlive.start();
 
-    protocol.start();
-    qDebug("-------------||||  GUI THREAD ||| Thread id inside MainWindow %i",QThread::currentThreadId());
+    protocol_supervisor.start();
+
+    p2pserver.start();
+
+
+    if(!mouseCursorHook.isRunning()){
+        mouseCursorHook.protocSupervisor = &protocol_supervisor;
+        mouseCursorHook.p2pServer = &p2pserver;
+        mouseCursorHook.start();
+        //mouseCursorHook.setMouseCursorHook();
+    }
+
+    std::cout << "-------------||||  GUI THREAD ||| Thread id inside MainWindow: " << QThread::currentThreadId() << std::endl;
 
     ui->lblDesktop->setMouseTracking((true));
     ui->lblDesktop->installEventFilter(this);
@@ -257,18 +377,51 @@ MainWindow::MainWindow(QWidget *parent) :
 //kaleitai sto protocol thread
 void MainWindow::slot_protocol_finished_or_terminated()
 {
-    protocol.setConnectionState(connectionState::disconnected);
-    while (protocol.isRunning()) {
-        std::chrono::milliseconds sleep_dura(10);
-        std::this_thread::sleep_for(sleep_dura);
+    if (protocol_supervisor.clientsocket.stopThreadFlag == false){
+        protocol_supervisor.protocol.setConnectionState(connectionState::disconnected);
+        while (protocol_supervisor.isRunning()) {
+            std::chrono::milliseconds sleep_dura(10);
+            std::this_thread::sleep_for(sleep_dura);
+        }
+
+        if (firstRun){
+            firstRun=false;
+            setDefaultGUI();
+        }
+
+        protocol_supervisor.start();
+    }
+}
+
+void MainWindow::slot_addPortMappingResponse(const AddPortMappingResponse &addPortMappingRes)
+{
+    if (upnpengine.StopThreadPending()) return;//xeiazetai giati otan termatizetai to upnpthread, mporei na kalesei to sendUPnPPort kai na min termatisei i efarmogi swsta
+
+    ui->lblP2PPort->setVisible(addPortMappingRes.statusCode == 200);
+    if (addPortMappingRes.statusCode == 200){
+        QString s;
+        if(addPortMappingRes.internalPort == addPortMappingRes.remotePort){
+            s = tr("P2P port: %1").arg(QString::fromStdString(std::to_string(addPortMappingRes.internalPort)));
+            ui->lblP2PPort->setText(s);
+        }else{
+            s = tr("P2P internal port: %1, external port: %2").arg(QString::fromStdString(std::to_string(addPortMappingRes.internalPort)),QString::fromStdString(std::to_string(addPortMappingRes.remotePort)));
+            ui->lblP2PPort->setText(s);
+        }
+        tbllogmodel.addLogData(tr("UPnP Successful. %1 (%2)").arg(
+                                   s,
+                                   addPortMappingRes.deviceInfo.ServerTag.c_str())
+                               );
+        //apostoli ston proxy tou UPnP port pou mporei na xrisimopoiithei gia P2P syndeseis
+        if (protocol_supervisor.protocol.getConnectionState() != connectionState::disconnected) {
+            protocol_supervisor.protocol.sendUPnPPort(addPortMappingRes.remotePort);
+        }
+    }else{
+        tbllogmodel.addLogData(tr("UPnP returned error code: %1 (%2)").arg(
+                                   QString::fromStdString(std::to_string(addPortMappingRes.statusCode)),
+                                   addPortMappingRes.deviceInfo.ServerTag.c_str())
+                               );
     }
 
-    if (firstRun){
-        firstRun=false;
-        setDefaultGUI();
-    }
-
-    protocol.start();
 }
 
 void MainWindow::protocol_exception(QString ex)
@@ -278,10 +431,10 @@ void MainWindow::protocol_exception(QString ex)
     msgBox.exec();
 }
 
-void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vector<char>& vdata)
+void MainWindow::non_UI_thread_messageReceived(const clientServerProtocol *client, const int msgType, const std::vector<char>& vdata)
 {
     try {
-        if (msgType == protocol.MSG_MOUSE)
+        if (msgType == protocol_supervisor.protocol.MSG_MOUSE)
         {
             int _xpos       = bytesToInt(vdata,0,2);
             int _ypos       = bytesToInt(vdata,2,2);
@@ -309,12 +462,19 @@ void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vec
 
         } // MSG_MOUSE
 
-        else if (msgType == protocol.MSG_KEYBOARD)
+        else if (msgType == protocol_supervisor.protocol.MSG_KEYBOARD)
         {
-            int _portableVKey       = bytesToInt(vdata,0,4);
-            int _portableModifiers = bytesToInt(vdata,4,1);
-            int _keyEvent = bytesToInt(vdata,5,1);
-            int localVKey = Keyboard::convertPortableKeyToLocal((portableVKey) _portableVKey);
+            //apokryptografisi
+            openssl_aes myaes(EVP_aes_256_cbc());
+            openssl_aes::secure_string unencr_text;
+            openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+            myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getLocalPasswordHash().data(), protocol_supervisor.protocol.getLocalPasswordDoubleMD5().data(), cip_text, unencr_text);
+            std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
+            int _portableVKey       = bytesToInt(vect_unencrypted,0,4);
+            int _portableModifiers  = bytesToInt(vect_unencrypted,4,1);
+            int _keyEvent           = bytesToInt(vect_unencrypted,5,1);
+            int localVKey           = Keyboard::convertPortableKeyToLocal((portableVKey) _portableVKey);
 
             //ean to key pou stalthike den yparxei sto topiko mixanima den kanw tipota
             if (localVKey == -1 && _portableModifiers == 0) return;
@@ -323,7 +483,7 @@ void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vec
 
              if (_portableVKey == portableVKey::PVK_CAPSLOCK){
 #ifdef Q_OS_MAC
-                if (protocol.getRemoteComputerOS() == OS::Windows){
+                if (protocol_supervisor.protocol.getRemoteComputerOS() == OS::Windows){
                     //ta windows gia to plikro caps stlenoun press kai release kathe fora
                     //opote edw tha prepei na steilw tin mia fora mono press
                     //kai tin epomeni fora mono release.
@@ -342,7 +502,7 @@ void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vec
                     _keyEvent = -1;//to an tha ginei press h release to xeirizomai me tis pio panw metavlites press/release
                 }
 #elif defined Q_OS_WIN || defined Q_OS_LINUX
-                if (protocol.getRemoteComputerOS() == OS::MacOS){
+                if (protocol_supervisor.protocol.getRemoteComputerOS() == OS::MacOS){
                     //otan to trexon leitourgiko einai windows h LINUX kai to remote computer
                     //einai mac, simainei oti mas stelnei mia fora caps press
                     //kai argotera mia fora caps release.
@@ -367,10 +527,11 @@ void MainWindow::non_UI_thread_messageRecieved(const int msgType, const std::vec
 
     } catch ( ... ){
        //TODO: oti kai na ginei edw den prepei na sykwthei exception
-        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageRecieved(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
+        qDebug("--> Exception in: void MainWindow::non_UI_thread_messageReceived(int msgType, std::vector<char> cdata,std::vector<char> vdata)");
     }
 }
 
+/*
 void MainWindow::setDisabledRemoteControlWidgets(bool flag)
 {
     ui->lblRemoteIDError->setDisabled(flag);
@@ -385,35 +546,87 @@ void MainWindow::setDisabledRemoteControlWidgets(bool flag)
         ui->txtRemotePCID->setFocus();
     }
 }
+*/
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (protocol.getConnectionState() == connectionState::connectedWithOtherAsClient){
-        protocol.sendDisconnectFromRemoteComputer();
+    if (p2pclient.isClientConnected){
+        p2pclient.sendDisconnectFromRemoteComputer();
+        p2pclient.isClientConnected=false;
+        //p2pclient.quit();
+
         setDefaultGUI();
 
         ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-        ui->lblStatus->setText("Remote computer disconnected. Ready!");
+        ui->lblStatus->setText(tr("Disconnected from remote computer. Ready!"));
+        //ui->btnConnectToRemoteClient->setEnabled(true);
+        //ui->txtRemotePCID->setEnabled(true);
+        //ui->txtRemotePassword->setEnabled(true);
+        tbllogmodel.addLogData(tr("P2P Connection: Disconnected from remote computer"));
 
         event->ignore();
+        return;
     }
-    else if (protocol.getConnectionState() == connectionState::connectedWithOtherAsServer){
+
+    if (protocol_supervisor.protocol.getConnectionState() == connectionState::connectedWithOtherAsClient){
+        protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
+        setDefaultGUI();
+
+        ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+        ui->lblStatus->setText(tr("Remote computer disconnected. Ready!"));
+
+        event->ignore();
+        return;
+    }
+    else if (protocol_supervisor.protocol.getConnectionState() == connectionState::connectedWithOtherAsServer){
         //preidopoiw ton xristi oti yparxei syndedemenos ypologistis kai  oti tha diakopei i syndesi
         QMessageBox msgBox;
         msgBox.setText("Andama");
         msgBox.setTextFormat(Qt::TextFormat::RichText);
         msgBox.setFixedWidth(300);
-        msgBox.setInformativeText("Another user is already connected to this computer.<br />Are you sure that you want to exit?");
+        msgBox.setInformativeText(tr("Another user is already connected to this computer.<br />Are you sure that you want to exit?"));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
 
         if (msgBox.exec() == QMessageBox::Yes){
             event->accept();
-            protocol.sendDisconnectFromRemoteComputer();
+            protocol_supervisor.protocol.sendDisconnectFromRemoteComputer();
         }else {
             event->ignore();
+            return;
         }
     }
+
+    // threads cleanup
+    keepAlive.stopThread = true;
+
+    upnpengine.stopThread();
+
+    p2pserver.stopThread();
+
+    protocol_supervisor.clientsocket.stopThread();
+
+    screenshotWrk.stopThread = true;
+
+    if (mouseCursorHook.isRunning())
+    mouseCursorHook.unhookMouseCursorHook();
+
+    std::cout << "waiting keepAlive thread to terminate..." << std::endl;
+    keepAlive.wait();
+
+    std::cout << "waiting screenshotWrk thread to terminate..." << std::endl;
+    screenshotWrk.wait();
+
+    std::cout << "waiting p2pserver thread to terminate..." << std::endl;
+    p2pserver.wait();
+
+    std::cout << "waiting protocol_supervisor thread to terminate..." << std::endl;
+    protocol_supervisor.wait();
+    //TODO: to mouseCursorHook thread den ginetai terminate swsta
+   // mouseCursorHook.wait();
+
+    std::cout << "waiting upnpengine thread to terminate..." << std::endl;
+    if (upnpengine.AddPortMappingPeriodicallyAsyncThread.joinable()) upnpengine.AddPortMappingPeriodicallyAsyncThread.join();//TODO: an kleisei i efarmogi grigora, den kleinei swsta
 }
 
 void MainWindow::setDefaultGUI()
@@ -426,88 +639,116 @@ void MainWindow::setDefaultGUI()
     ui->btnConnectToRemoteClient->show();
     ui->btnConnectToRemoteClient->setEnabled(true);
 
-    this->setMaximumSize(728,380);
-    this->setMinimumSize(728,380);
-    this->resize(728,380);
+    this->setMaximumSize(728,418);
+    this->setMinimumSize(728,418);
+    this->resize(728,418);
     ui->mainWidget->setVisible(true);
     ui->lblDesktop->setVisible(false);
 }
 
-void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vdata)
+void MainWindow::mymessageReceived(const clientServerProtocol *client, const int msgType,const std::vector<char>& vdata)
 {
     try{
 
-       if (msgType == protocol.MSG_ID){
-           //AppNapController::EnableAppNap();
+       if (msgType == protocol_supervisor.protocol.MSG_ID){
+           //setDisabledRemoteControlWidgets(false);
 
-           setDisabledRemoteControlWidgets(false);
-
-            qDebug("Thread id inside mymessageRecieved %li", (long)QThread::currentThreadId());
+            qDebug("Thread id inside mymessageReceived %li", (long)QThread::currentThreadId());
             std::string strID(vdata.begin(),vdata.end());
             QString qs = QString::fromStdString(strID);
             ui->lblID->setText(qs);
             qDebug() << std::string(vdata.begin(),vdata.end()).c_str();
 
             ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-            ui->lblStatus->setText("Ready!");
-        }
-       else if (msgType == protocol.MSG_LOCAL_PASSWORD_GENERATED){
-            ui->txtLocalPassword->setText(QString::fromStdString(protocol.password));
+            ui->lblStatus->setText(tr("Ready!"));
+
+
+            tbllogmodel.addLogData(tr("Application ID received from proxy. Ready to connect and accept connections!"));
+
+            //stelnw kai to tyxwn remote upnp port giati otan ginetai disconnect xanetai
+            //apostoli ston proxy tou UPnP port pou mporei na xrisimopoiithei gia P2P syndeseis
+            if (upnpengine.upnpRemotePort > 0 && protocol_supervisor.protocol.getConnectionState() != connectionState::disconnected) {
+                protocol_supervisor.protocol.sendUPnPPort(upnpengine.upnpRemotePort);
+            }
        }
-       else if (msgType == protocol.MSG_CONNECTION_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_LOCAL_PASSWORD_GENERATED){
+            ui->txtLocalPassword->setText(QString::fromStdString(protocol_supervisor.protocol.getLocalPlainPassword()));
+            p2pserver.setPassword(protocol_supervisor.protocol.getLocalPlainPassword());
+       }
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECTION_ACCEPTED){
            qDebug("O apomakrismenos ypologistis apodexthike ti syndesi!");
 
            //otan lavw minima apodoxis tis syndesis apo ton allo ypologisti
            //tou stelnw minima na mou steilei to prwto screenshot
-           ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Remote computer accepted the request. Requesting remote desktop image...");
-           protocol.RequestScreenshot();
+            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
+            const QString str = tr("Remote computer accepted the connection. Requesting remote desktop image");
+            ui->lblStatus->setText(str + "...");
+            tbllogmodel.addLogData(str);
+
+           if(p2pclient.isClientConnected == true){
+                p2pclient.RequestScreenshot();
+           }else{
+                protocol_supervisor.protocol.RequestScreenshot();
+           }
        }
-       else if (msgType == protocol.MSG_CONNECT_ID_NOT_FOUND){
-           ui->lblRemoteIDError->setText("Remote ID not found");
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECT_ID_NOT_FOUND){
+           ui->lblRemoteIDError->setText(tr("Remote ID does not exist"));
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Ready!");
+           ui->lblStatus->setText(tr("Ready!"));
+           tbllogmodel.addLogData(tr("The requested remote computer ID does not exist"));
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_CONNECT_PASSWORD_NOT_CORRECT){
-           ui->lblRemotePasswordError->setText("The password is not correct");
+       else if (msgType == protocol_supervisor.protocol.MSG_CONNECT_PASSWORD_NOT_CORRECT){
+           ui->lblRemotePasswordError->setText(tr("The password is not correct"));
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Ready!");
+           ui->lblStatus->setText(tr("Ready!"));
+           tbllogmodel.addLogData(tr("The password you entered is not correct"));
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_BAN_IP_WRONG_PWD){
+       else if (msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_PWD){
            ui->btnConnectToRemoteClient->setVisible(true);
+           ui->lblRemotePasswordError->setVisible(true);
+           ui->lblRemotePasswordError->setText(tr("IP banned"));
            ui->remoteConnectProgressBar->setHidden(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText("Connection rejected because of multiple wrong password attempts");
+           const QString str_rejected_conn = tr("The connection is rejected because of multiple wrong password attempts");
+           ui->lblStatus->setText(str_rejected_conn);
+           tbllogmodel.addLogData(str_rejected_conn);
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_WARNING_BAN_IP_WRONG_PWD){
-           ui->lblRemotePasswordError->setText("The password is not correct");
+       else if (msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_PWD){
+           ui->lblRemotePasswordError->setText(tr("The password is not correct"));
            ui->txtRemotePassword->setFocus();
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
+           const QString str_wrong_password = tr("The password you entered is not correct");
+           tbllogmodel.addLogData(str_wrong_password);
 
-           std::string str1 = "The password is not correct. Remaining tries: ";
-           int remain = bytesToInt(vdata);
-           std::string str2 = str1 + std::to_string(remain);
+           const QString str1 = str_wrong_password + ". " + tr("Remaining tries: %1");
+           const int remain = bytesToInt(vdata);
+           const QString str2 = str1.arg(remain);
+           tbllogmodel.addLogData(str2);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_orange.png)");
-           ui->lblStatus->setText(QString::fromStdString(str2));
+           ui->lblStatus->setText(str2);
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_ERROR_APP_VERSION_NOT_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_ERROR_APP_VERSION_NOT_ACCEPTED){
+           const QString str_app_ver_not_supported = tr("The current version of the application is no longer supported.");
+           const QString str_please_upgrade = tr("Pease upgrade");
+           tbllogmodel.addLogData(str_app_ver_not_supported + " " +  str_please_upgrade);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText("Upgrade required");
+           ui->lblStatus->setText(tr("Upgrade required"));
 
            QMessageBox msgBox;
            msgBox.setText("Andama");
            msgBox.setTextFormat(Qt::TextFormat::RichText);
            msgBox.setFixedWidth(300);
-           msgBox.setInformativeText("The current version of the application is no longer supported. Do you want to download the newer version?");
+           const QString str_download_newer = tr("Do you want to download the newer version?");
+           msgBox.setInformativeText(str_app_ver_not_supported + " " + str_download_newer);
            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
            msgBox.setDefaultButton(QMessageBox::Yes);
 
@@ -521,71 +762,86 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
            }else {
            }
        }
-       else if (msgType == protocol.MSG_REMOTE_CLIENT_ACCEPTED){
+       else if (msgType == protocol_supervisor.protocol.MSG_REMOTE_CLIENT_ACCEPTED){
            qDebug("Apodexthika ti syndesi tou remote pc.");
-           //AppNapController::DisableAppNap();
+           //const QString
+           QString str_remote_client = tr("Remote client accepted");
+           tbllogmodel.addLogData(str_remote_client);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Remote client accepted.");
-           ui->btnConnectToRemoteClient->setEnabled(false);
+           ui->lblStatus->setText(str_remote_client + ".");
+           //ui->btnConnectToRemoteClient->setEnabled(false);
            lastMainWindowPosition = this->pos();
            this->showMinimized();
        }
-       else if(msgType == protocol.MSG_NO_INTERNET_CONNECTION){
-           setDisabledRemoteControlWidgets(true);
+       else if(msgType == protocol_supervisor.protocol.MSG_NO_INTERNET_CONNECTION){
+           //setDisabledRemoteControlWidgets(true);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText("Error connecting. Please make sure you have an internet connection and try again.");
+           QString str_error_connecting = tr("Error connecting. %1").arg(tr("Please make sure you have an internet connection and try again."));
+           ui->lblStatus->setText(str_error_connecting);
+           tbllogmodel.addLogData(str_error_connecting);
        }
-       else if(msgType == protocol.MSG_NO_PROXY_CONNECTION){
-           setDisabledRemoteControlWidgets(true);
-           ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText("Error connecting with proxy server. Please check your internet connection or try again later");
+       else if(msgType == protocol_supervisor.protocol.MSG_NO_PROXY_CONNECTION){
+           //setDisabledRemoteControlWidgets(true);
+           std::cout << "p2pclient.remotePort: " << p2pclient.remotePort << std::endl;
+           if (p2pclient.remotePort == 0){
+                ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
+                QString str_error_connecting_proxy = tr("Error connecting with proxy server. %1").arg(tr("Please make sure you have an internet connection and try again."));
+                ui->lblStatus->setText(str_error_connecting_proxy);
+                tbllogmodel.addLogData(str_error_connecting_proxy);
+           }else{
+               p2pclient.remotePort = 0;
+           }
        }
-       else if(msgType == protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
+       else if(msgType == protocol_supervisor.protocol.MSG_REMOTE_COMPUTER_DISCONNECTED){
            //AppNapController::EnableAppNap();
            setDefaultGUI();
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblStatus->setText("Remote computer disconnected. Ready!");
+           ui->lblStatus->setText(tr("Remote computer disconnected. Ready!"));
+           tbllogmodel.addLogData(tr("The remote computer is disconnected"));
        }
-       else if(msgType == protocol.MSG_WARNING_BAN_IP_WRONG_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_WARNING_BAN_IP_WRONG_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
 
-           std::string str1 = "Warning! Your IP will be banned because of multiple wrong ID attempts. Remaining tries: ";
-           int remain = bytesToInt(vdata);
-           std::string str3 = str1 + std::to_string(remain);
+           const QString str1 = tr("Warning! Your IP will be banned because of multiple wrong ID attempts. Remaining tries: %1");
+           const int remain = bytesToInt(vdata);
+           const QString str2 = str1.arg(remain);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_orange.png)");
-           ui->lblStatus->setText(QString::fromStdString(str3));
+           ui->lblStatus->setText(str2);
+           tbllogmodel.addLogData(str2);
            QApplication::beep();
        }
-       else if(msgType == protocol.MSG_BAN_IP_WRONG_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_BAN_IP_WRONG_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
 
-           std::string str1 = "Connection rejected because of multiple wrong ID attempts. Please try again after ";
-           int remain = bytesToInt(vdata);
-           std::string str3 = str1 + std::to_string(remain);
-           std::string str4 = str3 + " sec.";
+           const QString str1 = tr("Connection rejected because of multiple wrong ID attempts. Please try again after %1 sec.");
+           const int remain = bytesToInt(vdata);
+           const QString str2 = str1.arg(remain);
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_red.png)");
-           ui->lblStatus->setText(QString::fromStdString(str4));
+           ui->lblStatus->setText(str2);
+           tbllogmodel.addLogData(str2);
            QApplication::beep();
        }
-       else if(msgType == protocol.MSG_ERROR_CANNOT_CONNECT_SAME_ID){
+       else if(msgType == protocol_supervisor.protocol.MSG_ERROR_CANNOT_CONNECT_SAME_ID){
            ui->btnConnectToRemoteClient->setVisible(true);
            ui->remoteConnectProgressBar->setHidden(true);
-           ui->lblStatus->setText("Ready!");
+           ui->lblStatus->setText(tr("Ready!"));
            ui->widgetStatus->setStyleSheet("background-image: url(:/images/images/status_green.png)");
-           ui->lblRemoteIDError->setText("Cannot connect to the same ID");
+           ui->lblRemoteIDError->setText(tr("Cannot connect to the same ID"));
+           tbllogmodel.addLogData(tr("Hey! I cannot connect to myself"));
            QApplication::beep();
        }
-       else if (msgType == protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol.MSG_SCREENSHOT_REQUEST){
-           //std::cout << "MainWindow::mymessageRecieved > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF_REQUEST || msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
+           //std::cout << "MainWindow::mymessageReceived > Lipsi aitimatos gia apostoli neou screenshot" << std::endl;
+           //Bench bench("MSG_SCREENSHOT_DIFF_REQUEST and MSG_SCREENSHOT_DIFF_REQUEST");
 #ifdef Q_OS_MAC
            //xreiazetai gia na anoigei to monitor se periptwsi
            //pou einai kleisto. Sta windows anoigei mono tou.
            //Sto linux den exw dokimasei (todo)
            //Kanonika xreiazetai hook wste na vlepei kai sti synexeia
            //ean to monitor koimatai wste na to anoigei (todo)
-           if (msgType == protocol.MSG_SCREENSHOT_REQUEST){
+           if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_REQUEST){
                 IOPMAssertionID assertionID;
                 IOPMAssertionDeclareUserActivity(CFSTR(""),
                                                  kIOPMUserActiveLocal,
@@ -596,35 +852,39 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
 #endif
 
 
-           //qDebug("5. UI myMessageRecieved: Screensot request recieved. Etoimasia apostolis screenshot me grabwindow");
-           QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
+           //qDebug("5. UI myMessageReceived: Screensot request received. Etoimasia apostolis screenshot me grabwindow");
+           //QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
            //QImage qimg(QGuiApplication::screens()[QGuiApplication::screens().count()-1]->grabWindow(QApplication::desktop()->winId()).toImage());
-           if (qimg.isNull())
-           {
-               qDebug("---------> qimg is null!!!");
-           }
+           //if (qimg.isNull())
+           //{
+           //    qDebug("---------> qimg is null!!!");
+           //}
            //qDebug("6. Grabwindow succeded: image width: %i. Calling screenshotWrk.setScreenshot",qimg.width());
 
-           //std::cout << "MainWindow::mymessageRecieved > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
-           screenshotWrk.setScreenshot(qimg,msgType);
-           //std::cout << "MainWindow::mymessageRecieved > To screenshot tethike sto screenshotWrk" << std::endl;
+           //std::cout << "MainWindow::mymessageReceived > Lifthike to screenshot kai tha tethei sto screenshotWrk" << std::endl;
+           screenshotWrk.setScreenshot(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage(),msgType);
+           //std::cout << "MainWindow::mymessageReceived > To screenshot tethike sto screenshotWrk" << std::endl;
        }
-       else if (msgType == protocol.MSG_SCREENSHOT)
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT)
        {
-           lastMainWindowPosition = this->pos();
+          lastMainWindowPosition = this->pos();
 
-           qDebug("Screenshot recieved. Setting image in control! Total bytes: %lu", vdata.size());
-           QPixmap qpix;
-           QByteArray qbytes;
+          qDebug("Screenshot received. Setting image in control! Total bytes: %lu", vdata.size());
+          QPixmap qpix;
+          //QByteArray qbytes;
 
-           //for(size_t i=0;i<vdata.size();i++){
-               //qDebug("i=%i",i);
-           //     qbytes.append(vdata.at(i));
-           //}
-           qbytes.insert(0, vdata.data(), vdata.size());
+          //qbytes.insert(0, vdata.data(), vdata.size());
 
-          QByteArray image_bytes_uncompressed=qUncompress(qbytes);
+          openssl_aes myaes(EVP_aes_256_cbc());
+          openssl_aes::secure_string unencr_text;
+          openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+          myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getRemotePasswordHash().data(), protocol_supervisor.protocol.getRemotePasswordDoubleMD5().data(), cip_text, unencr_text);
+          std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+          QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()),vect_unencrypted.size());
 
+          //QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vdata.data()),vdata.size());
+
+          //qpix.loadFromData(image_bytes_uncompressed,"WEBP");
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
 
           //*** symantiko. to lastScreenshot crataei kathe fora to pio prosfato
@@ -673,46 +933,51 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
            ui->lblDesktop->setPixmap(qpix.scaled(ui->lblDesktop->width(), ui->lblDesktop->height(),
                                                  Qt::AspectRatioMode::IgnoreAspectRatio,
                                                  Qt::TransformationMode::SmoothTransformation));
+
+           std::cout << "IMAGE BYTES RECEIVED:" << vdata.size() << std::endl;
        }
-       else if (msgType == protocol.MSG_SCREENSHOT_DIFF)
+       else if (msgType == protocol_supervisor.protocol.MSG_SCREENSHOT_DIFF)
        {
+           if (vdata.size() == 8)
+           {
+               //qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
+               return;
+           }
+
+           //Bench("xronos emfanisis screenshot diff stin othoni");
+
+
+           openssl_aes myaes(EVP_aes_256_cbc());
+           openssl_aes::secure_string unencr_text;
+           openssl_aes::secure_string cip_text (vdata.begin(),vdata.end());
+           myaes.aes_256_cbc_decrypt(protocol_supervisor.protocol.getRemotePasswordHash().data(), protocol_supervisor.protocol.getRemotePasswordDoubleMD5().data(), cip_text, unencr_text);
+           std::vector<char> vect_unencrypted(unencr_text.begin(), unencr_text.end());
+
            //qDebug("DS.2 UI - To screenshot diff lifthike. Stelnw screenshot diff request.");
            //protocol.RequestScreenshotDiff();
 
-           //qDebug("DS.3 UI - Screenshot diff recieved. Setting image in control! Total bytes: %lu", vdata.size());
+           //qDebug("DS.3 UI - Screenshot diff received. Setting image in control! Total bytes: %lu", vdata.size());
            QImage qpix;
-           QByteArray qbytes; // edw topothetw ta sympiesmena bytes tis eikonas
 
            //lamvanw tin thesi x tis eikonas (prwta 2 bytes)
-           std::vector<char> cx(vdata.begin(),vdata.begin()+2);
+           std::vector<char> cx(vect_unencrypted.begin(),vect_unencrypted.begin()+2);
            int x = bytesToInt(cx);
            //qDebug("x: %i",x);
 
            //lamvanw to y tis eikonas (epomena 2 bytes)
-           std::vector<char> cy(vdata.begin()+2,vdata.begin()+4);
+           std::vector<char> cy(vect_unencrypted.begin()+2,vect_unencrypted.begin()+4);
            int y = bytesToInt(cy);
            //qDebug("y: %i",y);
 
            //qDebug("DS.4 desktop lbl height: %i, lastscreenshot height: %i",ui->lblDesktop->height(),lastScreenshot.height());
 
-           //topothetw ta bytes tis eikonas sto qbytes
-           //for(size_t i=4;i<vdata.size();i++){
-           //     qbytes.append(vdata.at(i));
-           //}
-           qbytes.insert(0, vdata.data() + 4, vdata.size() - 4);
+           QByteArray image_bytes_uncompressed=qUncompress(reinterpret_cast<const unsigned char*>(vect_unencrypted.data()+4),vect_unencrypted.size()-4);
 
-           QByteArray image_bytes_uncompressed=qUncompress(qbytes);
-
-           //qDebug("DS.5 diff image uncompressed recieved bytes: %i",image_bytes_uncompressed.size());
-
-           if (image_bytes_uncompressed.size() == 0)
-           {
-               //qDebug("DS.6 UI - To screenshot diff einai keno. Epistrefw");
-               return;
-           }
+           //qDebug("DS.5 diff image uncompressed received bytes: %i",image_bytes_uncompressed.size());
            //qDebug("DS.7 UI - Tha ginei decode twn bytes pou lifthikan se JPG");
 
           qpix.loadFromData(image_bytes_uncompressed,"JPG");
+
           //qDebug("DS.8 diff image loaded! Height: %i, width: %i",qpix.height(),qpix.width());
 
           qreal xx=x;
@@ -722,7 +987,7 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
 
           QRectF tarRect(xx,yy,ww,hh);
 
-          //qDebug("DS.9 Will paint lastScreenshot image with diff recieved. qrectf x: %f, width: %f",tarRect.x(),tarRect.width());
+          //qDebug("DS.9 Will paint lastScreenshot image with diff received. qrectf x: %f, width: %f",tarRect.x(),tarRect.width());
           QPainter qPainter(&lastScreenshot);
           qPainter.drawImage(tarRect,qpix,qpix.rect());
           QSize qs(ui->lblDesktop->geometry().width(),ui->lblDesktop->geometry().height());
@@ -732,8 +997,60 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
           QPixmap qp(QPixmap::fromImage(qimg2));
 
            ui->lblDesktop->setPixmap(qp);
+
+           //std::cout << "IMAGE DIFF BYTES RECEIVED:" << vdata.size() << std::endl;
            //qDebug("DS.11 Diff img fortwthike sto lblDesktop. Telos epeksergasias. Epistrofi apo to UI. lastScreenshot.height: %i.",lastScreenshot.height());
        }//MSG_SCREENSHOT_DIFF
+       else if (msgType == protocol_supervisor.protocol.MSG_MOUSE_CURSOR)
+       {
+           int _cursor = bytesToInt(vdata);
+           Qt::CursorShape _cursorShape = static_cast<Qt::CursorShape>(_cursor);
+           this->ui->lblDesktop->setCursor(_cursorShape);
+
+       } //MSG_MOUSE_CURSOR
+       else if (msgType == protocol_supervisor.protocol.MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT){
+           //i morfi tou minimatos pou stelnetai ston client einai:
+           // | 1 byte command | 4 bytes message length | +
+           // | 1 bytes remote client ID length | x bytes remote client ID | +
+           // | 2 bytes UPnP port |
+           // | 1 byte remote client ip length | x bytes remote ip |
+
+           //lamvanw to remote client ID kai to ID
+           int remoteClientIDLength = bytesToInt(vdata, 0, 1);
+           std::string remoteClientID;
+           remoteClientID.insert(remoteClientID.begin(), vdata.begin() + 1, vdata.begin() + 1 + remoteClientIDLength);
+
+           //lamvanw to remote UPnP port
+           int remoteUPnP = bytesToInt(vdata, 1 + remoteClientIDLength, 2);
+
+           //lamvanw to IP length
+           int remoteIPLength = bytesToInt(vdata, 1 + remoteClientIDLength + 2, 1);
+           //TODO: na dw sto mellon ylopoiisi gia IPv6
+           //lamvanw tin remote IP
+           unsigned long remoteIP = bytesToULong(vdata, 1 + remoteClientIDLength + 2 + 1, remoteIPLength);
+
+           //TODO: edw prepei na dexomai kai IPv6 diefthinseis sto mellon
+           //metatropi unsigned long IPv4 address se string xxx.xxx.xxx.xxx
+           struct sockaddr_in sa;
+           sa.sin_addr.s_addr = remoteIP;
+           char str[INET_ADDRSTRLEN];
+           inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
+
+           std::cout << "Remote client ID:" << remoteClientID << ", UPnP port:" << remoteUPnP << " ,Remote IP:" << remoteIP << " ,Remote IP string:" << str << std::endl;
+
+           //apopeira apeftheias syndesis
+           tbllogmodel.addLogData(tr("Connecting to the remote computer directly..."));
+           lastMainWindowPosition = this->pos();
+           p2pclient.remotePort=remoteUPnP;
+           p2pclient.remoteIpAddress = str;
+           p2pclient.setRemotePassword(ui->txtRemotePassword->text().toStdString());
+           p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());//TODO: nomizw pleonasmos.
+           p2pclient.start();
+       } //MSG_P2P_CONNECT_TO_REMOTE_CLIENT_UPNP_PORT
+       else if (msgType == protocol_supervisor.protocol.MSG_P2P_SERVER_BIND_PORT_OK){
+           //molis o p2p server kanei bind se ena local port, tote prospathoume na aniksoume kai tin upnp port.
+           upnpengine.AddPortMappingPeriodicallyAsync("", p2pserver.PORT_NUMBER, "TCP", p2pserver.PORT_NUMBER, "", 1, "AndamaRemoteDesktop", (12 * 60 * 60 /*12 wres*/), (10 * 60));//aitima gia anoigma its port 17332 gia 12 wres, kathe 10 lepta
+       } //MSG_P2P_SERVER_BIND_PORT_OK
     }
     catch (std::exception &ex)
     {
@@ -747,18 +1064,19 @@ void MainWindow::mymessageRecieved(const int msgType,const std::vector<char>& vd
 
 //click sto koumpi syndesis se apomakrismeno ypologisti
 void MainWindow::on_btnConnectToRemoteClient_clicked()
-{   
+{
     //efoson exei symplirwthei to remote ID kai remote password
     //apostelw to aitima syndesis
     if(ui->txtRemotePCID->text().size() > 0 && ui->txtRemotePassword->text().size() > 0){
         //apokryptw to button, emfanizw marquee klp
         //wste na fainetai oti kati ginetai
-        ui->lblStatus->setText("Connecting to remote computer...");
+        ui->lblStatus->setText(tr("Connecting to remote computer..."));
         ui->btnConnectToRemoteClient->hide();
         ui->remoteConnectProgressBar->setHidden(false);
         //ui->txtRemotePCID->setFocus();//xreiazetai giati sta windows meta apo to click sto button pairnei to focus to local password field
         ui->lblRemoteIDError->clear();
         ui->lblRemotePasswordError->clear();
+        tbllogmodel.addLogData("Connecting to the remote computer...");
 
         //lamvanw ta remote id kai remote password
         //ta metatrepw se vector<char> kai ta pernaw sto protocolo
@@ -766,9 +1084,22 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
         std::string strRemoteID=ui->txtRemotePCID->text().toStdString();
         std::vector<char> vectRemoteID = std::vector<char>(strRemoteID.begin(),strRemoteID.end());
 
-        std::string strPassword = ui->txtRemotePassword->text().toStdString();
-        std::vector<char> vectRemotePassword = std::vector<char>(strPassword.begin(), strPassword.end());
-        protocol.Connect(vectRemoteID, vectRemotePassword);
+        std::string strRemotePassword = ui->txtRemotePassword->text().toStdString();
+        protocol_supervisor.protocol.setRemotePassword(strRemotePassword);
+        std::vector<char> vectRemotePasswordDoubleHash = std::vector<char>(protocol_supervisor.protocol.getRemotePasswordDoubleHash().begin(), protocol_supervisor.protocol.getRemotePasswordDoubleHash().end());
+
+
+        if (ui->txtRemotePCID->text().contains(":")){
+            tbllogmodel.addLogData(tr("Connecting to the remote computer directly..."));
+            lastMainWindowPosition = this->pos();
+            p2pclient.remotePort=ui->txtRemotePCID->text().split(":")[1].toInt();
+            p2pclient.remoteIpAddress = ui->txtRemotePCID->text().split(":")[0].toStdString();
+            p2pclient.setRemotePassword(strRemotePassword);
+            p2pclient.setLocalPassword(protocol_supervisor.protocol.getLocalPlainPassword());//TODO: nomizw pleonasmos.
+            p2pclient.start();
+        }else{
+            protocol_supervisor.protocol.Connect(vectRemoteID, vectRemotePasswordDoubleHash);
+        }
     } else {
         //den exei kataxwrithei remote id h remote password
         //opote kanw beep kai dinw to focus sto pedio pou den exei symplirwthei
@@ -779,6 +1110,8 @@ void MainWindow::on_btnConnectToRemoteClient_clicked()
             ui->txtRemotePassword->setFocus();
         }
     }
+
+
 } //on_btnConnectToRemoteClient_clicked
 
 void MainWindow::on_connectWidget_customContextMenuRequested(const QPoint &pos)

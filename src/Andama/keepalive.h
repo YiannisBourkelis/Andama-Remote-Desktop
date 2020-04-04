@@ -25,13 +25,15 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
-#include "clientserver.h"
+//#include "clientserver.h"
+#include "protocolsupervisor.h"
 
 class keepalive : public QThread
 {
         Q_OBJECT
 public:
-    clientserver * protocol;
+    protocolSupervisor * protocol_supervisor;
+     std::atomic<bool> stopThread {false};
 
 protected:
     void run(void);

@@ -18,7 +18,15 @@
  * along with Andama.  If not, see <http://www.gnu.org/licenses/>.
  * ***********************************************************************/
 
+#ifdef WIN32
+#define NOMINMAX
+#endif
+
 #include "screenshotsworker.h"
+#include "../Shared/AndamaHeaders/byte_functions.h"
+#include "../Shared/AndamaHeaders/socket_functions.h"
+#include "../Shared/General/bench.h"
+#include "../Shared/Cryptography/openssl_aes.h"
 
 screenshotsWorker::screenshotsWorker()
 {
@@ -26,19 +34,22 @@ screenshotsWorker::screenshotsWorker()
 }
 
 void screenshotsWorker::run(void){
-    while (true)
+    while (true && !stopThread)
     {
         if (isDirty.load() == true)
         {
+            Bench bench("screenshotWorker::run-isDirty - ALL");
             //qDebug("9. screenshotsWorker: isDirty.load() == true. pendingScreenshot_mutex.lock()");
             { // lock_guard scope
+                //Bench bench("screenshotWorker::run-isDirty");
                 std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
                 isDirty.store(false);
-                pendingScreenshot_working_copy = pendingScreenshot.copy();
+                pendingScreenshot_working_copy = std::move(pendingScreenshot); //pendingScreenshot.copy(); !! mono afti i allagi apo .copy se std::move meiwse to xrono antigrafis apo 22ms se 0ms sto raspberry pi
             } // lock_guard scope
             //qDebug("10. screenshotsWorker: isDirty set to false. pendingScreenshot_mutex.unlock()");
 
-            if (this->pendingMsg.load() == this->protocol->MSG_SCREENSHOT_DIFF_REQUEST){
+            if (this->pendingMsg.load() == this->protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST){
+                Bench bench("this->prepareAndSendScreenshotDiff() - ALLx2");
                 this->prepareAndSendScreenshotDiff();
             }
             else
@@ -51,16 +62,18 @@ void screenshotsWorker::run(void){
 
         QThread::currentThread()->msleep(1);
     }
+
+    std::cout << "screenshotsWorker::run exiting...\r\n" << std::endl;
 }
 
-void screenshotsWorker::setScreenshot(QImage newScreenshot, const int msg)
+void screenshotsWorker::setScreenshot(const QImage &newScreenshot, const int msg)
 {
     //QMutexLocker locker(&pendingScreenshot_mutex);
 
     //qDebug("7. Inside screenshotsWorker. Will set pendingScreenshot. pendingScreenshot_mutex.lock()");
     { // lock_guard scope
         std::lock_guard<std::mutex> lock(pendingScreenshot_mutex);
-        pendingScreenshot = newScreenshot.copy();
+        pendingScreenshot = std::move(newScreenshot); //newScreenshot.copy();
         pendingMsg.store(msg);
         isDirty.store(true);
     } // lock_guard scope
@@ -74,7 +87,7 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
     //dimiourgw antigrafo tou pending screenshot wste na klithei kai pali
     //std::cout << "prepareAndSendScreenshotDiff : Enarksi elegxou screenshot kai apostolis" << std::endl;
 
-    QImage outimg;
+    //QImage outimg;
 
        //sigrinw to proigoumeno screenshot kai to trexon gia diafores
 
@@ -122,7 +135,6 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             miny = miny - compareOffset + 1 < 0 ? 0 : miny - compareOffset + 1;
             maxx = maxx + compareOffset - 1 > pendingScreenshot_working_copy.width() - 1 ? pendingScreenshot_working_copy.width() - 1 :maxx + compareOffset - 1;
             maxy = maxy + compareOffset - 1 > pendingScreenshot_working_copy.height() - 1 ? pendingScreenshot_working_copy.height() - 1 : maxy + compareOffset - 1;
-
             /*
             minx = minx - compareOffset - 11 < 0 ? 0 :  minx - compareOffset - 11;
             miny = miny - compareOffset - 11 < 0 ? 0 : miny - compareOffset - 11;
@@ -144,8 +156,13 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
             //std::cout << std::chrono::duration<double,std::milli>(diff).count() << " ms" <<std::endl;
             //qDebug("12. screenshotsWorker.prepareAndSendScreenshotDiff  Diaforetika screenshot. Antigrafi kai proetoimasia apostolis.");
            //qDebug("Ta screenshot einai diaforetika. minx: %i,maxx: %i, miny: %i, maxy: %i",minx,maxx,miny,maxy);
-            outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
-            sendScreenshot(outimg,minx,miny);
+            //outimg=pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1);
+
+            //std::thread t(&screenshotsWorker::sendScreenshot,this, pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+            //t.detach();
+
+            sendScreenshot(pendingScreenshot_working_copy.copy(minx,miny,maxx-minx+1,maxy-miny+1), minx, miny);
+
             //std::cout << "prepareAndSendScreenshotDiff : Egine apostoli screenshot" << std::endl;
        }
        else
@@ -158,13 +175,14 @@ void screenshotsWorker::prepareAndSendScreenshotDiff()
            //QImage qimg(QGuiApplication::primaryScreen()->grabWindow(QApplication::desktop()->winId()).toImage());
            //setScreenshot(qimg,protocol->MSG_SCREENSHOT_DIFF_REQUEST);
 
-           sendScreenshot(outimg,0,0);
+           sendScreenshot(QImage(),0,0);
            //std::cout << "prepareAndSendScreenshotDiff : Apostoli adeiou screenshot" << std::endl;
        }
 }
 
-void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
+void screenshotsWorker::sendScreenshot(const QImage &outimg,int x, int y)
 {
+    Bench bench("screenshotsWorker::sendScreenshot ALL");
     try
     {
         //qDebug("13. screenshotsWorker.sendScreenshot  called. Dimiourgia kai compress twn bytes tou image. meta apostoli");
@@ -172,46 +190,74 @@ void screenshotsWorker::sendScreenshot(QImage outimg,int x, int y)
         QByteArray bytes;
         QBuffer buffer(&bytes);
         buffer.open(QIODevice::WriteOnly);
-        QImage locimg(outimg);
-        locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+        //bytes.clear();
+        //QImage locimg(outimg);
+        //locimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
 
-        int nSize = bytes.size();
+        {
+            Bench bench("JPG conversion");
+            outimg.save(&buffer,"JPG",this->imageQuality); // writes pixmap into bytes in PNG format
+            //outimg.save(&buffer); // writes pixmap into bytes in PNG format
+        }
+
+        //int nSize = bytes.size();
          //qDebug("## image bytes size uncompressed: %i",nSize);
 
         QByteArray compressed_bytes = qCompress(bytes,9);
+
          //qDebug("## image bytes size commpressed: %i",compressed_bytes.size());
 
          std::array<char,1> cmd;
 
+         //QByteArray bytes
          std::vector<char> vimgbytes;
-         if(pendingMsg.load() == protocol->MSG_SCREENSHOT_DIFF_REQUEST)
          {
-             cmd[0] = 's';
+             Bench bench("vimgbytes creation");
+             if(pendingMsg.load() == protocol_supervisor->protocol.MSG_SCREENSHOT_DIFF_REQUEST)
+             {
+                 cmd[0] = 's';
 
-             std::vector<char> cx(2);
-             intToBytes(x,cx);
-             vimgbytes.insert(vimgbytes.end(),cx.begin(),cx.end());
-             //qDebug("x to send: %i",x);
+                 std::vector<char> cx(2);
+                 intToBytes(x,cx);
+                 vimgbytes.insert(vimgbytes.end(),cx.begin(),cx.end());
+                 //qDebug("x to send: %i",x);
 
-             std::vector<char> cy(2);
-             intToBytes(y,cy);
-             vimgbytes.insert(vimgbytes.end(),cy.begin(),cy.end());
-             //qDebug("y to send: %i",y);
+                 std::vector<char> cy(2);
+                 intToBytes(y,cy);
+                 vimgbytes.insert(vimgbytes.end(),cy.begin(),cy.end());
+                 //qDebug("y to send: %i",y);
+             }
+             else
+             {
+                 cmd[0] = 'S';
+             }
+
+            vimgbytes.insert(vimgbytes.end(), compressed_bytes.begin(),compressed_bytes.end());
          }
-         else
-         {
-             cmd[0] = 'S';
-         }
-
-        vimgbytes.insert(vimgbytes.end(), compressed_bytes.begin(),compressed_bytes.end());
 
         //qDebug("14. screenshotsWorker.sendScreenshot  etoimi eikona pros apostoli. Bytes: %lu", vimgbytes.size());
 
-        protocol->_sendmsg(protocol->getActiveSocket(),cmd,vimgbytes);
+        if (p2pServer->hasConnectedClientThreadsRunning())
+        {
+            Bench bench("sendScreenshot-_sendmsg");
+            openssl_aes::secure_string ctext;
+            openssl_aes myaes(EVP_aes_256_cbc());
+            openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
+            myaes.aes_256_cbc_encrypt(p2pServer->getLocalPasswordHash().data(), p2pServer->getLocalPasswordDoubleMD5().data(), ptext, ctext);
+            std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+            _sendmsg(p2pServer->activeClientSocket,cmd,vect_ciptext);
+        }else{
+            openssl_aes::secure_string ctext;
+            {
+                Bench bench("sendScreenshot-data encryption time");
+                openssl_aes myaes(EVP_aes_256_cbc());
+                openssl_aes::secure_string ptext (vimgbytes.begin(),vimgbytes.end());
+                myaes.aes_256_cbc_encrypt(p2pServer->getLocalPasswordHash().data(), p2pServer->getLocalPasswordDoubleMD5().data(), ptext, ctext);
+            }
+            std::vector<char> vect_ciptext(ctext.begin(), ctext.end());
+            _sendmsg(protocol_supervisor->protocol.activeSocket,cmd,vect_ciptext);
+        }
         //qDebug("20. ---> Oloklirwsi apostolis screenshot diff.");
-
-        vimgbytes.clear();
-        vimgbytes.swap(vimgbytes);
     }
     catch (std::exception& ex)
     {

@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QMAKE_MAC_SDK = macosx10.11
+QMAKE_MAC_SDK = macosx10.12
+
 QT       += core
 CONFIG   += c++11
 
@@ -16,4 +17,18 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    ../Shared/AndamaHeaders/byte_functions.cpp \
+    ../Shared/AndamaHeaders/socket_functions.cpp \
+    ../Shared/AndamaHeaders/exception_helper.cpp \
+    ../Shared/General/bench.cpp
+
+HEADERS += \
+    ../Shared/AndamaHeaders/shared_constants.h \
+    ../Shared/AndamaHeaders/byte_functions.h \
+    ../Shared/AndamaHeaders/shared_enums.h \
+    clientinfo.h \
+    ipprotection.h \
+    ../Shared/AndamaHeaders/socket_functions.h \
+    ../Shared/AndamaHeaders/exception_helper.h \
+    ../Shared/General/bench.h
