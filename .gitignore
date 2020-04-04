@@ -32,3 +32,9 @@ Makefile*
 #QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/moc_predefs.h
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/Andama.app/Contents/Resources/empty.lproj
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/Andama.app/Contents/PkgInfo
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/Andama.app/Contents/MacOS/Andama
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/Andama.app/Contents/Info.plist
+src/build-Andama-Desktop_Qt_5_12_2_clang_64bit-Debug/.qmake.stash
