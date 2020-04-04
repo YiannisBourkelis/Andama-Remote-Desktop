@@ -172,8 +172,10 @@ DEPENDPATH += $$PWD/../OSXObjectiveCBridge
 # ./Configure darwin64-x86_64-cc -shared
 # make clean
 # make
-macx:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
-macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+#macx:LIBS += -L$$PWD/../OpenSSL-1.1.0g/ -lcrypto
+#macx:INCLUDEPATH += $$PWD/../OpenSSL-1.1.0g/include/
+macx:LIBS += -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib/ -lcrypto
+macx:INCLUDEPATH += /usr/local/Cellar/openssl@1.1/1.1.1d/include
 
 # windows compile guide:
 # install activeperl - https://www.activestate.com/activeperl
