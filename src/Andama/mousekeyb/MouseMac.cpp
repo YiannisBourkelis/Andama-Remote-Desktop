@@ -41,7 +41,7 @@ void Mouse::moveToPoint(const int x, const int y)
 
     //qDebug("--> MOUSE ::: moveToPoint x:%i, y:%i",x,y);
 
-    CGEventRef event = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(x, y), 0 /*ignored*/);
+    CGEventRef event = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft);
 
     CGEventPost(kCGHIDEventTap, event);
     CFRelease(event);
@@ -65,7 +65,7 @@ void Mouse::press(Qt::MouseButton button)
                                 button == Qt::RightButton ? kCGEventRightMouseDown :
                                 button == Qt::MidButton   ? kCGEventOtherMouseDown : kCGEventNull;
 
-    CGEventRef event = CGEventCreateMouseEvent(NULL, eventType, CGPointMake(mousePos.x(), mousePos.y()), 0 /*ignored*/);
+    CGEventRef event = CGEventCreateMouseEvent(NULL, eventType, CGPointMake(mousePos.x(), mousePos.y()), kCGMouseButtonLeft /*ignored*/);
 
     CGEventPost(kCGHIDEventTap, event);
     sleep(0); // don't touch, it's Mac's magic
@@ -81,7 +81,7 @@ void Mouse::release(Qt::MouseButton button)
     CGEventType eventType =     button == Qt::LeftButton  ? kCGEventLeftMouseUp  :
                                 button == Qt::RightButton ? kCGEventRightMouseUp :
                                 button == Qt::MidButton   ? kCGEventOtherMouseUp : kCGEventNull;
-    CGEventRef event = CGEventCreateMouseEvent(NULL, eventType, CGPointMake(mousePos.x(), mousePos.y()), 0 /*ignored*/);
+    CGEventRef event = CGEventCreateMouseEvent(NULL, eventType, CGPointMake(mousePos.x(), mousePos.y()), kCGMouseButtonLeft /*ignored*/);
 
     CGEventPost(kCGHIDEventTap, event);
     sleep(0); // don't touch, it's Mac's magic
@@ -98,10 +98,10 @@ void Mouse::doubleClick(Qt::MouseButton button)
     //**************************************************************
     QPoint mousePos = QCursor::pos();
     CGEventType eventTypeMouseDown = kCGEventLeftMouseDown ;
-    CGEventRef eventPress = CGEventCreateMouseEvent(NULL, eventTypeMouseDown, CGPointMake(mousePos.x(), mousePos.y()), 0 /*ignored*/);
+    CGEventRef eventPress = CGEventCreateMouseEvent(NULL, eventTypeMouseDown, CGPointMake(mousePos.x(), mousePos.y()), kCGMouseButtonLeft /*ignored*/);
 
     CGEventType eventTypeMouseUp = kCGEventLeftMouseUp ;
-    CGEventRef eventRelease = CGEventCreateMouseEvent(NULL, eventTypeMouseUp, CGPointMake(mousePos.x(), mousePos.y()), 0 /*ignored*/);
+    CGEventRef eventRelease = CGEventCreateMouseEvent(NULL, eventTypeMouseUp, CGPointMake(mousePos.x(), mousePos.y()), kCGMouseButtonLeft /*ignored*/);
 
     CGEventSetDoubleValueField(eventPress, kCGMouseEventClickState, 2);
     CGEventSetDoubleValueField(eventRelease, kCGMouseEventClickState, 2);
